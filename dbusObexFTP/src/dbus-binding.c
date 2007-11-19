@@ -343,10 +343,12 @@ int main2(int argc, char* argv[]){
 	DBUS_BTData* data = initDBUS_BT( argv[1], serv, NULL );
 	
 	openRFCommConnection(data);
-	/*
-	//data->fd = open(data->rfcommNode, O_RDWR);
-	int ret;
-	//ret = write(data->fd, "AT\n\r", 4);
+	
+	data->fd = fopen(data->rfcommNode, "r+b");
+	int ret, fd;
+	
+	fd = fileno (data->fd);
+	ret = write(fd, "AT\n\r", 4);
 	
 	g_message("Wrote %d bytes (expected %d)\n", ret, 4);
 	
@@ -359,12 +361,12 @@ int main2(int argc, char* argv[]){
 	time.tv_usec = 0;
 
 	FD_ZERO(&fdset);
-	FD_SET(data->fd, &fdset);
+	FD_SET(fd, &fdset);
 
-	ret = select(data->fd +1, &fdset, NULL, NULL, &time);
+	ret = select(fd +1, &fdset, NULL, NULL, &time);
 	
 	/* Check if this is a timeout (0) or error (-1) */
-	/*if (ret < 1) {
+	if (ret < 1) {
 		g_error("Timeout or error (%d)\n", ret);
 		return ret;		
 	}
@@ -372,13 +374,13 @@ int main2(int argc, char* argv[]){
 	if (data->buffer == NULL)	
 		data->buffer = (char *)calloc(sizeof(char), BUF_SIZE);
 	
-	actual = read(data->fd, (data->buffer), BUF_SIZE);
+	actual = read(fd, (data->buffer), BUF_SIZE);
 	
 	if(actual <= 0)
 		return actual;
 	
 	g_message("Read %d bytes", actual);
 	g_message("%s", data->buffer);
-	*/
+	
 	return 0;
 }
