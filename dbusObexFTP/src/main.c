@@ -53,6 +53,73 @@ static int use_conn=1;
 static int use_path=1;
 
 
+static void info_cb(int event, const char *msg, int len, void *UNUSED(data))
+{
+	char progress[] = "\\|/-";
+	static unsigned int i = 0;
+
+	switch (event) {
+
+	case OBEXFTP_EV_ERRMSG:
+		fprintf(stderr, "Error: %s\n", msg);
+		break;
+
+	case OBEXFTP_EV_ERR:
+		fprintf(stderr, "failed: %s\n", msg);
+		break;
+	case OBEXFTP_EV_OK:
+		fprintf(stderr, "done\n");
+		break;
+
+	case OBEXFTP_EV_CONNECTING:
+		fprintf(stderr, "Connecting...");
+		break;
+	case OBEXFTP_EV_DISCONNECTING:
+		fprintf(stderr, "Disconnecting...");
+		break;
+	case OBEXFTP_EV_SENDING:
+		fprintf(stderr, "Sending \"%s\"... ", msg);
+		break;
+	case OBEXFTP_EV_RECEIVING:
+		fprintf(stderr, "Receiving \"%s\"... ", msg);
+		break;
+
+	case OBEXFTP_EV_LISTENING:
+		fprintf(stderr, "Waiting for incoming connection\n");
+		break;
+
+	case OBEXFTP_EV_CONNECTIND:
+		fprintf(stderr, "Incoming connection\n");
+		break;
+	case OBEXFTP_EV_DISCONNECTIND:
+		fprintf(stderr, "Disconnecting\n");
+		break;
+
+	case OBEXFTP_EV_INFO:
+		printf("Got info %u: \n", *(uint32_t*)msg);
+		break;
+
+	case OBEXFTP_EV_BODY:
+		if (c == 'l' || c == 'X' || c == 'P') {
+			if (msg == NULL)
+				fprintf(stderr, "No body.\n");
+			else if (len == 0)
+				fprintf(stderr, "Empty body.\n");
+			else
+				write(STDOUT_FILENO, msg, len);
+		}
+		break;
+
+	case OBEXFTP_EV_PROGRESS:
+		fprintf(stderr, "%c%c", 0x08, progress[i++]);
+		fflush(stdout);
+		if (i >= strlen(progress))
+			i = 0;
+		break;
+
+	}
+}
+
 
 
 /* connect with given uuid. re-connect every time */
@@ -68,8 +135,6 @@ static int cli_connect_uuid(const uint8_t *uuid, int uuid_len)
 			service = "ftp";
 		
 		DBUS_BTData* data = initDBUS_BT( addr, service, hci );
-			
-		//data->targetAddr = addr;
 
 		ctrans.connect = DBUS_BTConnect;
 		ctrans.disconnect = DBUS_BTDisconnect;
@@ -79,7 +144,7 @@ static int cli_connect_uuid(const uint8_t *uuid, int uuid_len)
 		ctrans.customdata = data;
 		
 		/* Open */
-		cli = obexftp_open (OBEX_TRANS_DBUS_BLUETOOTH, &ctrans, NULL, NULL);
+		cli = obexftp_open (OBEX_TRANS_DBUS_BLUETOOTH, &ctrans, info_cb, NULL);
 		
 		if(cli == NULL) {
 			fprintf(stderr, "Error opening obexftp-client\n");
@@ -297,7 +362,7 @@ int main(int argc, char *argv[])
 			}
 			if(cli_connect ()) {
 				/* List folder */
-				(void) obexftp_list(cli, NULL, optarg);
+				(void) obexftp_list(cli, NULL, optarg);				
 			}
 			most_recent_cmd = c;
 			break;
@@ -390,7 +455,7 @@ int main(int argc, char *argv[])
 				"Copyright (c) 2007 Naranjo Manuel Francisco <manuel@aircable.net>\n"
 				"Copyright (c) 2002-2004 Christian W. Zuckschwerdt\n"
 				"\n"
-				" -b, --bluetooth [<device>]  use or search a bluetooth device\n"
+				" -b, --bluetooth <address>   use or search a bluetooth device\n"
 				" [ -B, --service <service/number> ]  use this bluetooth service/channel \n"
 				"\t\t\twhen connecting\n"
 				" [ -d, --hci <string> ]  	  give this as: /org/bluez/hci# \n"

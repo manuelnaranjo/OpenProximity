@@ -48,11 +48,12 @@ void printDebug(uint8_t * data, int buflen) {
 	
 	buf = (char *)calloc(sizeof(char), 300);
 	
+#define __BYTES_PLINE 20
 	j = 0;
 	for (i = 0 ; i < buflen ; i ++) {
 		sprintf(buf, "%s%02X ", buf, data[i]);
 		
-		if (i!=0 && (i%20)==19 ){
+		if (i!=0 && (i%__BYTES_PLINE)==__BYTES_PLINE-1 ){
 
 			while ( j < i ) {
 				char k;
@@ -65,17 +66,17 @@ void printDebug(uint8_t * data, int buflen) {
 			
 			buf[0] = 0;
 		} else if (i == buflen -1 ) {
-			i = j;
-			while ( j < (((int)(buflen/20))+1)*20 ) {
+			
+			while ( i < (((int)(buflen/__BYTES_PLINE))+1)*__BYTES_PLINE-1 ) {
 				sprintf(buf, "%s   ", buf);
-				j++;
+				i++;
 			}
 			
-			while ( i < buflen ) {
+			while ( j < buflen ) {
 				char k;
-				k = (char) data[i];
+				k = (char) data[j];
 				sprintf(buf, "%s%c", buf, (isprint(k) ? k : '*') );
-				i++;
+				j++;
 			}
 					
 			g_debug("%s", buf);
