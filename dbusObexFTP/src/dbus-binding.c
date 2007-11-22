@@ -40,6 +40,57 @@ static DBusGProxy* sppManager = NULL;
 
 static GMainLoop *loop = NULL;
 
+void printDebug(uint8_t * data, int buflen) {
+#ifdef __DBUS_BINDING_DEBUG
+#include <ctype.h>
+	char * buf;
+	int  i, j;
+	
+	buf = (char *)calloc(sizeof(char), 300);
+	
+	j = 0;
+	for (i = 0 ; i < buflen ; i ++) {
+		sprintf(buf, "%s%02X ", buf, data[i]);
+		
+		if (i!=0 && (i%20)==19 ){
+
+			while ( j < i ) {
+				char k;
+				k = (char) data[j];
+				sprintf(buf, "%s%c", buf, (isprint(k) ? k : '*') );
+				j++;
+			}
+			
+			g_debug("%s", buf);
+			
+			buf[0] = 0;
+		} else if (i == buflen -1 ) {
+			i = j;
+			while ( j < (((int)(buflen/20))+1)*20 ) {
+				sprintf(buf, "%s   ", buf);
+				j++;
+			}
+			
+			while ( i < buflen ) {
+				char k;
+				k = (char) data[i];
+				sprintf(buf, "%s%c", buf, (isprint(k) ? k : '*') );
+				i++;
+			}
+					
+			g_debug("%s", buf);
+		}
+	}
+	
+	free(buf);
+
+#endif
+	return;
+
+}
+
+
+
 //internal functions
 static DBusGProxy* findAdapter(DBusGConnection * bus, const char * hci){
 	GError *error = NULL;
@@ -60,12 +111,12 @@ static DBusGProxy* findAdapter(DBusGConnection * bus, const char * hci){
 	    }
 	    
 	    out = dbus_g_proxy_new_for_name(dbusConnection, "org.bluez", adapterStr, "org.bluez.Adapter");
-		g_message ("Using: %s", adapterStr);
+		g_debug ("Using: %s", adapterStr);
 		g_free( adapterStr );
 		
 	} else {
 		out = dbus_g_proxy_new_for_name(bus, "org.bluez", hci, "org.bluez.Adapter");
-		g_message ("Using: %s", hci);
+		g_debug ("Using: %s", hci);
 	}
 	
 	return out;
@@ -94,7 +145,7 @@ void initDBusConnection(){
     	exit(EXIT_FAILURE);
     }
     
-    g_message("Connected to DBUS");
+    g_debug("Connected to DBUS");
     
     bzManager = dbus_g_proxy_new_for_name(dbusConnection, "org.bluez", 
 			"/org/bluez", "org.bluez.Manager");
@@ -104,7 +155,7 @@ void initDBusConnection(){
     	exit(EXIT_FAILURE);
     }
 	
-	g_message("Connected to BlueZ Manager");
+	g_debug("Connected to BlueZ Manager");
 	
 	return;
 }
@@ -126,7 +177,7 @@ void initSerialService() {
     	exit(EXIT_FAILURE);
     }
     
-    g_message("Serial Service Activated");
+    g_debug("Serial Service Activated");
     
     sppManager = dbus_g_proxy_new_for_name(dbusConnection, conn, 
     		"/org/bluez/serial", "org.bluez.serial.Manager");
@@ -136,10 +187,16 @@ void initSerialService() {
 		exit(EXIT_FAILURE);
 	}
 	
-	g_message("Serial Service Proxy initializated");
+	g_debug("Serial Service Proxy initializated");
     
     return;    
 }
+
+static void event(DBusGProxy *object, const char* data, gpointer user_data)
+{
+		g_debug("Signal: event(%s)", data );
+}
+
 
 void openRFCommConnection(DBUS_BTData * data){
 	GError *error = NULL;
@@ -149,6 +206,27 @@ void openRFCommConnection(DBUS_BTData * data){
 				"before calling initSerialService() sorry");
 		exit(EXIT_FAILURE);
 	}
+	
+    dbus_g_proxy_add_signal(sppManager, "PortCreated", 
+    		G_TYPE_STRING, G_TYPE_INVALID);
+    
+    dbus_g_proxy_connect_signal(sppManager, "PortCreated", 
+    		G_CALLBACK(event), sppManager, NULL);
+
+    
+    dbus_g_proxy_add_signal(sppManager, "ProxyCreated", 
+        		G_TYPE_STRING, G_TYPE_INVALID);
+    
+    dbus_g_proxy_connect_signal(sppManager, "ProxyCreated", 
+    		G_CALLBACK(event), sppManager, NULL);
+
+    
+    dbus_g_proxy_add_signal(sppManager, "ServiceConnected", 
+            		G_TYPE_STRING, G_TYPE_INVALID);
+    
+    dbus_g_proxy_connect_signal(sppManager, "ServiceConnected", 
+    		G_CALLBACK(event), sppManager, NULL);
+
 
     if (!dbus_g_proxy_call (sppManager, "ConnectService", &error, 
     		G_TYPE_STRING, data->targetAddr, G_TYPE_STRING, data->service
@@ -158,7 +236,7 @@ void openRFCommConnection(DBUS_BTData * data){
     	exit(EXIT_FAILURE);
     }
     
-    g_message("Connected to %s", data->rfcommNode);
+    g_debug("Connected to %s", data->rfcommNode);
         
     return;  
 }
@@ -179,7 +257,7 @@ void closeRFCommConnection(DBUS_BTData * data){
     	return;
     }
     
-    g_message("Disconnected: %s", data->rfcommNode);
+    g_debug("Disconnected: %s", data->rfcommNode);
         
     return;  
 }
@@ -203,11 +281,32 @@ int DBUS_BTConnect(obex_t *handle, void * customdata){
 		return FALSE;
 	} 
 	
-	g_message("Opened %s", data->rfcommNode);
+	g_debug("Opened %s", data->rfcommNode);
 	
-	/*if ( setvbuf (data->fd, NULL, _IONBF, BUFSIZ) != 0) {
-		perror("Couldn't set virtual buffer options: ");
-	}*/
+	int fd = fileno(data->fd);
+	
+	struct termios tio;
+	
+	tcgetattr(fd, &tio);
+
+	tcflush(fd, TCIOFLUSH);
+	
+    tio.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+    tio.c_iflag &= ~(BRKINT | ICRNL | ISTRIP | IXON);
+    tio.c_cflag &= ~(CSIZE | PARENB);
+    tio.c_cflag |= CS8;
+    tio.c_oflag &= ~(OPOST);
+
+    cfmakeraw(&tio);
+    
+    tio.c_cc[VMIN] = 0;
+    tio.c_cc[VTIME] = 0;
+
+    if (tcsetattr(fd, TCSAFLUSH, &tio) < 0) {
+    	closeRFCommConnection(data);
+    	close(fd);
+    	return FALSE;
+    }
 	
 	return TRUE;
 }
@@ -232,7 +331,7 @@ int DBUS_BTListen(obex_t *handle, void * customdata){
 
 int DBUS_BTWrite(obex_t *handle, void * customdata, uint8_t *buf, int buflen){
 	DBUS_BTData *data;
-	int ret, i;
+	int ret;
 	
 	data = (DBUS_BTData*)OBEX_GetCustomData(handle);
 	
@@ -244,13 +343,9 @@ int DBUS_BTWrite(obex_t *handle, void * customdata, uint8_t *buf, int buflen){
 
 	ret =  fwrite (buf, sizeof(uint8_t), buflen, data->fd);
 	fflush(data->fd);
-	g_message("Wrote %d bytes (expected %d)\n", ret, buflen);
+	g_debug("Wrote %d bytes (expected %d)", ret, buflen);
 	
-	for (i = 0; i <ret ; i++){
-		printf("%02X ", buf[i]);
-	}
-	
-	printf("\n");
+	printDebug(buf, buflen);
 	
 	return ret;
 }
@@ -274,7 +369,7 @@ int DBUS_BTHandleInput(obex_t *handle, void * customdata, int timeout){
 	FD_ZERO(&fdset);
 	FD_SET(fd, &fdset);
 
-	time.tv_sec = timeout;
+	time.tv_sec = 1;
 	time.tv_usec = 0;
 	
 	if (data->buffer == NULL)	
@@ -283,17 +378,16 @@ int DBUS_BTHandleInput(obex_t *handle, void * customdata, int timeout){
 	//fdatasync(fd);
 	
 	actual = select(fd, &fdset, NULL, NULL, &time);
-	g_message("Select returned %d", actual);
-	
-	if (actual <= 0)
-		return actual;
+	g_debug("Select returned %d", actual);
 	
 	actual = fread_unlocked (data->buffer, sizeof(char), BUF_SIZE, data->fd);
 	
 	if(actual <= 0)
 		return actual;
 	
-	g_message("Read %d bytes\n", actual);
+	g_debug("Read %d bytes", actual);
+	
+	printDebug( (uint8_t*) data->buffer , actual );
 
 	OBEX_CustomDataFeed(handle, (uint8_t *) data->buffer, actual);
 	return actual;
@@ -320,67 +414,3 @@ DBUS_BTData *initDBUS_BT(const char * addr, const char * service, const char *hc
 	return out;
 }
 
-
-int main2(int argc, char* argv[]){
-	if ( argc < 2) {
-		fprintf(stdout, "Usage: %s <address> [service] [command]\n", argv[0]);
-		fprintf(stdout, "	<address>: Bluetooth address to use in the XX:XX:XX:XX:XX:XX way\n");
-		fprintf(stdout, "	[service]: Bluetooth channel or service to use, default ftp\n");
-		
-		return 0;
-	}
-	
-	char * serv;
-	
-	initDBusConnection();
-	initSerialService();
-	
-	if ( argv[2] != NULL )
-		serv = argv[2];
-	else 
-		serv = "ftp";
-	
-	DBUS_BTData* data = initDBUS_BT( argv[1], serv, NULL );
-	
-	openRFCommConnection(data);
-	
-	data->fd = fopen(data->rfcommNode, "r+b");
-	int ret, fd;
-	
-	fd = fileno (data->fd);
-	ret = write(fd, "AT\n\r", 4);
-	
-	g_message("Wrote %d bytes (expected %d)\n", ret, 4);
-	
-	int actual;
-	struct timeval time;
-	
-	fd_set fdset;
-
-	time.tv_sec = 100;
-	time.tv_usec = 0;
-
-	FD_ZERO(&fdset);
-	FD_SET(fd, &fdset);
-
-	ret = select(fd +1, &fdset, NULL, NULL, &time);
-	
-	/* Check if this is a timeout (0) or error (-1) */
-	if (ret < 1) {
-		g_error("Timeout or error (%d)\n", ret);
-		return ret;		
-	}
-	
-	if (data->buffer == NULL)	
-		data->buffer = (char *)calloc(sizeof(char), BUF_SIZE);
-	
-	actual = read(fd, (data->buffer), BUF_SIZE);
-	
-	if(actual <= 0)
-		return actual;
-	
-	g_message("Read %d bytes", actual);
-	g_message("%s", data->buffer);
-	
-	return 0;
-}

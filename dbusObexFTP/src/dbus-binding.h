@@ -82,4 +82,6 @@ struct _DBUS_BTData{
 	char		*buffer;
 };
 
+#define __DBUS_BINDING_DEBUG
+
 #endif /*DBUSBINDING_H_*/

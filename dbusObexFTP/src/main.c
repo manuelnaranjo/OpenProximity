@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
 			break;
 
 		case 'h':
-			printf("ObexFTP %s\n", VERSION);
+			printf("dbusObexFTP %s\n", VERSION);
 			printf("Usage: %s [ -b <dev> [-B <chan>] [-d <hci>]| -U <intf> ]\n"
 				"[-c <dir> ...] [-C <dir> ] [-l [<dir>]]\n"
 				"[-g <file> ...] [-p <files> ...] [-k <files> ...] [-x] [-m <src> <dest> ...]\n"
