@@ -6,7 +6,7 @@ from net.aircable import SDP
 from net.aircable import Upload
 
 profile = 'opp'
-file_to_send = 'AIRcable.vnt'
+file_to_send = '/home/manuel/proximitymarketing/proximitymarketing/src/image.jpg'
 
 def connected_test(uploader):
     uploader.sendFile(file_to_send)
@@ -16,7 +16,7 @@ def transfer_completed_test(uploader):
     
 def closed_test(uploader):
     print 'All Done'
-    exit(0)
+
     
 def cancelled(uploader):
     print 'Someone Cancelled the Upload'
