@@ -138,7 +138,6 @@ class Upload:
             self.disconnectBT()
 
 def connected_test(uploader):
-    file_to_send = '/home/manuel/sodastero.gif'
     uploader.sendFile(file_to_send)
 
 def transfer_completed_test(uploader):

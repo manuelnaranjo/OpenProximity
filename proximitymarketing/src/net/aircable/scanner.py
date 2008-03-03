@@ -23,9 +23,8 @@ import dbus
 import dbus.glib
 import gobject
 import sdp
-import upload
 
-__DEBUG=None
+__DEBUG="yes"
 
 def  debug ( *text ):
     if __DEBUG == None:
@@ -55,7 +54,7 @@ class Scan:
     
     def __disc_completed_signal(self):
         debug( 'Signal: DiscoveryCompleted()' )
-        main_loop.quit()
+        #main_loop.quit()
     
     def register_signals(self):
         self.__adapter.connect_to_signal('DiscoveryStarted', 
@@ -87,7 +86,7 @@ if __name__ == "__main__":
     obj = bus.get_object('org.bluez', '/org/bluez/hci0')
     adapter = dbus.Interface(obj, 'org.bluez.Adapter')
 
-    scanner = scan(adapter)
+    scanner = Scan(adapter)
     scanner.firsttimefound = test_firsttime
     scanner.register_signals()
     scanner.start_scanning()
