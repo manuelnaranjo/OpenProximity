@@ -38,12 +38,13 @@ class Upload:
     total_bytes = -1
     exec_iter = 0
 
-    #function call backs
+    #function call backs used from outside.
     connected = None
     cancelled = None
     started = None
     transfer_completed = None
     error_occurred = None
+    closed = None
     
     
     def connectBT (self, target, uuid):
