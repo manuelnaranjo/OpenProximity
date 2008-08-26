@@ -9,7 +9,7 @@ setup(name='OpenProximity',
 	author_email='manuel@aircable.net',
 	package_dir= {'' : 'src' } ,
 	url='www.aircable.net',
-	packages=['net.aircable.openproximity'],
+	packages=['net', 'net.aircable', 'net.aircable.openproximity'],
 	scripts=['src/openproximity.py'],
 	license="Apache version 2",
     )
