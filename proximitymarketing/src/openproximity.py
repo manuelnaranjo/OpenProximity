@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #    OpenProximity: Main app.
 #    Copyright (C) 2008 Manuel Naranjo <manuel@aircable.net>
 #
@@ -20,9 +21,9 @@ import dbus
 import gobject
 import dbus.glib
 import os
-from net.aircable import Scan
-from net.aircable import SDP
-from net.aircable import Upload
+from net.aircable.openproximity import Scan
+from net.aircable.openproximity import SDP
+from net.aircable.openproximity import Upload
 from threading import Thread
 
 
