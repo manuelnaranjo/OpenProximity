@@ -22,7 +22,7 @@
 import dbus
 import dbus.glib
 import gobject
-import sdp
+import SDP
 
 __DEBUG="yes"
 

@@ -26,7 +26,11 @@ from os.path import basename,splitext
 from signal import *
 from time import ctime
 
+from net.aircable.openproximity import obex_ftp
+
 DEBUG='1'
+
+import os
 
 def  debug ( *text ):
     if DEBUG == None:
@@ -35,59 +39,124 @@ def  debug ( *text ):
     
 
 class Upload:
+    '''
+	Class that works as wrapper behind the complexity related to either ods
+        or obexftp usage.
+    
+	It defines some usefull function callbacks which most of them only apply
+        when using ods.
+    '''
+
     total_bytes = -1
     exec_iter = 0
 
     #function call backs used from outside.
     connected = None
+    '''
+	function callback that you can use to know when the connection was 
+	established.
+    '''
+
     cancelled = None
+    '''
+	function callback that you can use to know when the transaction was
+	cancelled.
+	ODS only
+    '''
+
     started = None
+    '''
+	function callback that you can use to know when the transfer has 
+	started.
+	ODS only
+    '''
+
     transfer_completed = None
+    '''
+	function callback that you can use to know when the file transfer has
+	been completed
+	ODS only
+    '''
+
     error_occurred = None
+    '''
+	function callback that you can use to know when an error has ocurred
+	ODS only
+    '''
+
     closed = None
+    '''
+	function callback that you can use to know when the connection was 
+	closed
+	ODS only
+    '''
     
-    
+
     def connectBT (self, target, uuid):
-        self.bt_address = target
+    	'''
+	    Function that you will use as your kick point.
+	    If the connection sucess (or if you are using obexftp) then connected
+	    callback will get called.
+	    If you are using obexftp then make sure uuid is a valid channel
+	    number.
+	'''
+
+       	self.bt_address = target
         self.uuid = uuid
-        self.session_path = self.manager.CreateBluetoothSession(
+
+	if obex_ftp:
+	    if (self.connected != None):
+		self.connected(self);
+	else:
+        	self.session_path = self.manager.CreateBluetoothSession(
                                     self.bt_address, self.uuid)
         
-        self.session_obj = self.bus.get_object('org.openobex', 
+	        self.session_obj = self.bus.get_object('org.openobex', 
                                     self.session_path)
         
-        self.session = dbus.Interface(self.session_obj, 
+        	self.session = dbus.Interface(self.session_obj, 
                                       'org.openobex.Session')
 
-        self.session.connect_to_signal('Connected', 
+	        self.session.connect_to_signal('Connected', 
                                        self.__connected_cb)
-        self.session.connect_to_signal('Disconnected', 
+	        self.session.connect_to_signal('Disconnected', 
                                        self.__disconnected_cb)
-        self.session.connect_to_signal('Closed', 
+        	self.session.connect_to_signal('Closed', 
                                        self.__closed_cb)
-        self.session.connect_to_signal('Cancelled', 
-                                       self.__cancelled_cb)
-        self.session.connect_to_signal('TransferStarted', 
+	        self.session.connect_to_signal('Cancelled', 
+        	                               self.__cancelled_cb)
+	        self.session.connect_to_signal('TransferStarted', 
                                        self.__transfer_started_cb)
-        self.session.connect_to_signal('TransferProgress', 
+        	self.session.connect_to_signal('TransferProgress', 
                                        self.__transfer_progress_cb)
-        self.session.connect_to_signal('TransferCompleted', 
+	        self.session.connect_to_signal('TransferCompleted', 
                                        self.__transfer_completed_cb)
-        self.session.connect_to_signal('ErrorOccurred', 
+        	self.session.connect_to_signal('ErrorOccurred', 
                                        self.__error_occurred_cb)
-        self.session.Connect()
+	        self.session.Connect()
         
-    def sendFile(self, file):
-       self.session.SendFile(file)
+    def sendFile(self, file, extra=""):
+	'''
+	    This function will send a file, this function will not create a new
+	    thread, it is user responsability to do so.
+	    
+	    set extra to \'-U none -H -S\' wehen using obex push
+	'''
+    	if not obex_ftp:
+	    self.session.SendFile(file)
+	else:
+	    os.system ("obexftp %s -b %s -B %s -p %s" % (
+		extra, self.bt_address, self.uuid, file) );
        
     def disconnectBT(self):
         self.session.Disconnect()
 
     def __init__(self, bus):
-        self.bus = bus
+	if not obex_ftp:
+    	    self.bus = bus
         
-        manager_obj = self.bus.get_object('org.openobex', '/org/openobex')
-        self.manager = dbus.Interface(manager_obj, 'org.openobex.Manager')
+    	    manager_obj = self.bus.get_object('org.openobex', '/org/openobex')
+    	    self.manager = dbus.Interface(manager_obj, 'org.openobex.Manager')
     
     def __connected_cb(self):
         debug('Bluetooth Connected')

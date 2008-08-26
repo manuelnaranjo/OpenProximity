@@ -21,26 +21,35 @@ import dbus
 import gobject
 import dbus.glib
 import os
-from net.aircable.openproximity import Scan
-from net.aircable.openproximity import SDP
-from net.aircable.openproximity import Upload
+
+from string import lower as lower
+
+from net.aircable.openproximity.Scan import Scan
+from net.aircable.openproximity.SDP import SDP
+from net.aircable.openproximity.Upload import Upload
+from net.aircable.openproximity import obex_ftp
 from threading import Thread
+
+profile = 'opp'
+file_to_send = '%s/%s' %(os.environ['HOME'], 'openproximity/image.jpg')
+print obex_ftp 
 
 
 if 'OP_PROFILE' in os.environ.keys():
     profile = os.environ['OP_PROFILE']
-else:
-    profile = 'opp'
 
 if 'OP_FILE' in os.environ.keys():
     file_to_send = os.environ['OP_FILE']
-else:
-    file_to_send = '%s/%s' %(os.environ['HOME'], 'openproximity/image.jpg')
-    
-name = 'OpenProximity v0.1.2'
+
+name = 'OpenProximity v0.2'
 
 def connected_test(uploader):
-    uploader.sendFile(file_to_send)
+    extra = "";
+    
+    if obex_ftp:
+	extra='-U none -H -S'
+    
+    uploader.sendFile(file_to_send, extra)
     #We could send more than one file with one connection?
 
 def transfer_completed_test(uploader):
@@ -81,8 +90,12 @@ class WorkerThread (Thread):
     	self.uploader.closed = closed_test
     	self.uploader.cancelled = cancelled
         
-    	self.uploader.connectBT(self.addr, 
-    	    '%s:%i'%(self.profile, self.channel) )
+        if obex_ftp:
+    	    prof = self.channel
+    	else:
+    	    prof = '%s:%i'%(self.profile, self.channel);
+        
+    	self.uploader.connectBT(self.addr, prof )
     
 def test_firsttime(addr):
     WorkerThread( addr, adapter, profile ).start()
