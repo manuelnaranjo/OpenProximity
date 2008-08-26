@@ -36,7 +36,7 @@ if 'OP_FILE' in os.environ.keys():
 else:
     file_to_send = '%s/%s' %(os.environ['HOME'], 'openproximity/image.jpg')
     
-name = 'OpenProximity v0.1.1'
+name = 'OpenProximity v0.1.2'
 
 def connected_test(uploader):
     uploader.sendFile(file_to_send)
@@ -103,3 +103,4 @@ if __name__ == "__main__":
     dbus.glib.init_threads()
     main_loop = gobject.MainLoop()
     main_loop.run()
+
