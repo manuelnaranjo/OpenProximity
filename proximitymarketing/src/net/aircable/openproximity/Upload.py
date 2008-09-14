@@ -145,8 +145,8 @@ class Upload:
     	if not obex_ftp:
 	    self.session.SendFile(file)
 	else:
-	    os.system ("obexftp %s -b %s -B %s -p %s" % (
-		extra, self.bt_address, self.uuid, file) );
+	    os.system ("obexftp %s -b %s -B %s -p %s" % 
+		( extra, self.bt_address, self.uuid, file ) );
        
     def disconnectBT(self):
         self.session.Disconnect()

@@ -1,0 +1,8 @@
+setup.py
+src/openproximity.py
+src/net/__init__.py
+src/net/aircable/__init__.py
+src/net/aircable/openproximity/__init__.py
+src/net/aircable/openproximity/Scan.py
+src/net/aircable/openproximity/SDP.py
+src/net/aircable/openproximity/Upload.py

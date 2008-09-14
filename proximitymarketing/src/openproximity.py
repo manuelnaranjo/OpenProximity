@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #    OpenProximity: Main app.
 #    Copyright (C) 2008 Manuel Naranjo <manuel@aircable.net>
 #
@@ -95,7 +95,7 @@ class WorkerThread (Thread):
     	else:
     	    prof = '%s:%i'%(self.profile, self.channel);
         
-    	self.uploader.connectBT(self.addr, prof )
+    	self.uploader.connectBT( self.addr, prof )
     
 def test_firsttime(addr):
     WorkerThread( addr, adapter, profile ).start()
