@@ -29,6 +29,7 @@ from net.aircable.openproximity.SDP import SDP
 from net.aircable.openproximity.Upload import Upload
 from net.aircable.openproximity import obex_ftp
 from threading import Thread
+import thread
 
 profile = 'opp'
 file_to_send = '%s/%s' %(os.environ['HOME'], 'openproximity/image.jpg')
@@ -95,7 +96,8 @@ class WorkerThread (Thread):
     	else:
     	    prof = '%s:%i'%(self.profile, self.channel);
         
-    	self.uploader.connectBT( self.addr, prof )
+        #Time to detach
+    	thread.start_new_thread(self.uploader.connectBT, ( self.addr, prof ))
     
 def test_firsttime(addr):
     WorkerThread( addr, adapter, profile ).start()
