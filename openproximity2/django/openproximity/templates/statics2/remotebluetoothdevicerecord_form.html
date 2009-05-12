@@ -1,0 +1,26 @@
+{% load i18n %}
+<form action="" method="post">
+<table>
+    <tr>
+	<td>{{ form.time.label_tag }}</td>
+	<td>{{ form.time }}</td>
+    <tr>
+    <tr>
+	<td>{{ form.address.label_tag }}</td>
+	<td>{{ form.address }}</td>
+    </tr>
+    <tr>
+	<td>{{ form.server_address.label_tag }}</td>
+	<td>{{ form.server_address }}</td>
+    </tr>
+    <tr>
+	<td>{{ form.action.label_tag }}</td>
+	<td>{{ form.action }}</td>
+    </tr>
+    <tr>
+	<td>{{ form.action_extra.label_tag }}</td>
+	<td>{{ form.action_extra }}</td>
+    </tr>
+</table>
+<input type="submit" value={% trans "Submit" %} />
+</form>

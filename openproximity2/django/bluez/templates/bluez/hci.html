@@ -1,0 +1,270 @@
+{% extends "bluez/base.html" %}
+{% load i18n %}
+{% load aircable %}
+{% load bluez %}
+{% cycle 'odd' 'even' as color %}
+{% cycle 'dongle_odd' 'dongle_even' as dongle_color %}
+{% block title %}Status{% endblock %}
+
+{% block content %}
+	{% box "mainTable" %}
+		<td>
+		<table class="info" cellspan="3">
+			<tr class="{% cycle color %}">
+				<th>Dbus</th>
+				<td>{{ dbus|yesno:_("yes,no")|capfirst }}
+			</tr>
+			<tr class="{% cycle color %}">
+				<th>{% trans "Adapter" %}</th>
+				<td>{{ adapter|yesno:_("yes,no")|capfirst }}
+			</tr>
+		
+			{% if error %}
+		
+				<tr class="error">
+					<th>{% trans "Error Message" %}</th>
+					<td>{{ error }}</td>
+				</tr>
+			{% else %}
+				<tr class="{% cycle color %}">
+					<th>{% trans "Address" %}</th>
+					<td>{{ adapter.GetAddress }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Version" %}</th>
+					<td>{{ adapter.GetVersion }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Manufacturer" %}</th>
+					<td>{{ adapter.GetManufacturer }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Company" %}</th>
+					<td>{{ adapter.GetCompany }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Major Class" %}</th>
+					<td>{{ adapter.GetMajorClass }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Minor Class" %}</th>
+					<td>{{ adapter.GetMinorClass }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Name" %}</th>
+					<td>{{ adapter.GetName }}</td>
+				</tr>
+				
+				<tr class="{% cycle color %}">
+					<th>{% trans "Mode" %}</th>
+					<td>{{ adapter.GetMode }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Discoverable Timeout" %}</th>
+					<td>{{ adapter.GetDiscoverableTimeout }} seconds</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Is Connectable" %}</th>
+					<td>{{ adapter.IsConnectable|yesno:_("yes,no")|capfirst }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Is Discoverable" %}</th>
+					<td>{{ adapter.IsDiscoverable|yesno:_("yes,no")|capfirst }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Major Class" %}</th>
+					<td>{{ adapter.GetMajorClass }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Minor Class" %}</th>
+					<td>{{ adapter.GetMinorClass }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Name" %}</th>
+					<td>{{ adapter.GetName }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Is Periodic Discovery" %}</th>
+					<td>{{ adapter.IsPeriodicDiscovery|yesno:_("yes,no")|capfirst }}</td>
+				</tr>
+				<tr class="{% cycle color %}">
+					<th>{% trans "Periodic Discovery With Name Resolving" %}</th>
+					<td>{{ adapter.GetPeriodicDiscoveryNameResolving|yesno:_("yes,no")|capfirst }}</td>
+				</tr>
+			{% endif %}
+		</table>
+		</td>
+	{% endbox %}
+	{% box "mainTable" %}
+		<td>
+		<table class="actions" cellspan="3">
+			<tr class="table_tytle">
+			    <td><b>{% trans "Actions" %}</b></td>
+			</tr>		
+			{% if error %}
+			{% else %}
+			<tr class="action_button">
+			    <td>
+				<FORM METHOD="post" ACTION="">
+				<INPUT TYPE="submit" VALUE="{% trans "Discovery" %}">
+				<input type="hidden" name="method" value="DiscoverDevices">
+				<input type="hidden" name="sleep" value="15">
+				</FORM>
+			    </td>
+			    <td><b>{% trans "You will have to wait for 15 seconds for this to complete!" %}</b></td>
+			</tr>
+			<tr class="action_button">
+			    <td>
+				<FORM METHOD="post" ACTION="">
+				<INPUT TYPE="submit" VALUE="{% trans "No Name Resolving Discovery" %}">
+				<input type="hidden" name="method" value="DiscoverDevicesWithoutNameResolving">
+				<input type="hidden" name="sleep" value="15">
+				</FORM>
+			    </td>
+			    <td><b>{% trans "You will have to wait for 15 seconds for this to complete!" %}</b></td>
+			</tr>
+			<tr class="action_button">
+			    <td>
+				<FORM METHOD="post" ACTION="">
+				<SELECT name="args">
+				    <OPTION>off</OPTION> 
+				    <OPTION>connectable</OPTION> 
+				    <OPTION>discoverable</OPTION>
+				</SELECT>
+				<INPUT TYPE="submit" VALUE="{% trans "Set Mode" %}">
+				<input type="hidden" name="method" value="SetMode">
+				</FORM>
+			    </td>
+
+			</tr>
+			<tr class="action_button">
+			    <td>
+				<FORM METHOD="post" ACTION="">
+				<INPUT TYPE="text" name="args" value="{{ adapter.GetDiscoverableTimeout }}"/>
+				<INPUT TYPE="submit" VALUE="{% trans "Set Discoverable Timeout" %}"/>
+				<input type="hidden" name="method" value="SetDiscoverableTimeout"/>
+				</FORM>
+			    </td>
+{% comment %}
+    			<tr class="action_button">
+			    <td>
+				<FORM METHOD="post" ACTION="">
+				<INPUT TYPE="text" name="args" value="{{ adapter.GetMajorClass }}"/>
+				<INPUT TYPE="submit" VALUE="{% trans "Set Major Class" %}"/>
+				<input type="hidden" name="method" value="SetMajorClass"/>
+				</FORM>
+			    </td>
+    			</tr>
+{% endcomment %}
+			<tr class="action_button">
+			    <td>
+				<FORM METHOD="post" ACTION="">
+				<INPUT TYPE="text" name="args" value="{{ adapter.GetMinorClass }}"/>
+				<INPUT TYPE="submit" VALUE="{% trans "Set Minor Class" %}"/>
+				<input type="hidden" name="method" value="SetMinorClass"/>
+				</FORM>
+			    </td>
+			</tr>
+			{% endif %}
+		</table>
+		</td>
+	{% endbox %}
+
+{% comment %}
+	{% box "mainTable" %}
+		<td>
+		<table class="last_seen_devices" cellspan="100%" border="1">
+			<tr class="table_tytle" cellspan='5'>
+			    <td cellspan='5'><b>{% trans "Devices Seen on the last 24 hours" %}</b></td>
+			</tr>		
+			{% if error %}
+			{% else %}
+			    <tr class="{% cycle color %}">
+				<td>{% trans "Address" %}</td>
+				<td>{% trans "Name" %}</td>
+				<td>{% trans "Last Seen" %}</td>
+				<td>{% trans "Last Used" %}</td>
+				<td>{% trans "Trusted" %}</td>
+				<td>{% trans "PIN code length" %}</td>
+				<td>{% trans "Version" %}</td>
+				<td>{% trans "Revision" %}</td>
+				<td>{% trans "Manufacturer" %}</td>
+				<td>{% trans "Company" %}</td>
+				<td>{% trans "Major Class" %}</td>
+				<td>{% trans "Minor Class" %}</td>
+				<td>{% trans "Remote Features" %}</td>
+			    </tr>
+			    {% regroup remotedevices_today|dictsortreversed:"lastseen" by lastseen as remote_list_today %}
+			    {% for item in remote_list_today %}
+				{% for dongle in item.list %}
+				<tr>
+				<td class="{% cycle color %}">{{ dongle.address }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.name }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.lastseen }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.lastused }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.trusted|yesno:_("Yes,No") }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.pin_length }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.version }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.revision }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.manufacturer }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.company }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.major }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.minor }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.features }}</a></td>
+				</tr>
+				{% endfor %}
+			    {% endfor %}
+			{% endif %}
+		</table>
+		</td>
+	{% endbox %}
+{% endcomment %}
+
+	{% box "mainTable" %}
+		<td>
+		<table class="known_devices" cellspan="100%" border="1">
+			<tr class="table_tytle">
+			    <td><b>{% trans "All Time Known Devices" %}</b></td>
+			</tr>		
+			{% if error %}
+			{% else %}
+			    <tr class="{% cycle color %}">
+				<td>{% trans "Address" %}</td>
+				<td>{% trans "Name" %}</td>
+				<td>{% trans "Last Used" %}</td>
+				<td>{% trans "Last Seen" %}</td>
+				<td>{% trans "Trusted" %}</td>
+				<td>{% trans "PIN code length" %}</td>
+				<td>{% trans "Version" %}</td>
+				<td>{% trans "Revision" %}</td>
+				<td>{% trans "Manufacturer" %}</td>
+				<td>{% trans "Company" %}</td>
+				<td>{% trans "Major Class" %}</td>
+				<td>{% trans "Minor Class" %}</td>
+				<td>{% trans "Remote Features" %}</td>
+			    </tr>
+			    {% regroup remotedevices|dictsortreversed:"lastused" by lastused as remote_list %}
+			    {% for item in remote_list %}
+				{% for dongle in item.list %}
+				<tr>
+				<td class="{% cycle color %}">{{ dongle.address }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.name }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.lastused }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.lastseen }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.trusted|yesno:_("Yes,No") }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.pin_length }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.version }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.revision }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.manufacturer }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.company }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.major }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.minor }}</a></td>
+				<td class="{% cycle color %}">{{ dongle.features }}</a></td>
+				</tr>
+				{% endfor %}
+			    {% endfor %}
+			{% endif %}
+		</table>
+		</td>
+	{% endbox %}
+{% endblock %}

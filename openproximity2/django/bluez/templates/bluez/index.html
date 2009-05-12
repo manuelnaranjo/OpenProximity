@@ -1,0 +1,52 @@
+{% extends "bluez/base.html" %}
+{% load i18n %}
+{% load aircable %}
+
+{% cycle 'odd' 'even' as color %}
+{% cycle 'dongle_odd' 'dongle_even' as dongle_color %}
+
+{% block title %}Status{% endblock %}
+
+{% block content %}
+{% box "mainTable" %}
+<td align="center">
+    <div id="body">
+	<table class="info">
+	    <tr class="{% cycle color %}">
+        	<th>Dbus</th>
+		<td>{{ dbus|yesno:_("yes,no")|capfirst }}</td>
+	    </tr>
+	    <tr class="{% cycle color %}">
+		<th>{% trans "BlueZ Manager" %}</th>
+		<td>{{ manager|yesno:_("yes,no")|capfirst }}</td>
+	    </tr>
+    	    
+    	    {% if error %}
+		<tr class="new">
+		    <th>{% trans "Error Message" %}</th>
+		    <td>{{ error }}</td>
+		</tr>
+	    {% else %}
+		<tr class="{% cycle color %}">
+		    <th>{% trans "Interface Version" %}</th>
+		    <td>{{ manager.InterfaceVersion }}</td>
+		</tr>
+		<tr class="{% cycle color %}">
+		    <th>{% trans "Default Adapter" %}</th>
+		    <td><a href="bluez/state/{{ manager.DefaultAdapter }}">{{ manager.DefaultAdapter }}</a></td>
+		</tr>
+	    
+		{% if manager.DefaultAdapter %}
+		    {% for dongle in manager.ListAdapters %}
+			<tr class="{% cycle dongle_color %}">
+			    <th>{% trans "Dongle" %}</th>
+			    <td><a href="bluez/state/{{ dongle }}">{{ dongle }}</a></td>
+			</tr>
+		    {% endfor %}
+		{% endif %}
+	    {% endif %}
+	</table>
+</div>
+</td>
+{% endbox %}
+{% endblock %}
