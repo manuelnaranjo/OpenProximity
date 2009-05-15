@@ -13,6 +13,7 @@ cd $OP2/openproximity2
 ln -s $CWD/serverXR
 ln -s $CWD/django-web
 ln -s $CWD/latest-version
+ln -s $CWD/*.sh
 
 cd $OP2
 mkdir tmp
