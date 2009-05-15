@@ -1,0 +1,149 @@
+{% extends "op/base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+<h1>{% trans "Server Statistics" %}</h1>
+<table id="stats">
+    <tr>
+	<td>{% trans "Seen" %}</td>
+	<td>{{ stats.seen.total }}</td>
+    </tr>
+    <tr>
+	<td>{% trans "Per Dongle" %}</td>
+	<td>
+	    <table id="stats_per_dongle">
+		{% for d in stats.seen.perdongle %}
+		    <tr>
+			<td>{{ d.address}}</td>
+			<td>{{ d.count }}</td>
+		    </tr>
+		{% endfor %}
+	    </table>
+	</td>		
+    <tr>
+	<td>{% trans "Valid Obex" %}</td>
+	<td>{{ stats.valid }}</td>
+    </tr>
+    <tr>
+	<td>{% trans "Tried" %}</td>
+	<td>{{ stats.tries }}</td>
+    </tr>
+    <tr>
+	<td>{% trans "Timeout" %}</td>
+	<td>{{ stats.timeout }}</td>
+    </tr>
+    <tr>
+	<td>{% trans "Rejected" %}</td>
+	<td>{{ stats.rejected }}</td>
+    </tr>
+    <tr>
+	<td>{% trans "Accepted" %}</td>
+	<td>{{ stats.accepted }}</td>
+    <tr>
+    <tr>
+	<td><a href="stats/restart">{% trans "Reset Statistics" %}</a></td>
+    </tr>
+    
+    {% if stats.error %}
+    <tr id="error">
+	<td>{% trans "Error Message" %}</td>
+	<td>{{ stats.error }}</td>
+    </tr>
+    {% endif %}
+</table>
+
+
+<h1>{% trans "Server Status" %}</h1>
+<table id="rpc">
+    <tr>
+	<td>{% trans "RPC Server is running" %}</td>
+	<td>{{ rpc.running|yesno:_("yes,no") }}</td>
+    </tr>
+    <tr>
+        <td>{% trans "Uploaders Connected" %}</td>
+	<td>{{ rpc.uploaders }}</td>
+    </tr>
+    <tr>
+	<td>{% trans "Scanners Connected" %}</td>
+	<td>{{ rpc.scanners }}</td>
+    </tr>
+    {% if rpc.error %}
+	<tr id="error">
+	    <td>{% trans "Error Message" %}</td>
+	    <td>{{ rpc.error }}</td>
+	</tr>
+    {% endif %}
+    <tr>
+	<td><a href="../rpc/restart">{% trans "Restart RPC Server" %}</td>
+	<td></td>
+	<td></td>
+    </tr>
+</table>
+
+<h1>{% trans "Known Dongles" %}</h1>
+<table id="knwon">
+    <tr>
+	<td>{% trans "Address" %}</td>
+	<td>{% trans "Is Scanner" %}</td>
+	<td>{% trans "Scanner Enabled" %}</td>
+	<td>{% trans "Scanner Priority" %}</td>
+	<td>{% trans "Is Uploader" %}</td>
+	<td>{% trans "Uploader Enabled" %}</td>	
+	<td>{% trans "Max Connections" %}</td>
+    </tr>
+    {% for dongle in rpc.dongles %}
+    <tr>
+	<td>{{ dongle.address }}</td>
+	<td>{{ dongle.isScanner }}</td>
+	<td>{{ dongle.scan_enabled }}</td>	
+	<td>{{ dongle.scan_pri }}</td>
+	<td>{{ dongle.isUploader }}</td>
+	<td>{{ dongle.upload_enabled }}</td>
+	<td>{{ dongle.max_conn }}</td>
+	<td><a href="configure/dongle/{{ dongle.address }}">{% trans "Configure" %}</a></td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h1>{% trans "Marketing Campaigns" %}</h1>
+{% for camp in camps %}
+    <h2><a href="admin/openproximity/marketingcampaign/{{camp.pk}}/">{{ camp.friendly_name }}</a></h2>
+    <table id="camp">
+    <tr>
+	<td>{% trans "Service" %}</td>
+	<td>{{ camp.rules.get_service_display }}</td>
+    </tr>
+    <tr>
+	<td>{% trans "Start" %}</td>
+	<td>{{ camp.rules.start }}</td>
+    </tr>
+    <tr>
+	<td>{% trans "End" %}</td>
+	<td>{{ camp.rules.end }}</td>
+    </tr>
+    <tr>
+	<td>{% trans "Name Filter" %}</td>
+	<td>{{ camp.rules.name_filter }}</td>
+    </tr>
+    <tr>
+	<td>{% trans "Address Filter" %}</td>
+	<td>{{ camp.rules.addr_filter }}</td>
+    </tr>
+    <tr>
+	<td>{% trans "DevClass Filter" %}</td>
+	<td>{{ camp.rules.devclass_filter }}</td>
+    </tr>
+    {% for file in camp.rules.files.all %}
+    <tr>
+	<td>{% trans "Serving File" %}</td>
+	<td>{{ file.file.name }}</td>
+	<td>{% trans "Chances" %}</td>
+	<td>{{ file.chance }}</td>
+	<td><a href="file/grab/{{file.file.name}}">{% trans "See File" %}</a></td>
+    </tr>
+    {% endfor %}
+    </table>
+{% endfor %} <!-- camps -->
+
+{% endblock %}

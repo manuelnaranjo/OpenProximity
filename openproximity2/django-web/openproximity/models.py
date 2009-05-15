@@ -7,52 +7,55 @@ from datetime import datetime
 
 TIMEOUT_RET = [ 22 ]
 
-DONGLE_TYPES = (
-    (0, u'None'),
-    (1, u'Scanner'),
-    (2, u'Uploader'),
-)
-
-ACTION_TYPES = (
-    (0,	  u'Not Known'),
-    (scanner.DONGLES_ADDED, 	u'Scanner Dongle Added'),
-    (scanner.NO_DONGLES, 	u'Scanner No Dongles'),
-    (scanner.CYCLE_COMPLETE, 	u'Scanner Cycle Complete'),
-    (scanner.CYCLE_START, 	u'Scanner Cycle Start'),
-    (scanner.CYCLE_SCAN_DONGLE, u'Scanner Cycle Scan Start'),
-    (scanner.FOUND_DEVICE, 	u'Scanner Cycle Found Device'),
-)
-
 class BluetoothDongle(models.Model):
     address = models.CharField(max_length=17, 
 	blank=False,
 	verbose_name=_("bluetooth address"))
     name = models.CharField(max_length=100, blank=True,
 	verbose_name=_("identifying name"))
-    type = models.IntegerField(choices=DONGLE_TYPES)
+    enabled = models.BooleanField()
+    
+    def enabled_display(self):
+	if self.enabled:
+	    return "Enabled"
+	return "Disabled"
     
     def __unicode__(self):
-	return "%s: %s - %s" % (self.get_type_display(), self.address, self.name)
+	return "%s - %s, %s" % (self.address, self.name, self.enabled_display() )
 
 class ScannerBluetoothDongle(BluetoothDongle):
     priority = models.IntegerField()
-    type = 1
+    
+    def __unicode__(self):
+	return "Scanner: %s, %s" % (BluetoothDongle.__unicode__(self), self.priority)
 
 class UploaderBluetoothDongle(BluetoothDongle):
     max_conn = models.IntegerField(default=7,
 	verbose_name=_("connections"),
 	help_text=_("maximum allowed connections"))
-    type = 2
+	
+    def __unicode__(self):
+	return "Uploader: %s, %s" % (BluetoothDongle.__unicode__(self), self.max_conn)
 
 SERVICE_TYPES = (
     (0,	  u'opp'),
     (1,	  u'ftp'),
 )
 
+class CampaignFile(models.Model):
+    chance = models.DecimalField(null=True, blank=True, default=1.0, decimal_places=2, max_digits=3,
+	help_text=_("if < 1 then a random number generator will check if the user is lucky enough to get this file"))
+    file = models.FileField(upload_to='campaign',
+	help_text=_("campaign file itself"))
+    
+    def __unicode__(self):
+	return "%s: %.2f" % (self.file, self.chance)
+
+
 class CampaignRule(models.Model):
-    name_filter = models.TextField(null=True, max_length=10, blank=True,
+    name_filter = models.CharField(null=True, max_length=10, blank=True,
 	verbose_name=_("name filter"))
-    addr_filter = models.TextField(null=True, max_length=10, blank=True,
+    addr_filter = models.CharField(null=True, max_length=10, blank=True,
 	verbose_name=_("address filter"))
     devclass_filter = models.IntegerField(null=True, blank=True)
     service = models.IntegerField(default=0, choices=SERVICE_TYPES)
@@ -60,8 +63,9 @@ class CampaignRule(models.Model):
 	help_text=_("starting date, or null to run for ever until end"))
     end = models.DateTimeField(null=True, blank=True,
 	help_text=_("ending date, or null to run for ever since start"))
+    files = models.ManyToManyField(CampaignFile)
 	
-    def __str__(self):
+    def __unicode__(self):
 	out = ""
 	if self.name_filter is not None and len(self.name_filter):
 	    out += "%s, " % self.name_filter
@@ -81,24 +85,20 @@ class CampaignRule(models.Model):
 	    out += "*, "
 
 	if self.end is not None:
-	    out += "%s" % self.end
+	    out += "%s, " % self.end
 	else:
-	    out += "*"    
-	return out.strip()
+	    out += "*, "
 	
+	if self.files.count() > 0:
+	    out+="files: "
+	    for file in self.files.all():
+		out+="%s, " % file.__unicode__()
+	return out.strip()[:-1]
 
-class CampaignFile(models.Model):
-    chance = models.DecimalField(null=True, blank=True, default=1.0, decimal_places=2, max_digits=3,
-	help_text=_("if < 1 then a random number generator will check if the user is lucky enough to get this file"))
-    file = models.FileField(upload_to='campaign',
-	help_text=_("campaign file itself"))
-    rule = models.ForeignKey(CampaignRule)
-    
-    def __str__(self):
-	return "%s: %.2f" % (self.file, self.chance)
+CampaignFile.rules = models.ManyToManyField(CampaignRule)
 
 class MarketingCampaign(models.Model):
-    friendly_name = models.TextField()
+    friendly_name = models.CharField(max_length=100)
     rules = models.ForeignKey(CampaignRule)
     
     def __unicode__(self):
@@ -128,7 +128,6 @@ class DeviceRecord(models.Model):
 
 class RemoteBluetoothDeviceRecord(DeviceRecord):
     remote = models.ForeignKey(RemoteDevice, verbose_name=_("remote address"))
-#    action = models.IntegerField(choices=ACTION_TYPES)
 
     def setRemoteDevice(self, address):
 	try:
@@ -159,6 +158,14 @@ class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
 
 class RemoteBluetoothDeviceSDP(RemoteBluetoothDeviceRecord):
     channel = models.IntegerField(help_text=_("bluetooth rfcomm channel that provides the used service"))
+    
+    def __unicode__(self):
+	return "%s, %s, %s" % (
+	    self.remote.address,
+	    self.remote.name, 
+	    self.channel
+	)
+	
 
 class RemoteBluetoothDeviceNoSDP(RemoteBluetoothDeviceRecord):
     pass
@@ -181,7 +188,7 @@ class RemoteBluetoothDeviceFilesRejected(RemoteBluetoothDeviceFileTry):
 class RemoteBluetoothDeviceFilesSuccess(RemoteBluetoothDeviceFileTry):
     pass
 
-def getMatchingCampaigns(remote, time_=datetime.fromtimestamp(time.time())):
+def getMatchingCampaigns(remote=None, time_=datetime.fromtimestamp(time.time())):
     print "getMatchingCampaigns", time_
     out  = list()
     rules = CampaignRule.objects.all()
@@ -192,32 +199,34 @@ def getMatchingCampaigns(remote, time_=datetime.fromtimestamp(time.time())):
 	    print 'start matches'
 	    if rule.end is None or time_ <= rule.end:
 		print 'end matches'
-		if rule.name_filter is None or remote.name.startswith(rule.name_filter):
-		    print "name filter matches"
-		    if rule.addr_filter is None or remote.address.startswith(rule.addr_filter):
-			print "address filter matches"
-			print remote.devclass, rule.devclass_filter
-			if rule.devclass_filter is None or (remote.devclass & rule.devclass_filter)>0:
-			    print "devclass filter matches"
-			    out.append(rule.marketingcampaign_set.get())
-    
+		if remote is None:
+		    out.append(rule.marketingcampaign_set.get())
+		else:
+		    if rule.name_filter is None or remote.name.startswith(rule.name_filter):
+			print "name filter matches"
+			if rule.addr_filter is None or remote.address.startswith(rule.addr_filter):
+			    print "address filter matches"
+		    	    print remote.devclass, rule.devclass_filter
+			    if rule.devclass_filter is None or (remote.devclass & rule.devclass_filter)>0:
+				print "devclass filter matches"
+				out.append(rule.marketingcampaign_set.get())
     return out
 
 def get_campaign_rule(files):
     print 'get_campaign_rule', files
-    out = list()
+    out = set()
 
-    for file in files:
+    for file, camp_id in files:
 	print file
         try:
-            camp = CampaignFile.objects.get(file=file).rule
+	    camp = CampaignRule.objects.get(pk=camp_id)
     	    print camp
             if len(out) > 0 and camp not in out:
                 print "multiple return values"
-            out.append(camp)
+            out.add(camp)
         except Exception, err:
             print err
     if len(out) == 0:
         return None
 
-    return out[0]
+    return list(out)[0]

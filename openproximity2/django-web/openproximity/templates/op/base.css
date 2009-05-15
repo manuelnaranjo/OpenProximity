@@ -1,10 +1,24 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="{{ LANGUAGE_CODE }}" xml:lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
-<head>
-<title>{% block title %}{% endblock %}</title>
-{% block style %}
-<style type="text/css">
-* { margin:0; padding:0; }
+* { 
+    margin:100; 
+    padding:0;
+}
+p.navigation-bar {
+    background-color: black;
+    text-align: center;
+    border: medium #ffffff solid;
+    padding: 1%
+    a:link {
+	color: white; 
+	text-decoration: none}
+    a:visited {
+	color: white;
+	text-decoration: none}
+    a:hover { 
+	background-color: #ffb0d3;
+	color: black;
+	text-decoration: none}
+}
+.stat { font-size:20em; }
 body { background:#eee; color:#333; font:76%/1.6 "Lucida Grande","Bitstream Vera Sans",Verdana,sans-serif; }
 a { color: #5b80b2; text-decoration:none; }
 a:hover { text-decoration:underline; }
@@ -48,14 +62,4 @@ p { margin:0.5em 0 1em 0; }
 #header a:hover { text-decoration:underline; }
 /* CONTENT */
 #content { background:#fff; border-bottom:1px solid #ddd; padding:0 20px; }
-</style>
-{% endblock %}
-{% block extrahead %}{% endblock %}
-</head>
-<body id="{% block bodyid %}page{% endblock %}">
-<div id="header"><a href="{{ root_url }}">{% block databrowse_title %}Databrowse{% endblock %}</a></div>
-<div id="content">
-{% block content %}{% endblock %}
-</div>
-</body>
-</html>
+*.table { snap: 1 ; border: 1}

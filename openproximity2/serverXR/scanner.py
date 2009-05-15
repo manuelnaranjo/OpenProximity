@@ -8,12 +8,13 @@ from utils import logger
 from utils import settings
 import signals
 from signals.scanner import *
+import rpyc
 
 class ScanAdapter(Adapter):
 	priority = 0
 	
-	def __init__(self, priority, *args):
-		Adapter.__init__(self, *args)
+	def __init__(self, priority, *args, **kwargs):
+		Adapter.__init__(self, *args, **kwargs)
 		
 		if priority is None or priority < 0:
 			priority=0
@@ -63,7 +64,7 @@ class ScanManager:
 			return False
 			
 		for i in self.scanners.keys():
-			adapter = ScanAdapter(self.scanners[i], self.bus, self.manager.FindAdapter(i))
+			adapter = ScanAdapter(self.scanners[i][0], name=self.scanners[i][1], bus=self.bus, path=self.manager.FindAdapter(i))
 			self.__dongles[i] = adapter
 		
 		self.tellListeners(DONGLES_ADDED)
@@ -109,7 +110,7 @@ class ScanManager:
 	    
 	def exposed_addListener(self, func):
 		logger.debug("ScanManager adding listener")
-		self.__listener.append(func)
+		self.__listener.append(rpyc.async(func))
 		
 	def tellListeners(self, *args, **kwargs):
 		logger.debug("ScanManager telling listener: %s, %s" % (str(args), str(kwargs)))
@@ -121,9 +122,15 @@ class ScanManager:
 	    self.__index = 0
 	    self.__do_scan()
 	    self.__repeat = repeat
-	    
-	def exposed_add_dongle(self, address, priority):
-	    self.scanners[address]=priority
+	
+	def exposed_getDongles(self):
+	    out = set()
+	    for d in self.manager.ListAdapters():
+		out.append(str(d.GetProperties()['Address']))
+	    return out
+
+	def exposed_add_dongle(self, address, priority, name):
+	    self.scanners[address]=(priority, name)
 	    
 	def __do_scan(self):
 	    logger.debug('ScanManager scanning on dongle')

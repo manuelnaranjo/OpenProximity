@@ -35,15 +35,20 @@ def get_dongles(dongles):
     for address in dongles:
 	print address
 	try:
-	    dongle = ScannerBluetoothDongle.objects.get(address=address)
-	    out.append( (address, dongle.priority) )
+	    dongle = ScannerBluetoothDongle.objects.get(address=address, enabled=True)
+	    out.append( (address, dongle.priority, dongle.name) )
 	except Exception, err:
 	    print err
     return out
 
 def cycle_completed(scanner):
     print 'scanner_cycle_complete', scanner
-    scanner.startScanningCycle(False)
+    camps = getMatchingCampaigns()
+    if len(camps)>0:
+	print "starting scan cycle"
+	scanner.startScanningCycle(False)
+    else:
+	print "no campaigns"
 
 uploaded = set()
 
@@ -87,11 +92,10 @@ def addrecords(services, address, records, pending):
 
     			for camp in camps:
     			    print camp
-    			    for f in camp.rules.campaignfile_set.all():
+			    for f in camp.rules.files.all():
     				print f
     				if f.chance is None or random() <= f.chance:
     				    print f.file
-    				    files.append(str(f.file.name))
+    				    files.append( (str(f.file.name), camp.pk) ,)
     			    
-    			    i.uploader.upload(files, record.remote.address)
-    return 1
+    			    i.upload(files, record.remote.address) # async call

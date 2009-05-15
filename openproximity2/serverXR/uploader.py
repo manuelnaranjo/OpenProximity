@@ -11,6 +11,7 @@ from workqueue import WorkQueue
 import subprocess
 import time
 import os
+import rpyc
 
 class UploadAdapter(Adapter):
 	queue = None
@@ -36,7 +37,7 @@ class UploadAdapter(Adapter):
 	    arguments += ('-T', str(settings.TIMEOUT) )
 	    arguments += ('-b', target )
 	    arguments += ('-B', str(port) )
-	    for f in files:
+	    for f, fk in files:
 		arguments += ('-p', os.path.join(settings.MEDIA_ROOT, f) )
 	    proc = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	    
@@ -55,8 +56,8 @@ class UploadAdapter(Adapter):
 			dongle=self.bt_address, port=port, ret=retcode,
 			files = files, stdout=stdout, stderr=stderr)
 
-	def __init__(self, max_uploads = 7, *args):
-    	    Adapter.__init__(self, *args)	
+	def __init__(self, max_uploads = 7, *args, **kwargs):
+    	    Adapter.__init__(self, *args, **kwargs)	
 	
 	    if not self.is_aircable:
 	        raise Exception("Can't use non AIRcable dongle as uploaders")
@@ -96,9 +97,10 @@ class UploadManager:
 			
 		for i in self.uploaders.keys():
 			adapter = UploadAdapter(
-				self.uploaders[i],
-				self.bus, 
-				self.manager.FindAdapter(i))
+				self.uploaders[i][0],
+				name=self.uploaders[i][1],
+				bus=self.bus, 
+				path=self.manager.FindAdapter(i))
 			self.__dongles[i] = adapter
 		
 		self.tellListeners(DONGLES_ADDED)
@@ -118,7 +120,13 @@ class UploadManager:
 	    
 	def exposed_addListener(self, func):
 		logger.debug("UploadManager adding listener")
-		self.__listener.append(func)
+		self.__listener.append(rpyc.async(func))
+		
+        def exposed_getDongles(self):
+            out = set()
+            for d in self.manager.ListAdapters():
+                out.append(str(d.GetProperties()['Address']))
+	    return out						    
 		
 	def tellListeners(self, *args, **kwargs):
 		logger.debug("UploadManager telling listener: %s, %s" % (str(args), str(kwargs)))
@@ -139,7 +147,7 @@ class UploadManager:
 		dongle=self.__sequence[self.__index]
 		print files, target, uuid
 		
-		for file_ in files:
+		for file_, fk in files:
 		    f = os.path.join(settings.MEDIA_ROOT, file_)
 		    d = os.path.dirname(f)
 		    print f, d
@@ -153,8 +161,8 @@ class UploadManager:
 		dongle.queue.enqueue( id, files, target, uuid, service, self )
 		self.__rotate_dongle()
 		
-	def exposed_add_dongle(self, address, conns):
-	    self.uploaders[address]=conns
+	def exposed_add_dongle(self, address, conns, name):
+	    self.uploaders[address]=(conns, name)
 	
 	# signal callbacks		
 

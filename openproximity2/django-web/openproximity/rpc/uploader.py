@@ -29,27 +29,32 @@ def get_dongles(dongles):
     for address in dongles:
         print address
         try:
-    	    dongle = UploaderBluetoothDongle.objects.get(address=address)
-            out.append( (address, dongle.max_conn) )
+    	    dongle = UploaderBluetoothDongle.objects.get(address=address, enabled=True)
+            out.append( (address, dongle.max_conn, dongle.name) )
         except Exception, err:
             print err
     return out
 
 def handle_sdp_resolved(dongle, remote, channel):
     print "Valid SDP:", dongle, remote, channel
-    record = RemoteBluetoothDeviceSDP()
-    record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
-    record.channel = channel
-    record.setRemoteDevice(remote)
-    record.save()
+    remote=RemoteDevice.objects.filter(address=remote).get()
+    if RemoteBluetoothDeviceSDP.objects.filter(remote=remote).count() == 0:
+	print "New SDP result"
+	record = RemoteBluetoothDeviceSDP()
+	record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
+	record.channel = channel
+	record.remote = remote
+        record.save()
 
 def handle_sdp_norecord(dongle, remote, pending):
     print "No SDP:", dongle, remote
     pending.remove(remote)
-    record = RemoteBluetoothDeviceNoSDP()
-    record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
-    record.setRemoteDevice(remote)
-    record.save()
+    remote=RemoteDevice.objects.filter(address=remote).get()
+    if RemoteBluetoothDeviceNoSDP.objects.filter(remote=remote).count() == 0:
+	record = RemoteBluetoothDeviceNoSDP()
+        record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
+	record.remote = remote
+        record.save()
     
 def handle_sdp_timeout(dongle, remote, pending):
     print "SDP timeout:", dongle, remote    
@@ -87,7 +92,7 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
 	for s in services:
 	    print "trying again"
 	    if getattr(s, 'uploader', None) is not None:
-		s.uploader.upload(files, remote)
+		s.upload(files, remote) # async call
 		return
     else:
 	pending.remove(remote)

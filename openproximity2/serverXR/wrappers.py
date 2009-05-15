@@ -10,7 +10,7 @@ class Adapter(object):
 	is_aircable = False
 	bus = None
 
-	def __init__(self, bus, path):
+	def __init__(self, bus, path, name="OpenProximity 2.0"):
 		self.dbus_path = path
 		self.dbus_interface = dbus.Interface( bus.get_object(const.BLUEZ, path), const.BLUEZ_ADAPTER )
 		#self.bt_address = self.dbus_interface.GetAddress()
@@ -18,7 +18,7 @@ class Adapter(object):
 		self.dbus_interface.SetProperty('Powered', True)
 		self.is_aircable = utils.isAIRcable(self.bt_address)
 		self.bus = bus
-		
+		self.dbus_interface.SetProperty('Name', name)
 		utils.logger.debug("Initializated Adapter(%s, %s)" % (self, self.is_aircable)) 
 
 	def __str__(self):

@@ -11,6 +11,7 @@ def ping():
     except:
 	print "lost connection"
 	loop.quit()
+	sys.exit(1)
 
 
 def init():
@@ -24,7 +25,6 @@ def init():
 	adapter = dbus.Interface(obj, 'org.bluez.Adapter')
     	a.append(str(adapter.GetProperties()['Address']))
 
-    
     if type == 'scanner':
 	server.root.scanner_register(loop.quit, manager, a)
     elif type == 'uploader':

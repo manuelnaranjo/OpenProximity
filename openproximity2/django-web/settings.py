@@ -65,7 +65,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.locale.LocaleMiddleware',
 )
 
-ROOT_URLCONF = 'aircable.urls'
+ROOT_URLCONF = 'urls'
 
 my_path=os.path.dirname(__file__)
 
@@ -92,7 +92,6 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.databrowse',
-    'aircable.bluez',
-    #    'vtmp.statics',
-    'aircable.openproximity',    
+    'bluez',
+    'openproximity',    
 )
