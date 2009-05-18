@@ -37,4 +37,4 @@ cd ..
 
 cd $OP2
 rm -rf tmp
-tar --numeric-owner -h --group=0 --owner=0 -czf $CWD/openproximity2.tar.gz openproximity2
+tar --numeric-owner -h --group=0 --owner=0 -czf $CWD/openproximity2-$(cat $CWD/latest-version).tar.gz openproximity2
