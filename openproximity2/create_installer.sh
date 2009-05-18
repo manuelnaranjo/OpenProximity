@@ -14,10 +14,13 @@ cd $OP2/openproximity2
 ln -s $CWD/serverXR .
 ln -s $CWD/django-web .
 ln -s $CWD/latest-version .
+ln -s $CWD/common.sh
 ln -s $CWD/rpc.sh
 ln -s $CWD/run.sh
 ln -s $CWD/shell.sh
 ln -s $CWD/server.sh
+
+find -name \*.pyc -exec /bin/rm -f '{}' \;
 
 cd $OP2
 mkdir tmp
@@ -37,4 +40,6 @@ cd ..
 
 cd $OP2
 rm -rf tmp
+rm $(find | grep "pyc$")
+rm $(find | grep "pyo$")
 tar --numeric-owner -h --group=0 --owner=0 -czf $CWD/openproximity2-$(cat $CWD/latest-version).tar.gz openproximity2

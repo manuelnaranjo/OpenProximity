@@ -10,8 +10,17 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+if os.path.isfile('/etc/openproximity2.conf'):
+    inp = file('/etc/openproximity2.conf')
+    for line in inp.readlines():
+	if line.startswith('AIRCABLE_PATH'):
+	    AIRCABLE_PATH=line.split('=', 1)[1].strip()
+	    break
+else:
+    AIRCABLE_PATH='/tmp'
+
 DATABASE_ENGINE = 'sqlite3'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = '/tmp/aircable.db'             # Or path to database file if using sqlite3.
+DATABASE_NAME = "%s/aircable.db" % AIRCABLE_PATH   # Or path to database file if using sqlite3.
 DATABASE_USER = ''             # Not used with sqlite3.
 DATABASE_PASSWORD = ''         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
@@ -36,7 +45,7 @@ USE_I18N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = '/tmp/aircable'
+MEDIA_ROOT = '%s/aircable' % AIRCABLE_PATH
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -95,3 +104,4 @@ INSTALLED_APPS = (
     'bluez',
     'openproximity',    
 )
+

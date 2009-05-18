@@ -25,9 +25,10 @@ class DongleForm(forms.Form):
 
     def clean_upload(self):
 	isAIR = getattr(self, 'isAIRcable', None)
-	if isAIR is None or isAIR:
-	    return self.cleaned_data['upload'] 
-	raise forms.ValidationError("Only AIRcable dongles are allowed to upload")
+	upload = self.cleaned_data['upload']
+	if not isAIR and upload:
+	    raise forms.ValidationError("Only AIRcable dongles are allowed to upload")
+	return self.cleaned_data['upload'] 
 
 class CampaignForm(forms.ModelForm):
     friendly_name = forms.CharField(max_length=100) # dont' want a multi line field here
