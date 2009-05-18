@@ -3,6 +3,22 @@
 {% load i18n %}
 
 {% block content %}
+{% if not version.match %}
+    {% if not version.error %}
+	<h1> <a href="http://code.google.com/p/proximitymarketing/">{% trans "There's a new version available" %}</a><h1/>
+	<p> {% trans "New Version" %}: {{ version.latest }}.</p>
+	<p> {% trans "Your Version" %}: {{ version.current }}.</p>
+    {% else %}
+<pre id="error">
+{% trans "Couldn't check google code for updates" %}
+{{ version.latest }}
+{{ version.current }}
+{{ version.error }}
+</pre>
+    {% endif %}
+{% else %}
+    <!-- server version: {{ version.latest }} running version: {{ version.current }} -->
+{% endif %}
 <h1>{% trans "Server Statistics" %}</h1>
 <table id="stats">
     <tr>
@@ -144,6 +160,12 @@
     </tr>
     {% endfor %}
     </table>
+    
+
 {% endfor %} <!-- camps -->
 
+{% endblock %}
+{% block footer %}
+<p> server version: <b>{{ version.latest }}</b> running version: <b>{{ version.current }}</b></p>
+<p><a href="http://code.google.com/p/proximitymarketing/">OpenProximity 2.0</a> Powered by <a href="http://www.aircable.net">AIRcable.net</a></p>
 {% endblock %}
