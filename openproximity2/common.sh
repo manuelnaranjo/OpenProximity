@@ -24,7 +24,8 @@ if [ ! -f $AIRCABLE_PATH/aircable.db ]; then
     cd django-web
     set -e
     echo "Initializating DB"
-    python manage.py syncdb
+    python manage.py syncdb --noinput
+    python createadmin.py
     set +e
     cd ..
 fi
