@@ -11,9 +11,9 @@ def index(request):
     try:
 	bus = dbus.SystemBus()	
         
-        bluez_manager_obj = bus.get_object('org.bluez', '/org/bluez')
+        bluez_manager_obj = bus.get_object('org.bluez', '/')
         manager = dbus.Interface(bluez_manager_obj, 'org.bluez.Manager')
-        adapter = manager.DefaultAdapter()      
+        adapter = manager.DefaultAdapter()
         
     except Exception, err:
 	error = err
@@ -26,6 +26,23 @@ def index(request):
 		'error': error,
 	}
     )
+    
+def __parse_properties(items):
+    out = dict()
+    for key, val in items:
+	try:
+	    val=int(val)
+	    if val == 0:
+	        val = False
+	    elif val == 1:
+	        val = True
+	    else:
+	        val = '0x%s' % str(hex(val)).upper()[2:]
+	except:
+	    pass
+	out[str(key)] = str(val)
+    return out
+	
 
 def status_hci(request,path):
     bus = None
@@ -38,76 +55,35 @@ def status_hci(request,path):
 
         adapter_obj = bus.get_object('org.bluez', path)
         adapter = dbus.Interface(adapter_obj, 'org.bluez.Adapter')
-        adapter.GetAddress()
+	adapter.properties =  __parse_properties(adapter.GetProperties().iteritems())
         
         if request.method=="POST":
     	    method=request.POST.get("method", None)
     	    args=request.POST.get("args", None)
     	    sleep=request.POST.get("sleep", None)
-    	    
-    	    print method, args
+	    prop_name=request.POST.get("name", None)
+    	    prop_value=request.POST.get("value", None)
     	    
     	    if method is not None:
     		function=getattr(adapter, method)
-    		if args is not None:
-    		    function(args)
-    		else:
-    		    function()
+		if method not in ['SetProperty',]:
+    		    if args is not None:
+    			function(args)
+    		    else:
+    			function()
+		else:
+		    function(prop_name, prop_value)
+		
     		if sleep is not None:
     		    time.sleep(int(sleep))
     		
     	known = ()    
 
-        for dongle in adapter.ListRemoteDevices():
-    	    a = dict()
-    	    a['address'] = dongle
-    	    a['name'] = adapter.GetRemoteName(dongle)
-    	    a['trusted'] = adapter.HasBonding(dongle)!=0
-    	    a['lastseen'] = adapter.LastSeen(dongle)
-    	    a['lastused'] = adapter.LastUsed(dongle)
-    	    try:
-		a['pin_length'] = int(adapter.GetPinCodeLength(dongle))
-    		a['version'] = adapter.GetRemoteVersion(dongle)
-    		a['revision'] = adapter.GetRemoteRevision(dongle)
-    		a['manufacturer'] = adapter.GetRemoteManufacturer(dongle)
-    		a['company'] = adapter.GetRemoteCompany(dongle)
-    		a['major'] = adapter.GetRemoteMajorClass(dongle)
-    		a['minor'] = adapter.GetRemoteMinorClass(dongle)
-    	    except Exception, err:
-    		print "ListRemoteDevices: %s" % err
-    	
-    	    known+=(a,)
-    	    
-
-#        seen_today = ()
-#        yesterday=time.strftime("%Y-%m-%d %H:%M:%S GMT", time.gmtime(time.time()-24*60*60))
-#        print yesterday
-#        seen_recently = None
-#        try:
-#    	    seen_recently = adapter.ListRecentRemoteDevices(yesterday)
-#    	except Exception, err:
-#    	    print "ListingRemoteDevices(%s): %s" %  (yesterday, err)
-#    	else:
-#    	    for dongle in seen_recently:
-#    		print "today:%s" % dongle
-#    		a = dict()
-#    		a['address'] = dongle
-#    		a['name'] = adapter.GetRemoteName(dongle)
-#    		a['trusted'] = adapter.HasBonding(dongle)!=0
-#    		a['lastseen'] = adapter.LastSeen(dongle)
-#    		a['lastused'] = adapter.LastUsed(dongle)
-#    		try:
-#		    a['pin_length'] = int(adapter.GetPinCodeLength(dongle))
-#    		    a['version'] = adapter.GetRemoteVersion(dongle)
-#    		    a['revision'] = adapter.GetRemoteRevision(dongle)
-#    		    a['manufacturer'] = adapter.GetRemoteManufacturer(dongle)
-#    		    a['company'] = adapter.GetRemoteCompany(dongle)
-#    		    a['major'] = adapter.GetRemoteMajorClass(dongle)
-#    		    a['minor'] = adapter.GetRemoteMinorClass(dongle)
-#    		except Exception, err:
-#    		    print "RecentRemoteDevices: %s" % err
-#    	
-#    		seen_today+=(a,)
+        for remote_path in adapter.ListDevices():
+	    remote = dbus.Interface( bus.get_object('org.bluez', remote_path), 
+		'org.bluez.Device')
+	    remote.properties =  __parse_properties(remote.GetProperties().iteritems())
+    	    known+=(remote,)
 
     except Exception, err:
 	error = err
@@ -117,8 +93,8 @@ def status_hci(request,path):
 	    
 		'dbus': bus,
 		'adapter': adapter,
+		'properties': adapter.GetProperties(),
 		'error': error,
 		'remotedevices': known, 
-#		'remotedevices_today': seen_today,
 	}
     )

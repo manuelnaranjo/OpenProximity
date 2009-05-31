@@ -3,12 +3,14 @@
 # this script will launch all the needed parts for an OpenProximity2.0 stand
 # alone server
 
-source common.sh
+sh common.sh
 
-bash server.sh &
+sh server.sh &
+sh rpc.sh &
+
 sleep 5
 
 while [ 1 ] ; do
-    bash rpc.sh
+    sh clients.sh
     sleep 5
 done

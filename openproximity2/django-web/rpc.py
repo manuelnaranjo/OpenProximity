@@ -24,14 +24,15 @@ class OpenProximityService(Service):
 	def on_disconnect(self):
 	    services.remove(self)
 	    
-	def exit(self):
+	def exit(self, exit):
 	    for ser in services:
 		if ser.remote_quit is not None:
 		    try:
 			ser.remote_quit()
 		    except:
 			pass
-	    sys.exit(0)
+	    if exit:
+		sys.exit(0)
 	    
 	def listener(self, signal, *args, **kwargs):
 	    print signal, args, kwargs
@@ -120,13 +121,18 @@ class OpenProximityService(Service):
 	def __str__(self):
 	    return str(dir(self))
 	
+	def exposed_exit(self):
+	    return self.exit(True)
+	
 	def exposed_restart(self):
-	    return self.exit()
+	    return self.exit(False)
 	    
 if __name__ == "__main__":
     setup_environ(settings)
     from openproximity.models import CampaignFile
     import openproximity.signals as signals
+    print signals.scanner.TEXT
+    print signals.uploader.TEXT
     import openproximity.rpc as rpc
     import openproximity.rpc.scanner, openproximity.rpc.uploader
     server=ThreadedServer(OpenProximityService, '0.0.0.0', port=8010, auto_register=False)

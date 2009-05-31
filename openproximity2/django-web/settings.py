@@ -104,4 +104,3 @@ INSTALLED_APPS = (
     'bluez',
     'openproximity',    
 )
-

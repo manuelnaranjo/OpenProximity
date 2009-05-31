@@ -9,13 +9,19 @@
 
 {% for model in model_list %}
   <div class="modelgroup {% cycle 'even' 'odd' %}">
-	  <h2><a href="{{ model.url }}">{{ model.verbose_name_plural|capfirst }}</a></h2>
-	    <p>
-		{% for object in model.sample_objects %}
-		    <a href="{{ object.url }}">{{ object }}</a>, 
-		{% endfor %}
-		    <a class="more" href="{{ model.url }}">More &rarr;</a>
-	    </p>
+    <table>
+	<tr>
+	    <td width="20%"><h2><a href="{{ model.url }}">{{ model.verbose_name_plural|capfirst }}</a></h2></td>
+	    <td width="80%">
+		<table >
+		    {% for object in model.sample_objects %}
+	    		<tr><td><a href="{{ object.url }}">{{ object }}</a></td></tr>
+		    {% endfor %}
+		    <tr><td><a class="more" href="{{ model.url }}">More &rarr;</a></td></tr>
+		</table>
+	    </td>
+	</tr>
+    </table>
   </div>
 {% endfor %}
 

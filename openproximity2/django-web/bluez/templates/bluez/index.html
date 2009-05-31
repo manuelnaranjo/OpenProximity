@@ -1,6 +1,5 @@
-{% extends "bluez/base.html" %}
+{% extends "op/base.html" %}
 {% load i18n %}
-{% load aircable %}
 
 {% cycle 'odd' 'even' as color %}
 {% cycle 'dongle_odd' 'dongle_even' as dongle_color %}
@@ -8,9 +7,9 @@
 {% block title %}Status{% endblock %}
 
 {% block content %}
-{% box "mainTable" %}
-<td align="center">
-    <div id="body">
+<table>
+    <td align="center">
+	<div id="body">
 	<table class="info">
 	    <tr class="{% cycle color %}">
         	<th>Dbus</th>
@@ -28,10 +27,6 @@
 		</tr>
 	    {% else %}
 		<tr class="{% cycle color %}">
-		    <th>{% trans "Interface Version" %}</th>
-		    <td>{{ manager.InterfaceVersion }}</td>
-		</tr>
-		<tr class="{% cycle color %}">
 		    <th>{% trans "Default Adapter" %}</th>
 		    <td><a href="bluez/state/{{ manager.DefaultAdapter }}">{{ manager.DefaultAdapter }}</a></td>
 		</tr>
@@ -48,5 +43,5 @@
 	</table>
 </div>
 </td>
-{% endbox %}
+</table>
 {% endblock %}

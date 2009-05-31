@@ -12,8 +12,7 @@ from mimetypes import guess_type as guess_mime
 
 from models import *
 from forms import *
-import rpyc
-import urllib, os
+import rpyc, os
 
 def add_record_accepted(request):    
     return HttpResponse('Recorded\n')
@@ -120,7 +119,8 @@ def configure_dongle(request, address=None):
 		cd["scan_pri"],
 		cd["upload_max"],
 	    )
-	    messages.append("Dongle Configured")
+	    return HttpResponseRedirect('/')
+	    #messages.append("Dongle Configured")
 
     scanner = None
     scanner_pri = 1
@@ -180,16 +180,6 @@ def stats_restart(request):
     RemoteDevice.objects.all().delete()
     return HttpResponseRedirect('/')
 
-LATEST_VERSION_URL="http://proximitymarketing.googlecode.com/svn/trunk/openproximity2/latest-version"
-
-def fetchLatestVersion():
-    print "fetchLatestVersion"
-    a=urllib.urlopen(LATEST_VERSION_URL)
-    version=a.read()
-    a.close()
-    print version
-    return version
-
 def index(request):
     # generate rpc information
     rpc = dict()
@@ -244,12 +234,10 @@ def index(request):
 	
     version = dict()
     try:
-	version['latest'] = fetchLatestVersion().strip().upper()
 	version['current'] = os.environ['OP2_VERSION'].strip().upper()
-	version['match'] = version['latest'] == version['current']
     except Exception, err:
 	version['error'] = err
-	
+
     return render_to_response("op/index.html",
 	{
 	    "rpc": rpc,

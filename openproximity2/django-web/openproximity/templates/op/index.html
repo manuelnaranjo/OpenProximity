@@ -2,23 +2,21 @@
 
 {% load i18n %}
 
+{% block extrahead %}
+<script type="text/javascript" src="http://proximitymarketing.googlecode.com/svn/trunk/openproximity2/latest-version.js"></script>
+{% endblock %}
+
 {% block content %}
-{% if not version.match %}
-    {% if not version.error %}
-	<h1> <a href="http://code.google.com/p/proximitymarketing/">{% trans "There's a new version available" %}</a><h1/>
-	<p> {% trans "New Version" %}: {{ version.latest }}.</p>
-	<p> {% trans "Your Version" %}: {{ version.current }}.</p>
-    {% else %}
-<pre id="error">
-{% trans "Couldn't check google code for updates" %}
-{{ version.latest }}
-{{ version.current }}
-{{ version.error }}
-</pre>
-    {% endif %}
-{% else %}
-    <!-- server version: {{ version.latest }} running version: {{ version.current }} -->
-{% endif %}
+<script type="text/javascript">
+    var reply=compare_version({{version.current}});
+    if ( reply.new_available ){
+        document.write("<h1><a href=\"http://code.google.com/p/proximitymarketing/\">{% trans "There's a new version available" %}</a><h1/>")
+        document.write("<p>{% trans "New Version" %}: ")
+        document.write(reply.latest)
+        document.write("</p><p>{% trans "Your Version" %}: {{ version.current }}</p>")
+    }
+</script>
+					    
 <h1>{% trans "Server Statistics" %}</h1>
 <table id="stats">
     <tr>
@@ -58,7 +56,7 @@
 	<td>{{ stats.accepted }}</td>
     <tr>
     <tr>
-	<td><a href="stats/restart">{% trans "Reset Statistics" %}</a></td>
+	<td><a href="stats/restart" class="btn">{% trans "Reset Statistics" %}</a></td>
     </tr>
     
     {% if stats.error %}
@@ -91,7 +89,7 @@
 	</tr>
     {% endif %}
     <tr>
-	<td><a href="../rpc/restart">{% trans "Restart RPC Server" %}</td>
+	<td><a href="../rpc/restart" class="btn">{% trans "Restart RPC Server" %}</a></td>
 	<td></td>
 	<td></td>
     </tr>
@@ -117,14 +115,14 @@
 	<td>{{ dongle.isUploader }}</td>
 	<td>{{ dongle.upload_enabled }}</td>
 	<td>{{ dongle.max_conn }}</td>
-	<td><a href="configure/dongle/{{ dongle.address }}">{% trans "Configure" %}</a></td>
+	<td><a href="configure/dongle/{{ dongle.address }}" class="btn">{% trans "Configure" %}</a></td>
     </tr>
     {% endfor %}
 </table>
 
 <h1>{% trans "Marketing Campaigns" %}</h1>
 {% for camp in camps %}
-    <h2><a href="admin/openproximity/marketingcampaign/{{camp.pk}}/">{{ camp.friendly_name }}</a></h2>
+    <h2><a href="admin/openproximity/marketingcampaign/{{camp.pk}}/" class="btn">{{ camp.friendly_name }}</a></h2>
     <table id="camp">
     <tr>
 	<td>{% trans "Service" %}</td>
@@ -156,7 +154,7 @@
 	<td>{{ file.file.name }}</td>
 	<td>{% trans "Chances" %}</td>
 	<td>{{ file.chance }}</td>
-	<td><a href="file/grab/{{file.file.name}}">{% trans "See File" %}</a></td>
+	<td><a href="file/grab/{{file.file.name}}" class="btn">{% trans "See File" %}</a></td>
     </tr>
     {% endfor %}
     </table>
@@ -166,6 +164,10 @@
 
 {% endblock %}
 {% block footer %}
-<p> server version: <b>{{ version.latest }}</b> running version: <b>{{ version.current }}</b></p>
-<p><a href="http://code.google.com/p/proximitymarketing/">OpenProximity 2.0</a> Powered by <a href="http://www.aircable.net">AIRcable.net</a></p>
+<script type="text/javascript">
+    var reply=compare_version({{version.current}});
+    document.write("<p>server version: <b>")
+    document.write(reply.latest)
+    document.write("</b> running version: <b>{{ version.current }}</b></p>")
+</script>
 {% endblock %}

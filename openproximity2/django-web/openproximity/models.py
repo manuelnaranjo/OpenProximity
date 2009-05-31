@@ -1,9 +1,14 @@
+from datetime import datetime
+import time
+
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext as _
+from django.dispatch.dispatcher import Signal
+
+import rpyc
+
 import signals.scanner as scanner
-import time
-from datetime import datetime
 
 TIMEOUT_RET = [ 22 ]
 
@@ -23,11 +28,13 @@ class BluetoothDongle(models.Model):
     def __unicode__(self):
 	return "%s - %s, %s" % (self.address, self.name, self.enabled_display() )
 
+
 class ScannerBluetoothDongle(BluetoothDongle):
     priority = models.IntegerField()
     
     def __unicode__(self):
-	return "Scanner: %s, %s" % (BluetoothDongle.__unicode__(self), self.priority)
+	return "Scanner: %s, %s" % (BluetoothDongle.__unicode__(self), 
+	    self.priority)
 
 class UploaderBluetoothDongle(BluetoothDongle):
     max_conn = models.IntegerField(default=7,
@@ -35,7 +42,10 @@ class UploaderBluetoothDongle(BluetoothDongle):
 	help_text=_("maximum allowed connections"))
 	
     def __unicode__(self):
-	return "Uploader: %s, %s" % (BluetoothDongle.__unicode__(self), self.max_conn)
+	return "Uploader: %s, %s" % (BluetoothDongle.__unicode__(self), 
+	    self.max_conn)
+
+
 
 SERVICE_TYPES = (
     (0,	  u'opp'),
@@ -89,10 +99,10 @@ class CampaignRule(models.Model):
 	else:
 	    out += "*, "
 	
-	if self.files.count() > 0:
-	    out+="files: "
-	    for file in self.files.all():
-		out+="%s, " % file.__unicode__()
+#	if self.files.count() > 0:
+#	    out+="\nfiles: "
+#	    for file in self.files.all():
+##		out+="%s, " % file.__unicode__()
 	return out.strip()[:-1]
 
 CampaignFile.rules = models.ManyToManyField(CampaignRule)
@@ -115,7 +125,7 @@ class RemoteDevice(models.Model):
     devclass = models.IntegerField(null=True)
     
     def __unicode__(self):
-	return "%s, %s, %s, %s" % (self.address, self.name, self.devclass, self.last_seen)
+	return "%s, %s" % (self.address, self.name)
 
 class DeviceRecord(models.Model):
     time = models.DateTimeField(auto_now=True, blank=False,
@@ -124,7 +134,7 @@ class DeviceRecord(models.Model):
 	verbose_name=_("dongle address"))
 
     def __unicode__(self):
-	return "%s, %s" % (self.dongle.address, self.time)#, self.action)	
+	return self.dongle.address
 
 class RemoteBluetoothDeviceRecord(DeviceRecord):
     remote = models.ForeignKey(RemoteDevice, verbose_name=_("remote address"))
@@ -136,10 +146,9 @@ class RemoteBluetoothDeviceRecord(DeviceRecord):
 	    print err
     
     def __unicode__(self):
-	return "%s, %s, %s" % (
+	return "%s, %s" % (
 	    self.dongle.address, 
-	    self.remote.address,
-	    self.time
+	    self.remote.address
 	)
 	
 class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
@@ -150,10 +159,9 @@ class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
 #    campaign = models.ForeignKey(CampaignRule)
     					
     def __unicode__(self):
-	return "%s, %s, %s, %i" % (
+	return "%s, %s, %i" % (
 	    self.dongle.address, 
 	    self.remote.address,
-	    self.time,
 	    self.rssi)
 
 class RemoteBluetoothDeviceSDP(RemoteBluetoothDeviceRecord):
@@ -230,3 +238,25 @@ def get_campaign_rule(files):
         return None
 
     return list(out)[0]
+
+def __restart_server():
+    print "restarting server"
+    server = rpyc.connect('localhost', 8010)
+    server.root.restart()
+    
+
+def bluetooth_dongle_signal(instance, **kwargs):
+    ''' gets called when ever there is a change in dongles '''
+    if type(instance) in [ BluetoothDongle, ScannerBluetoothDongle, 
+	    UploaderBluetoothDongle]:
+        print 'bluetooth_dongle_signal'
+	__restart_server()
+
+def campaign_signal(instance, **kwargs):
+    ''' gets called when ever there is a change in marketing campaigns '''
+    if type(instance) in [ CampaignRule, CampaignFile, MarketingCampaign ]:
+	print 'campaing_signal'
+	__restart_server()
+
+models.signals.post_save.connect(bluetooth_dongle_signal)
+models.signals.post_save.connect(campaign_signal)
