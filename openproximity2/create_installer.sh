@@ -1,7 +1,5 @@
 #!/bin/bash
 
-MAKESELF_PATH=$(pwd)/makeself/
-MAKESELF=${MAKESELF_PATH}/makeself.sh
 OP2=$(pwd)/distrib/
 LIB_TARGET=${OP2}/openproximity2/libs
 CWD=$(pwd)
@@ -20,7 +18,7 @@ ln -s $CWD/run.sh
 ln -s $CWD/shell.sh
 ln -s $CWD/server.sh
 
-find -name \*.pyc -exec /bin/rm -f '{}' \;
+rm $(find | grep pyc | grep -v libs )
 
 cd $OP2
 mkdir tmp
@@ -42,4 +40,4 @@ cd $OP2
 rm -rf tmp
 rm $(find | grep "pyc$")
 rm $(find | grep "pyo$")
-tar --numeric-owner -h --group=0 --owner=0 -czf $CWD/openproximity2-$(cat $CWD/latest-version).tar.gz openproximity2
+tar --numeric-owner -h --group=0 --exclude=\*svn --owner=0 -czf $CWD/openproximity2-$(cat $CWD/latest-version).tar.gz openproximity2
