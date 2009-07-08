@@ -74,27 +74,30 @@ def handle_file_uploaded(dongle, remote, pending, channel, files):
     record.save()
 
 def handle_file_failed(dongle, remote, pending, channel, files, ret, err, services):
-    print dongle, remote, channel, files
-    print err
-    
-    record = RemoteBluetoothDeviceFilesRejected()
-    record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
-    rule = get_campaign_rule(files)
-    if rule is None:
-	raise Exception("Couldn't find rule")
-    record.rule = rule
-    record.ret_value = ret
-    record.setRemoteDevice(remote)
-    record.save()
-    
-    if record.isTimeout():
-	print "timeout"
-	for s in services:
-	    print "trying again"
-	    if getattr(s, 'uploader', None) is not None:
-		s.upload(files, remote) # async call
-		return
-    else:
-	pending.remove(remote)
-    print dongle, remote, channel, files, ret
-    print err
+	print "handle file failed", dongle, remote, channel, files	
+	print err
+    	
+	try:
+	    record = RemoteBluetoothDeviceFilesRejected()
+	    record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
+	    rule = get_campaign_rule(files)
+	    if rule is None:
+		raise Exception("Couldn't find rule")
+	    record.rule = rule
+	    record.ret_value = ret
+	    record.setRemoteDevice(remote)
+	    record.save()
+	    
+	    if record.isTimeout():
+		print "timeout"
+		for s in services:
+		    print "trying again"
+		    if getattr(s, 'uploader', None) is not None:
+			s.upload(files, remote) # async call
+			return
+	    else:
+		pending.remove(remote)
+	except Exception, err:
+		print "OOPS!!!!!", err
+		pending.remove(remote)
+

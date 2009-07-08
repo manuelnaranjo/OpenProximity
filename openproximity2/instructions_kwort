@@ -1,0 +1,19 @@
+kpkg update
+kpkg upgrade
+kpkg install pysqlite lxml bluez obexftp-svn
+service unregister bluetooth
+service register bluetooth4 "BlueZ4"
+service add bluetooth4
+
+cd /opt
+# wget file
+gunzip -c openproximity2-05152009.tar.gz | tar -xv
+
+cd openproximity2
+sh run.sh
+
+<username, password>
+
+everthing is done!
+add /opt/openproximity2/run.sh to your rc.local for automatic starting
+

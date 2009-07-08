@@ -85,7 +85,7 @@ def addrecords(services, address, records, pending):
     		    print "found uploader"
     		    camps = getMatchingCampaigns(record.remote)
     		    
-    		    if len(camps)>0 and len(RemoteBluetoothDeviceFileTry.objects.filter(remote__address=record.remote.address)) == 0:
+    		    if len(camps)>0: #and len(RemoteBluetoothDeviceFileTry.objects.filter(remote__address=record.remote.address)) == 0:
     			files=list()
     			uploaded.add(record.remote.address)
     			pending.add(record.remote.address)
