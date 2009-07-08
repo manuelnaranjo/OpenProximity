@@ -9,6 +9,7 @@ from utils import settings
 import signals
 from signals.scanner import *
 import rpyc
+import time
 
 class ScanAdapter(Adapter):
 	priority = 0
@@ -177,17 +178,11 @@ class ScanManager:
 		founds = list()
 		
 		for found,data in self.__found.iteritems():
-			acu = 0
-			amn = len(data['rssi'])
-			for rssi in data['rssi']:
-			    acu += rssi
-			acu = acu/amn
 			founds.append(
 			    { 
 				'address': str(found), 
 				'name': str(data['name']),
-				'rssi': int(acu),
-				'amount_results': amn,
+				'rssi': data['rssi'],
 				'devclass': int(data['devclass'])
 			    }
 			)

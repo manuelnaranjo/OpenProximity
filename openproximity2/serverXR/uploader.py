@@ -60,6 +60,8 @@ class UploadAdapter(Adapter):
     	    Adapter.__init__(self, *args, **kwargs)	
 	
 	    if not self.is_aircable:
+		# Ok you got me, this is the second piece you need to remove
+		# MN but don't tell anyone.
 	        raise Exception("Can't use non AIRcable dongle as uploaders")
 		
 	    self.max_uploads = max_uploads

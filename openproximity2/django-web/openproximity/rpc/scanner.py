@@ -70,16 +70,15 @@ def addrecords(services, address, records, pending):
             remote.devclass = i['devclass']
             print "saving", remote.devclass
             remote.save()
-
-        record = RemoteBluetoothDeviceFoundRecord()
-        record.action = signals.FOUND_DEVICE
-        record.dongle = dongle
-        record.setRemoteDevice(i['address'])
-        record.rssi= i['rssi']
-        record.amount_results=i['amount_results']
-        record.save()
         
-        if record.remote.address not in pending: # in case we discover the same device more than once
+        record = RemoteBluetoothDeviceFoundRecord()
+    	record.action = signals.FOUND_DEVICE
+    	record.dongle = dongle
+    	record.setRemoteDevice(address)
+    	record.setRSSI(i['rssi'])
+    	record.save()
+        
+        if address not in pending: # in case we discover the same device more than once while still serving
     	    for i in services:
     		if getattr(i, 'uploader', None) is not None:
     		    print "found uploader"

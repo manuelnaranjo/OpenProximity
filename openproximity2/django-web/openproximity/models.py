@@ -119,6 +119,8 @@ class MarketingCampaign(models.Model):
     friendly_name = models.CharField(max_length=100)
     rules = models.ForeignKey(CampaignRule)
     
+    enabled = models.BooleanField()
+    
     def __unicode__(self):
 	return self.friendly_name
 
@@ -172,10 +174,16 @@ class RemoteBluetoothDeviceRecord(DeviceRecord):
 	)
 
 class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
-    rssi = models.IntegerField(verbose_name=_("average rssi"))
-    amount_results = models.IntegerField(
-	help_text=_("amount of times we discovered this device on a scan cycle"
+    __rssi = models.CommaSeparatedIntegerField(max_length=200, verbose_name=_("rssi"))
+
+    def setRSSI(self, rssi):
+	if type(rssi) is list:
+	    rssi = str(rssi)
+	self.__rssi = rssi
 	
+    def getRSSI(self):
+	return [ int(a) for a in self.__rssi.split(",") ]
+
     def __unicode__(self):
 	return "%s, %s, %i" % (
 	    self.dongle.address, 
@@ -307,7 +315,7 @@ def __restart_server():
 def bluetooth_dongle_signal(instance, **kwargs):
     ''' gets called when ever there is a change in dongles '''
     if type(instance) in [ BluetoothDongle, ScannerBluetoothDongle, 
-	    UploaderBluetoothDongle]:
+	    UploaderBluetoothDongle, SensorSDKBluetoothDongle ]:
         print 'bluetooth_dongle_signal'
 	__restart_server()
 
