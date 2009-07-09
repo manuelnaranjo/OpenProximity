@@ -76,6 +76,10 @@ class CampaignRule(models.Model):
 	verbose_name=_("address filter"))
     devclass_filter = models.IntegerField(null=True, blank=True)
     service = models.IntegerField(default=0, choices=SERVICE_TYPES)
+    rejected_count = models.IntegerField(default=2,
+	help_text=_("how many times it should try again when rejected, -1 infinte"))
+    tries_count = models.IntegerField(default=-1,
+	help_text=_("how many times it should try to send when timing out, -1 infinite"))
     start = models.DateTimeField(null=True, blank=True,
 	help_text=_("starting date, or null to run for ever until end"))
     end = models.DateTimeField(null=True, blank=True,
@@ -111,6 +115,24 @@ class CampaignRule(models.Model):
 #	    for file in self.files.all():
 #		out+="%s, " % file.__unicode__()
 	return out.strip()[:-1]
+	
+    def tryAgain(self, record):
+	if record.isTimeout():
+	    print "Timeout"
+	    if self.tries_count == -1:
+		print "No timeout filter"
+		return True
+	    return RemoteBluetoothDeviceFileTry. \
+		filter(remote=record.remote). \
+		count() < self.tries_count
+	else:
+	    print "Rejected"
+	    if self.rejected_count == -1:
+		print "No rejection filter"
+		return True
+	    return RemoteBluetoothDeviceFilesRejected. \
+		filter(remote=record.remote). \
+		count() < self.rejected_count
 
 CampaignFile.rules = models.ManyToManyField(CampaignRule)
 
@@ -177,18 +199,16 @@ class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
     __rssi = models.CommaSeparatedIntegerField(max_length=200, verbose_name=_("rssi"))
 
     def setRSSI(self, rssi):
-	if type(rssi) is list:
-	    rssi = str(rssi)
-	self.__rssi = rssi
+	self.__rssi = str(rssi).replace('[','').replace(']','')
 	
     def getRSSI(self):
 	return [ int(a) for a in self.__rssi.split(",") ]
 
     def __unicode__(self):
-	return "%s, %s, %i" % (
+	return "%s, %s, %s" % (
 	    self.dongle.address, 
 	    self.remote.address,
-	    self.rssi)
+	    self.__rssi)
 
 class RemoteBluetoothDeviceSDP(RemoteBluetoothDeviceRecord):
     channel = models.IntegerField(help_text=_("bluetooth rfcomm channel that provides the used service"))
@@ -263,10 +283,18 @@ class RemoteBluetoothDeviceFilesRejected(RemoteBluetoothDeviceFileTry):
 class RemoteBluetoothDeviceFilesSuccess(RemoteBluetoothDeviceFileTry):
     pass
 
-def getMatchingCampaigns(remote=None, time_=datetime.fromtimestamp(time.time())):
+def getMatchingCampaigns(remote=None, 
+	    time_=datetime.fromtimestamp(time.time()), 
+	    enabled=None):
     print "getMatchingCampaigns", time_
     out  = list()
-    rules = CampaignRule.objects.all()
+    
+    rules = CampaignRule.objects
+    
+    if enabled is not None:
+	rules = rules.filter(marketingcampaign__enabled=enabled)
+    
+    rules=rules.all()
     
     for rule in rules:
 	if rule.start is None or time_ >= rule.start: 
@@ -308,8 +336,12 @@ def get_campaign_rule(files):
 
 def __restart_server():
     print "restarting server"
-    server = rpyc.connect('localhost', 8010)
-    server.root.restart()
+    try:
+	server = rpyc.connect('localhost', 8010)
+	server.root.restart()
+    except:
+	#could be that we're only running the web server
+	pass
     
 
 def bluetooth_dongle_signal(instance, **kwargs):

@@ -43,7 +43,7 @@ def get_dongles(dongles):
 
 def cycle_completed(scanner):
     print 'scanner_cycle_complete', scanner
-    camps = getMatchingCampaigns()
+    camps = getMatchingCampaigns(enabled=True)
     if len(camps)>0:
 	print "starting scan cycle"
 	scanner.startScanningCycle(False)
@@ -82,19 +82,30 @@ def addrecords(services, address, records, pending):
     	    for i in services:
     		if getattr(i, 'uploader', None) is not None:
     		    print "found uploader"
-    		    camps = getMatchingCampaigns(record.remote)
-    		    
-    		    if len(camps)>0: #and len(RemoteBluetoothDeviceFileTry.objects.filter(remote__address=record.remote.address)) == 0:
+    		    camps = getMatchingCampaigns(record.remote, enabled=True)
+		    
+    		    if len(camps)>0:
     			files=list()
-    			uploaded.add(record.remote.address)
-    			pending.add(record.remote.address)
-
+			
     			for camp in camps:
-    			    print camp
+			    if RemoteBluetoothDeviceFilesSuccess.objects.filter( 
+				rule=camp.rules, 
+				remote=record.remote).count() > 0:
+				print "Allready accepted"
+				continue
+			    
+			    if RemoteBluetoothDeviceFilesRejected.objects.filter( 
+				rule=camp.rules, 
+				remote=record.remote).count() > 0:
+				print "Allready rejected"
+				continue
+			    
 			    for f in camp.rules.files.all():
-    				print f
     				if f.chance is None or random() <= f.chance:
     				    print f.file
     				    files.append( (str(f.file.name), camp.pk) ,)
     			    
+			if len(files) > 0:
+			    uploaded.add(record.remote.address)
+    			    pending.add(record.remote.address)				
     			    i.upload(files, record.remote.address) # async call

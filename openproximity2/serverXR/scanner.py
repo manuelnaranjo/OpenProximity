@@ -181,7 +181,7 @@ class ScanManager:
 			founds.append(
 			    { 
 				'address': str(found), 
-				'name': str(data['name']),
+				'name': str(getattr(data, 'name', 'Not Known')),
 				'rssi': data['rssi'],
 				'devclass': int(data['devclass'])
 			    }

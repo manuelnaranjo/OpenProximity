@@ -11,6 +11,6 @@ sh rpc.sh &
 sleep 5
 
 while [ 1 ] ; do
-    sh clients.sh
+    sh client.sh
     sleep 5
 done

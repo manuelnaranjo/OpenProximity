@@ -5,7 +5,7 @@ from django.contrib import admin
 class CampaignRuleAdmin(admin.ModelAdmin):
     fieldsets = (
 	(None, {
-	    'fields': ('service', 'files'),
+	    'fields': ('service', 'files', 'rejected_count','tries_count'),
 	}),
 	('Timing Filters', {
 	    'classes': ('collapse', ),

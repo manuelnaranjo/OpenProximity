@@ -88,8 +88,12 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
 	    record.setRemoteDevice(remote)
 	    record.save()
 	    
-	    if record.isTimeout():
-		print "timeout"
+	    # from here we try again either on timeout or if rejected count is 
+	    # smaller than filter
+	    try_again = rule.tryAgain(record.remote)
+		
+	    print "try again: %s" % try_again
+	    if try_again:
 		for s in services:
 		    print "trying again"
 		    if getattr(s, 'uploader', None) is not None:

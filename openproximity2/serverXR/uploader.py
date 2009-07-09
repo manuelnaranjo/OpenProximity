@@ -13,6 +13,9 @@ import time
 import os
 import rpyc
 
+# TODO add hci connection handling for detecting real timeout or out of range
+# TODO add license
+
 class UploadAdapter(Adapter):
 	queue = None
 	
@@ -41,7 +44,7 @@ class UploadAdapter(Adapter):
 		arguments += ('-p', os.path.join(settings.MEDIA_ROOT, f) )
 	    proc = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	    
-	    logger.debug("Uploader calling obexftp for %s on channel %s" % (target, port))	
+	    logger.debug("Uploader calling obexftp for %s on channel %s" % (target, port))
 	    (stdout, stderr) = proc.communicate()
 	    print stdout
 	    print stderr

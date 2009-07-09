@@ -15,3 +15,4 @@ python manager.py localhost 8010 scanner &
     
 echo "Starting RPC Uploader Client"
 python manager.py localhost 8010 uploader #1>>$LOG_DIR/rpc-up 2>>$LOG_DIR/rpc-up.err
+kill -9 0

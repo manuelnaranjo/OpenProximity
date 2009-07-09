@@ -125,6 +125,10 @@
     <h2><a href="admin/openproximity/marketingcampaign/{{camp.pk}}/" class="btn">{{ camp.friendly_name }}</a></h2>
     <table id="camp">
     <tr>
+	<td>{% trans "Enabled" %}</td>
+	<td>{{ camp.enabled|yesno:_("yes,no") }}
+    </tr>
+    <tr>
 	<td>{% trans "Service" %}</td>
 	<td>{{ camp.rules.get_service_display }}</td>
     </tr>
