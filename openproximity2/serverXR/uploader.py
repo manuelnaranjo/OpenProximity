@@ -4,8 +4,8 @@ import utils
 #from database import manager
 from wrappers import Adapter
 from utils import *
-import signals
-from signals.uploader import *
+import net.aircable.openproximity.signals as signals
+from net.aircable.openproximity.signals.uploader import *
 import sdp
 from workqueue import WorkQueue 
 import subprocess

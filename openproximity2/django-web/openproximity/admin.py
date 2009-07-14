@@ -17,8 +17,11 @@ class CampaignRuleAdmin(admin.ModelAdmin):
 	}),
     )
 
-#admin.site.register(ScannerBluetoothDongle)
-#admin.site.register(UploaderBluetoothDongle)
+admin.site.register(RemoteScannerBluetoothDongle)
+admin.site.register(ScannerBluetoothDongle)
+admin.site.register(UploaderBluetoothDongle)
+admin.site.register(BluetoothDongle)
+
 admin.site.register(CampaignRule, CampaignRuleAdmin)
 admin.site.register(MarketingCampaign)
 admin.site.register(CampaignFile)

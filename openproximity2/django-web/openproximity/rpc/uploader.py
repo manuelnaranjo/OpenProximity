@@ -1,4 +1,4 @@
-from openproximity.signals import uploader as signals
+from net.aircable.openproximity.signals import uploader as signals
 from openproximity.models import *
 
 def handle(services, signal, uploader, args, kwargs):

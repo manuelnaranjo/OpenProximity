@@ -8,7 +8,7 @@ from django.dispatch.dispatcher import Signal
 
 import rpyc
 
-import signals.scanner as scanner
+import net.aircable.openproximity.signals.scanner as scanner
 
 TIMEOUT_RET = [ 22 ]
 
@@ -19,6 +19,10 @@ class BluetoothDongle(models.Model):
     name = models.CharField(max_length=100, blank=True,
 	verbose_name=_("identifying name"))
     enabled = models.BooleanField()
+    position_x = models.DecimalField(null=True, blank=True, decimal_places=2,
+	max_digits=10, help_text=_("location on field of dongle"))
+    position_y = models.DecimalField(null=True, blank=True, decimal_places=2,
+	max_digits=10, help_text=_("location on field of dongle"))
 
     def enabled_display(self):
 	if self.enabled:
@@ -35,6 +39,10 @@ class ScannerBluetoothDongle(BluetoothDongle):
     def __unicode__(self):
 	return "Scanner: %s, %s" % (BluetoothDongle.__unicode__(self), 
 	    self.priority)
+	    
+class RemoteScannerBluetoothDongle(ScannerBluetoothDongle):
+    local_dongle = models.ForeignKey(ScannerBluetoothDongle, 
+	related_name="remote_dongles" )
 
 class UploaderBluetoothDongle(BluetoothDongle):
     max_conn = models.IntegerField(default=7,

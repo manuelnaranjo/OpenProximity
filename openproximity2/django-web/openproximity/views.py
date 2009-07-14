@@ -56,7 +56,9 @@ ADDRESS_MAC=compile("([0-9A-F]{2}\:){5}([0-9A-F]{2})")
 def isAIRcable(address):
     return address[:8].upper() in AIRCABLE_MAC
     
-def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7):
+def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7,
+	    position_x=None, position_y=None):
+
     search=ScannerBluetoothDongle.objects.filter(address=address)
     
     if scanner and search.count()==0:
@@ -65,12 +67,17 @@ def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7):
 	rec.name = name
 	rec.priority = scanner_pri
 	rec.enabled = True
+	rec.position_x = position_x
+	rec.position_y = position_y
 	rec.save()
 	print rec
     
     if search.count()>0:
 	rec=search.get()
 	rec.enabled = scanner == True
+	rec.priority = scanner_pri
+	rec.position_x = position_x
+	rec.position_y = position_y
 	rec.save()
     
     search=UploaderBluetoothDongle.objects.filter(address=address)
@@ -80,14 +87,17 @@ def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7):
 	rec.address = address
 	rec.name = name
 	rec.max_conn = uploader_max
-	rec.type = 2
 	rec.enabled = True
+	rec.position_x = position_x
+	rec.position_y = position_y
 	rec.save()
 	print rec
     
     if search.count()>0:
 	rec=search.get()
 	rec.enabled = uploader == True
+	rec.position_x = position_x
+	rec.position_y = position_y
 	rec.save()
 	print rec
 	
@@ -118,6 +128,8 @@ def configure_dongle(request, address=None):
 		cd["upload"],
 		cd["scan_pri"],
 		cd["upload_max"],
+		cd["position_x"],
+		cd["position_y"]
 	    )
 	    return HttpResponseRedirect('/')
 	    #messages.append("Dongle Configured")
@@ -126,12 +138,17 @@ def configure_dongle(request, address=None):
     scanner_pri = 1
     uploader = None
     uploader_max = 7
+    position_x = None
+    position_y = None
     
     name = "OpenProximity 2.0"
     
     search=BluetoothDongle.objects.filter(address=address)
     if search.count()>0:
-	name=search.all()[0].name
+	dongle = search.all()[0]
+	name=dongle.name
+	position_x = dongle.position_x
+	position_y = dongle.position_y
     
     search=ScannerBluetoothDongle.objects.filter(address=address)
     if search.count() > 0:
@@ -152,6 +169,8 @@ def configure_dongle(request, address=None):
     	        'scan_pri': scanner_pri,
     	        'upload': uploader,
     	        'upload_max': uploader_max,
+		'position_x': position_x,
+		'position_y': position_y,
 	    }
 	)
 
@@ -177,7 +196,45 @@ def grab_file(request, file):
     return HttpResponse(file.read(), mimetype=mime[0] )
     
 def stats_restart(request):
-    RemoteDevice.objects.all().delete()
+    '''
+	Delete statistics, we do drop table, not the recommended way but damn
+	effective.
+    '''
+    from django.core import management
+    from django.db import connection
+    
+    cursor = connection.cursor()
+    
+    # this tables are not going to be deleted
+    tables = [ 'openproximity_bluetoothdongle',
+    		'openproximity_campaignfile',
+		'openproximity_campaignrule',
+	        'openproximity_campaignrule_files',
+		'openproximity_marketingcampaign',
+		'openproximity_remotescannerbluetoothdongle',
+		'openproximity_scannerbluetoothdongle',
+		'openproximity_sensorsdkbluetoothdongle',
+		'openproximity_sensorsdkremotedevice',
+		'openproximity_uploaderbluetoothdongle'  ]
+
+    current_tables = connection.introspection.table_names()
+    
+    for table in current_tables:
+        if table.startswith('openproximity') and table not in tables:
+	    try:
+	        cursor.execute("DROP TABLE %s" % table)
+	    except Exception,e:
+	        raise e
+	        #pass
+							
+    management.call_command('syncdb')
+    
+    try:
+	server=rpyc.connect('localhost', 8010)
+	server.root.restart()
+    except:
+	pass
+    
     return HttpResponseRedirect('/')
 
 def index(request):
@@ -193,6 +250,11 @@ def index(request):
 	for dongle in server.root.getDongles():
 	    a=dict()
 	    a['address'] = dongle
+	    
+	    search = BluetoothDongle.objects.filter(address=dongle)
+	    if search.count()>0:
+		a['position_x'] = search.all()[0].position_x
+		a['position_y'] = search.all()[0].position_y
 	    
 	    search = ScannerBluetoothDongle.objects.filter(address=dongle)
 	    a['isScanner'] = search.count()>0

@@ -38,6 +38,14 @@
 	    <td>{% trans "Maximum Connections" %}</td>
 	    <td><input type="text" name="upload_max" value="{{ uploader_max }}" ></td>
 	</tr>
+	<tr>
+	    <td>{% trans "X Position" %}</td>
+	    <td><input type="text" name="position_x" value="{{ position_x }}" ></td>
+	</tr>
+	<tr>
+	    <td>{% trans "Y Position" %}</td>
+	    <td><input type="text" name="position_y" value="{{ position_y }}" ></td>
+	</tr>
 	{% if messages %}
 	    {% for message in messages %}
 	    <tr><td>{{ message }}</td></tr>

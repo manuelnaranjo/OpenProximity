@@ -1,4 +1,4 @@
-from openproximity.signals import scanner as signals
+from net.aircable.openproximity.signals import scanner as signals
 from openproximity.models import *
 
 def handle(services, signal, scanner, args, kwargs):
@@ -37,6 +37,12 @@ def get_dongles(dongles):
 	try:
 	    dongle = ScannerBluetoothDongle.objects.get(address=address, enabled=True)
 	    out.append( (address, dongle.priority, dongle.name) )
+	    
+	    if dongle.remote_dongles.count() > 0:
+		print "We have remote dongles available"
+		for remote in dongle.remote_dongles.all():
+		    out.append( (remote.address, remote.priority, dongle.address) )
+
 	except Exception, err:
 	    print err
     return out
@@ -62,13 +68,15 @@ def addrecords(services, address, records, pending):
         address = i['address']
         print address
 
-        if len(RemoteDevice.objects.filter(address=address)) == 0:
+        if RemoteDevice.objects.filter(address=address).count() == 0:
             print 'first time found, not yet known in our DB'
             remote = RemoteDevice()
             remote.address = i['address']
-            remote.name = i['name']
-            remote.devclass = i['devclass']
-            print "saving", remote.devclass
+	    if i['name'] is not None:
+        	remote.name = i['name']
+    	    remote.devclass = i['devclass']
+            
+	    print "saving", remote.devclass
             remote.save()
         
         record = RemoteBluetoothDeviceFoundRecord()
@@ -76,6 +84,14 @@ def addrecords(services, address, records, pending):
     	record.dongle = dongle
     	record.setRemoteDevice(address)
     	record.setRSSI(i['rssi'])
+	
+	if record.remote.name is None and i['name'] is not None:
+	    record.remote.name = i['name']
+	    record.remote.save()
+	if record.remote.devclass == -1 and i['devclass'] != -1:
+	    record.remote.devclass = i['devclass']
+	    record.remote.save()
+	
     	record.save()
         
         if address not in pending: # in case we discover the same device more than once while still serving

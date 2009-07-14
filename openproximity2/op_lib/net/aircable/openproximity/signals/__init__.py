@@ -14,4 +14,3 @@ def isScannerSignal(signal):
 
 def isUploaderSignal(signal):
 	return __isSignal(uploader,signal)
-

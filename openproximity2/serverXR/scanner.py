@@ -6,10 +6,13 @@ import utils
 from wrappers import Adapter
 from utils import logger
 from utils import settings
-import signals
-from signals.scanner import *
+import net.aircable.openproximity.signals as signals
+from net.aircable.openproximity.signals.scanner import *
 import rpyc
 import time
+import traceback
+
+remotescanner_url = "net.aircable.RemoteScanner"
 
 class ScanAdapter(Adapter):
 	priority = 0
@@ -25,6 +28,45 @@ class ScanAdapter(Adapter):
 	
 	def __str__(self):
 		return '%s, %s' % (Adapter.__str__(self), self.priority)
+	
+	def scan(self):
+		#traceback.print_stack()
+		self.dbus_interface.StartDiscovery()
+		
+	def endScan(self):
+		#traceback.print_stack()
+		self.dbus_interface.StopDiscovery()
+
+class RemoteScanAdapter(ScanAdapter):
+	priority = 0
+	sending = False
+	
+	def __init__(self, priority, local=None, address=None, bus=None):
+		if priority is None or priority < 0:
+			priority=0
+			
+		self.priority=int(priority)
+		self.local = local
+		self.bt_address = address
+		self.bus = bus
+		logger.debug("Initializated ScannerDongle: %s" % priority)
+	
+	def __str__(self):
+		return 'RemoteScanner %s %s %s' % (
+		    self.priority, self.local, self.bt_address)
+	
+	def scan(self):
+	    if self.sending:
+		return
+	    self.sending = True
+	    remote_object = self.bus.get_object(remotescanner_url,
+		"/RemoteScanner")
+	    iface = dbus.Interface(remote_object, remotescanner_url)
+	    iface.StartScan(self.local, self.bt_address)
+	    print "Scan started"
+			
+	def endScan(self):
+	    self.sending = False
 
 class ScanManager:
 	__dongles = dict()
@@ -51,11 +93,26 @@ class ScanManager:
 			'org.bluez.Adapter', # interface name
 			'org.bluez', # sender bus name
 			path_keyword='path') #
+		
 		self.bus.add_signal_receiver(self.property_changed, # callback
 			'PropertyChanged', # signal name
 			'org.bluez.Adapter', # interface name
 			'org.bluez', # sender bus name
 			path_keyword='path') #
+			
+		# call back for remote scanner
+		self.bus.add_signal_receiver(self.property_changed, # callback
+			signal_name='PropertyChanged', # signal name
+			dbus_interface=remotescanner_url, # interface name
+			path_keyword='path'
+			)
+
+		self.bus.add_signal_receiver(self.device_found, # callback
+			signal_name='DeviceFound', # signal name
+			dbus_interface=remotescanner_url, # interface name
+			path_keyword='path'
+			)
+
 
 	def exposed_refreshScanners(self):
 		logger.debug("ScanManager refresh scanners %s" % self.scanners)
@@ -65,11 +122,20 @@ class ScanManager:
 			return False
 			
 		for i in self.scanners.keys():
-			adapter = ScanAdapter(self.scanners[i][0], name=self.scanners[i][1], bus=self.bus, path=self.manager.FindAdapter(i))
+			try:
+			    path=self.manager.FindAdapter(i)
+			    adapter = ScanAdapter(self.scanners[i][0], 
+				name=self.scanners[i][1], 
+				bus=self.bus, path=path)
+			except:
+			    adapter = RemoteScanAdapter(self.scanners[i][0], 
+				local=self.scanners[i][1], address=i, 
+				bus=self.bus)
+			
 			self.__dongles[i] = adapter
 		
-		self.tellListeners(DONGLES_ADDED)
 		self.__generateSequence()
+		self.tellListeners(DONGLES_ADDED)
 		return True
 	
 	def __generateSequence(self):
@@ -121,8 +187,8 @@ class ScanManager:
 	def exposed_startScanningCycle(self, repeat=False):
 	    self.tellListeners(CYCLE_START)
 	    self.__index = 0
-	    self.__do_scan()
 	    self.__repeat = repeat
+	    self.__do_scan()
 	
 	def exposed_getDongles(self):
 	    out = set()
@@ -135,10 +201,10 @@ class ScanManager:
 	    
 	def __do_scan(self):
 	    logger.debug('ScanManager scanning on dongle')
-#	    self.__sequence[self.__index].dbus_interface.DiscoverDevices()
+
 	    if self.__index < len(self.__sequence):
-		self.__sequence[self.__index].dbus_interface.StartDiscovery()
-	    self.__found=dict()
+		self.__found=dict()
+		self.__sequence[self.__index].scan()
 	
 	def __rotate_dongle(self):
 		self.__index += 1
@@ -148,25 +214,25 @@ class ScanManager:
 		logger.debug('ScanManager dongle rotated, dongle: %s' % self.__sequence[self.__index])
 			
 	# signal callbacks		
-	def device_found(self, address, values, path):
+	def device_found(self, address, values, path=None):
             if address not in self.__found:
                     self.__found[address] = dict()
 		    self.__found[address]['rssi'] = list()
 		    
-	    if 'Name' in values and 'name' not in self.__found[address]:
+	    if 'name' not in self.__found[address] and 'Name' in values:
 		self.__found[address]['name']=str(values['Name'])
-	    if 'Class' in values and 'devclass' not in self.__found[address]:
+	    if  'devclass' not in self.__found[address] and 'Class' in values:
 		self.__found[address]['devclass'] = int(values['Class'])
 		
 	    self.__found[address]['rssi'].append(int(values['RSSI']))
-	    logger.debug('Device found: %s' % (self.__found[address]))
+	    logger.debug('Device found: %s %s' % (address, self.__found[address]))
 	    
-	def property_changed(self, name, value, path):
+	def property_changed(self, name, value, path=None):
 	    if name=='Discovering':
 		if value==0:
 		    logger.debug('Discovery completed for path: %s' % path)
-		    self.__sequence[self.__index].dbus_interface.StopDiscovery()
-		    self.discovery_completed(path)
+		    self.__sequence[self.__index].endScan()
+		    self.discovery_completed()
 		    return
 		else:
 		    logger.debug('Discovery started for path: %s' % path)
@@ -174,16 +240,16 @@ class ScanManager:
 	    print name, value, path
 	    
 			
-	def discovery_completed(self, path):
+	def discovery_completed(self):
 		founds = list()
 		
 		for found,data in self.__found.iteritems():
 			founds.append(
 			    { 
 				'address': str(found), 
-				'name': str(getattr(data, 'name', 'Not Known')),
+				'name': str(getattr(data, 'name', None)),
 				'rssi': data['rssi'],
-				'devclass': int(data['devclass'])
+				'devclass': int(getattr(data,'devclass',-1))
 			    }
 			)
 
@@ -199,6 +265,8 @@ class ScanManager:
 			self.startScanningCycle(self, repeat)
 		else:
 			self.tellListeners(CYCLE_COMPLETE)
+		
+		return False
 
 if __name__=='__main__':
 	def listen(signal, **kwargs):

@@ -15,6 +15,9 @@ class DongleForm(forms.Form):
     scan_pri = forms.IntegerField(required=False)
     upload = forms.BooleanField(required=False)
     upload_max = forms.IntegerField(required=False)
+    
+    position_x = forms.DecimalField(required=False)
+    position_y = forms.DecimalField(required=False)
 
     def clean_address(self):
 	address = self.cleaned_data['address']

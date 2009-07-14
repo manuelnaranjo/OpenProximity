@@ -130,9 +130,7 @@ class OpenProximityService(Service):
 if __name__ == "__main__":
     setup_environ(settings)
     from openproximity.models import CampaignFile
-    import openproximity.signals as signals
-    print signals.scanner.TEXT
-    print signals.uploader.TEXT
+    import net.aircable.openproximity.signals as signals
     import openproximity.rpc as rpc
     import openproximity.rpc.scanner, openproximity.rpc.uploader
     server=ThreadedServer(OpenProximityService, '0.0.0.0', port=8010, auto_register=False)
