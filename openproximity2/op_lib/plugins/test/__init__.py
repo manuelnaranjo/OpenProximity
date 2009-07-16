@@ -13,12 +13,17 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-from django.conf.urls.defaults import *
-from django.views.generic import list_detail
 
-import views
+# A test plugin
 
-urlpatterns = patterns('',
-    (r'state/(?P<path>.+)', views.status_hci),
-    (r'^$', views.index),
-)
+provides = { 
+    'name': 'sample plugin', 		# friendly name
+    
+    'django': True,			# expose me as a django enabled plugin
+    
+    'TEMPLATE_DIRS': 'templates',	# static media I give to django
+    'LOCALE_PATHS': 'locale',
+    'INSTALLED_APPS': None,
+    
+    'urls': ( 'test', 'urls' )		# urls I give to django
+}

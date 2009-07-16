@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#testing pairing service
 
 import gobject
 
