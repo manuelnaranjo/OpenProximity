@@ -1,6 +1,0 @@
-version 2.0:
-    * moved net.aircable.* to net.aircable.openproximity.*
-    * added obexftp support, enviromental variable USE_OBEXFTP="yes" will 
-	enable this support
-    * added setup.py support for distutils compatibility
-    
