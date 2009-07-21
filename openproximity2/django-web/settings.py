@@ -132,4 +132,4 @@ for plugin in pluginsystem.get_plugins():
 	LOCALE_PATHS += ( os.path.join(plugin.__path__[0], plugin.provides['LOCALE_PATHS']), )
     if plugin.provides.get('INSTALLED_APPS', None) is not None:
 	print "Provides applications"
-	INSTALLED_APPS += ( plugin.provides['INSTALLED_APPS'], )
+	INSTALLED_APPS += ( '%s.%s.%s' % ('plugins', plugin.name, plugin.provides['INSTALLED_APPS']), )

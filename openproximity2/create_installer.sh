@@ -28,11 +28,20 @@ cd $OP2
 mkdir tmp
 cd tmp
 
+if [ ! -f $CWD/libs/rpyc-3.0.6.tar.gz ]; then
+    wget -O $CWD/libs/rpyc-3.0.6.tar.gz http://ufpr.dl.sourceforge.net/sourceforge/rpyc/rpyc-3.0.6.tar.gz
+fi
+
 echo "extracting rpyc"
 gunzip -c $CWD/libs/rpyc-3.0.6.tar.gz | tar -x
 cd rpyc-3.0.6
 cp -r rpyc $LIB_TARGET
 cd ..
+
+if [ ! -f $CWD/libs/Django-1.0.2-final.tar.gz ]; then
+    wget -O $CWD/libs/Django-1.0.2-final.tar.gz http://media.djangoproject.com/releases/1.0.2/Django-1.0.2-final.tar.gz
+fi
+
 
 echo "extracting django"
 gunzip -c $CWD/libs/Django-1.0.2-final.tar.gz | tar -x

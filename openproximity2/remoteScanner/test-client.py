@@ -82,7 +82,7 @@ def main():
                                        "/RemoteScanner")
 	iface = dbus.Interface(remote_object, url)
 
-	iface.StartScan("00:50:C2:7F:EF:FE", "00:50:C2:7F:41:5B")
+	iface.StartScan(sys.argv[1], sys.argv[2])
 	print "scan started"
     except dbus.DBusException:
         print_exc()
@@ -90,6 +90,12 @@ def main():
     return False
 
 if __name__ == '__main__':
+    if len(sys.argv) < 3:
+	print '''Missing parameters
+    usage: %s dongle target
+''' % sys.argv[0]
+	sys.exit(0)
+
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     gobject.timeout_add(15, main)
     loop = gobject.MainLoop()
