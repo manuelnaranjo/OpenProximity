@@ -5,14 +5,11 @@
 
 PYTHONPATH=$(pwd)/libs
 LOG_DIR=/var/log/aircable
+LOG_FILE=$LOG_DIR/scanner.log
 
 export PYTHONPATH
+export LOG_FILE
 
-set -e
-cd django-web
-echo "Starting RPC server"
-if [ -z "$DEBUG" ]; then
-    exec python rpc.py 2>&1 1>$LOG_DIR/rpc.log &
-else
-    python rpc.py
-fi
+cd serverXR
+echo "Starting RPC Scanner Client"
+exec python manager.py localhost 8010 scanner &

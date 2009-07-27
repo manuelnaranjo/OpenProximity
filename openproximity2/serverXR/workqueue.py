@@ -1,5 +1,3 @@
-#!/usr/bin/python
-#
 # Written by Evan Jones
 # http://evanjones.ca/software/python-workqueue.html
 

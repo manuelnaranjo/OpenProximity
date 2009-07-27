@@ -1,16 +1,28 @@
-import const
-import dbus
-import utils
+#    OpenProximity2.0 is a proximity marketing OpenSource system.
+#    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation version 2 of the License.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+import const, dbus, utils, rpyc, time, traceback
 
 #from database import manager
 from wrappers import Adapter
 from utils import logger
 from utils import settings
-import net.aircable.openproximity.signals as signals
 from net.aircable.openproximity.signals.scanner import *
-import rpyc
-import time
-import traceback
+from pickle import dumps
+
+import net.aircable.openproximity.signals as signals
 
 remotescanner_url = "net.aircable.RemoteScanner"
 
@@ -30,8 +42,7 @@ class ScanAdapter(Adapter):
 		return '%s, %s' % (Adapter.__str__(self), self.priority)
 	
 	def scan(self):
-		#traceback.print_stack()
-		self.dbus_interface.StartDiscovery()
+	    self.dbus_interface.StartDiscovery()
 		
 	def endScan(self):
 		#traceback.print_stack()
@@ -49,6 +60,10 @@ class RemoteScanAdapter(ScanAdapter):
 		self.local = local
 		self.bt_address = address
 		self.bus = bus
+		remote_object = self.bus.get_object(remotescanner_url,
+		    "/RemoteScanner")
+		self.iface = dbus.Interface(remote_object, remotescanner_url)
+
 		logger.debug("Initializated ScannerDongle: %s" % priority)
 	
 	def __str__(self):
@@ -58,13 +73,12 @@ class RemoteScanAdapter(ScanAdapter):
 	def scan(self):
 	    if self.sending:
 		return
+	    
 	    self.sending = True
-	    remote_object = self.bus.get_object(remotescanner_url,
-		"/RemoteScanner")
-	    iface = dbus.Interface(remote_object, remotescanner_url)
-	    iface.StartScan(self.local, self.bt_address)
-	    print "Scan started"
-			
+	    self.iface.StartScan(self.local, self.bt_address,
+		ignore_reply=True)
+	    logger.debug("Scan started")
+
 	def endScan(self):
 	    self.sending = False
 
@@ -84,7 +98,7 @@ class ScanManager:
 		self.manager = dbus.Interface(bus.get_object(const.BLUEZ, const.BLUEZ_PATH), const.BLUEZ_MANAGER)
 		if listener is not None:
 		    for x in listener:
-			self.expoed_addListener(x)
+			self.exposed_addListener(x)
 		self.exposed_refreshScanners()
 		
 		# Subscribe to signals
@@ -118,7 +132,6 @@ class ScanManager:
 		logger.debug("ScanManager refresh scanners %s" % self.scanners)
 		if self.scanners is None or len(self.scanners) == 0:
 			self.__dongles = dict()
-			self.tellListeners(NO_DONGLES)
 			return False
 			
 		for i in self.scanners.keys():
@@ -135,7 +148,6 @@ class ScanManager:
 			self.__dongles[i] = adapter
 		
 		self.__generateSequence()
-		self.tellListeners(DONGLES_ADDED)
 		return True
 	
 	def __generateSequence(self):
@@ -177,18 +189,22 @@ class ScanManager:
 	    
 	def exposed_addListener(self, func):
 		logger.debug("ScanManager adding listener")
-		self.__listener.append(rpyc.async(func))
+		self.__listener.append(func)
 		
-	def tellListeners(self, *args, **kwargs):
-		logger.debug("ScanManager telling listener: %s, %s" % (str(args), str(kwargs)))
-		for func in self.__listener:
-			func(*args, **kwargs)
-			
+	def tellListenersSync(self, *args, **kwargs):
+	    logger.debug("ScanManager telling listener - sync: %s, %s" % (str(args), str(kwargs)))
+	    for func in self.__listener:
+	    	func(*args,**kwargs)
+	
+	def tellListenersAsync(self, *args, **kwargs):
+	    logger.debug("ScanManager telling listener - async: %s, %s" % (str(args), str(kwargs)))
+	    for func in self.__listener:
+		rpyc.async(func)(*args, **kwargs)
+
 	def exposed_startScanningCycle(self, repeat=False):
-	    self.tellListeners(CYCLE_START)
+	    self.tellListenersSync(CYCLE_START)
 	    self.__index = 0
 	    self.__repeat = repeat
-	    self.__do_scan()
 	
 	def exposed_getDongles(self):
 	    out = set()
@@ -199,25 +215,38 @@ class ScanManager:
 	def exposed_add_dongle(self, address, priority, name):
 	    self.scanners[address]=(priority, name)
 	    
-	def __do_scan(self):
-	    logger.debug('ScanManager scanning on dongle')
+	def exposed_doScan(self):
+	    logger.debug('ScanManager scanning on dongle: %s' % self.__sequence[self.__index].bt_address)
 
 	    if self.__index < len(self.__sequence):
 		self.__found=dict()
-		self.__sequence[self.__index].scan()
+		try:
+		    self.__sequence[self.__index].scan()
+		except Exception, err:
+		    logger.debug("Couldn't scan, error: %s" % err)
+		    self.__sequence[self.__index].endScan()
+		    addr = str(self.__sequence[self.__index].bt_address)
+		    ret=self.__rotate_dongle()
+		    if not ret:
+			self.tellListenersSync(DONGLE_NOT_AVAILABLE, 
+			    address=addr)
 	
 	def __rotate_dongle(self):
 		self.__index += 1
 		if self.__index >= len(self.__sequence):
-			self.__index = 0
-		self.tellListeners(CYCLE_SCAN_DONGLE, address=str(self.__sequence[self.__index].bt_address))
+		    self.tellListenersSync(CYCLE_COMPLETE)
+		    self.__index = 0
+		    logger.debug('ScanManager dongle cycle completed')
+		    return True
 		logger.debug('ScanManager dongle rotated, dongle: %s' % self.__sequence[self.__index])
+		return False
 			
 	# signal callbacks		
 	def device_found(self, address, values, path=None):
             if address not in self.__found:
                     self.__found[address] = dict()
 		    self.__found[address]['rssi'] = list()
+		    self.__found[address]['time'] = list()
 		    
 	    if 'name' not in self.__found[address] and 'Name' in values:
 		self.__found[address]['name']=str(values['Name'])
@@ -225,9 +254,12 @@ class ScanManager:
 		self.__found[address]['devclass'] = int(values['Class'])
 		
 	    self.__found[address]['rssi'].append(int(values['RSSI']))
-	    logger.debug('Device found: %s %s' % (address, self.__found[address]))
+	    self.__found[address]['time'].append(time.time())
+	    logger.debug('Device found: %s' % address)
 	    
 	def property_changed(self, name, value, path=None):
+	    if self.__index == None:
+		return
 	    if name=='Discovering':
 		if value==0:
 		    logger.debug('Discovery completed for path: %s' % path)
@@ -237,8 +269,10 @@ class ScanManager:
 		else:
 		    logger.debug('Discovery started for path: %s' % path)
 		    return
-	    print name, value, path
-	    
+	    logger.debug("property_changed %s %s %s" % (name, value, path) )
+	
+	def exposed_cycleCompleted(self):
+	    return self.__index == len(self.__sequence) - 1
 			
 	def discovery_completed(self):
 		founds = list()
@@ -249,24 +283,20 @@ class ScanManager:
 				'address': str(found), 
 				'name': str(getattr(data, 'name', None)),
 				'rssi': data['rssi'],
+				'time': data['time'],
 				'devclass': int(getattr(data,'devclass',-1))
 			    }
 			)
 
 		if len(founds) > 0:
-		    self.tellListeners(signal=FOUND_DEVICE, 
+		    self.tellListenersSync(signal=FOUND_DEVICE, 
 			address=str(self.__sequence[self.__index].bt_address),
-			records=founds)
-		
-		self.__rotate_dongle()
-		if self.__index > 0:
-			self.__do_scan()
-		elif self.__repeat:
-			self.startScanningCycle(self, repeat)
-		else:
-			self.tellListeners(CYCLE_COMPLETE)
-		
-		return False
+			records=dumps(founds) )
+		addr=str(self.__sequence[self.__index].bt_address)		
+		ret=self.__rotate_dongle()
+		if not ret:
+		    self.tellListenersSync(CYCLE_SCAN_DONGLE_COMPLETED,
+			    address=addr)
 
 if __name__=='__main__':
 	def listen(signal, **kwargs):

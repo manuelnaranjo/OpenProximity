@@ -16,9 +16,15 @@
 
 # Plugin system base
 import os, re, StringIO
-import ConfigParser, pkgutil
+import ConfigParser, pkgutil, traceback
 
-import plugins
+try:
+    import plugins
+except Exception, err:
+    import new
+    print "no plugins dir found"
+    plugins = new.module('plugins')
+    plugins.__path__=[]
 
 def find_plugin_dirs():
         return [os.path.expanduser('~/.openproximity/plugins'),
@@ -39,8 +45,8 @@ class Plugin(object):
 		    setattr(self, i, getattr(_module, i))
 		self._module = _module
 		self.provides = getattr(_module, 'provides')
-		if 'django' not in self.provides or not self.provides['django']:
-		    raise Exception("Not a django plugin, won't load here")
+		self.post_environ = getattr(_module, 'post_environ', None)
+		self.enabled = self.provides.get('enabled', True)
 
 class PluginSystem(object):
         def __init__(self):
@@ -63,18 +69,24 @@ class PluginSystem(object):
                                                 print "Failed to load info:", 
                                                 print os.path.join(path, entry)
 						print err
+						traceback.print_exc()
 
         def load_info(self, path, name):
                 plugin = Plugin(path, name,
                                 lambda:self.import_plugin(name))
-
-    		self.plugin_infos.append(plugin)
+		if plugin.enabled:
+    		    self.plugin_infos.append(plugin)
 
         def import_plugin(self, name):
                 __import__('plugins.%s' % name, {}, {}, [], 0)
                 plugin = getattr(plugins, name)
 		
                 return plugin
+		
+	def post_environ(self):
+	    for plugin in self.get_plugins():
+		if plugin.provides.get('post_environ', False):
+		    plugin.post_environ()
 
 pluginsystem = PluginSystem()
 

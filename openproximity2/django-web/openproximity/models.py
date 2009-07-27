@@ -246,7 +246,7 @@ class RemoteBluetoothDeviceFilesSuccess(RemoteBluetoothDeviceFileTry):
 def getMatchingCampaigns(remote=None, 
 	    time_=datetime.fromtimestamp(time.time()), 
 	    enabled=None):
-    print "getMatchingCampaigns", time_
+    #print "getMatchingCampaigns", time_
     out  = list()
     
     rules = CampaignRule.objects
@@ -259,19 +259,19 @@ def getMatchingCampaigns(remote=None,
     for rule in rules:
 	if rule.start is None or time_ >= rule.start: 
 	    # if it's not none then rule.start holds a value we can compare
-	    print 'start matches'
+	    #print 'start matches'
 	    if rule.end is None or time_ <= rule.end:
-		print 'end matches'
+		#print 'end matches'
 		if remote is None:
 		    out.append(rule.marketingcampaign_set.get())
 		else:
 		    if rule.name_filter is None or remote.name.startswith(rule.name_filter):
-			print "name filter matches"
+			#print "name filter matches"
 			if rule.addr_filter is None or remote.address.startswith(rule.addr_filter):
-			    print "address filter matches"
-		    	    print remote.devclass, rule.devclass_filter
+			    #print "address filter matches"
+		    	    #print remote.devclass, rule.devclass_filter
 			    if rule.devclass_filter is None or (remote.devclass & rule.devclass_filter)>0:
-				print "devclass filter matches"
+				#print "devclass filter matches"
 				out.append(rule.marketingcampaign_set.get())
     return out
 

@@ -3,14 +3,29 @@
 # this script will launch all the needed parts for an OpenProximity2.0 stand
 # alone server
 
-sh common.sh
+PID_FILE=/var/run/openproximity.pid
+LOG_DIR=/var/log/aircable
+CWD=$(pwd)
 
-sh server.sh &
-sh rpc.sh &
+. common.sh
 
+. rpc.sh
+echo $! > $PID_FILE
+cd $CWD
+
+. server.sh
+echo $! >> $PID_FILE
+cd $CWD
+
+# wait until rpc is ready
 sleep 5
 
-while [ 1 ] ; do
-    sh client.sh
-    sleep 5
-done
+. rpc_scanner.sh
+echo $! >> $PID_FILE
+cd $CWD
+
+. rpc_uploader.sh
+echo $! >> $PID_FILE
+cd $CWD
+
+exit 0

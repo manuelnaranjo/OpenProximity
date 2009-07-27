@@ -71,8 +71,7 @@ ADDRESS_MAC=compile("([0-9A-F]{2}\:){5}([0-9A-F]{2})")
 def isAIRcable(address):
     return address[:8].upper() in AIRCABLE_MAC
     
-def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7,
-	    position_x=None, position_y=None):
+def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7):
 
     search=ScannerBluetoothDongle.objects.filter(address=address)
     
@@ -82,8 +81,6 @@ def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7,
 	rec.name = name
 	rec.priority = scanner_pri
 	rec.enabled = True
-	rec.position_x = position_x
-	rec.position_y = position_y
 	rec.save()
 	print rec
     
@@ -91,8 +88,6 @@ def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7,
 	rec=search.get()
 	rec.enabled = scanner == True
 	rec.priority = scanner_pri
-	rec.position_x = position_x
-	rec.position_y = position_y
 	rec.save()
     
     search=UploaderBluetoothDongle.objects.filter(address=address)
@@ -103,16 +98,12 @@ def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7,
 	rec.name = name
 	rec.max_conn = uploader_max
 	rec.enabled = True
-	rec.position_x = position_x
-	rec.position_y = position_y
 	rec.save()
 	print rec
     
     if search.count()>0:
 	rec=search.get()
 	rec.enabled = uploader == True
-	rec.position_x = position_x
-	rec.position_y = position_y
 	rec.save()
 	print rec
 	
@@ -143,8 +134,6 @@ def configure_dongle(request, address=None):
 		cd["upload"],
 		cd["scan_pri"],
 		cd["upload_max"],
-		cd["position_x"],
-		cd["position_y"]
 	    )
 	    return HttpResponseRedirect('/')
 	    #messages.append("Dongle Configured")
@@ -153,8 +142,6 @@ def configure_dongle(request, address=None):
     scanner_pri = 1
     uploader = None
     uploader_max = 7
-    position_x = None
-    position_y = None
     
     name = "OpenProximity 2.0"
     
@@ -162,8 +149,6 @@ def configure_dongle(request, address=None):
     if search.count()>0:
 	dongle = search.all()[0]
 	name=dongle.name
-	position_x = dongle.position_x
-	position_y = dongle.position_y
     
     search=ScannerBluetoothDongle.objects.filter(address=address)
     if search.count() > 0:
@@ -184,8 +169,6 @@ def configure_dongle(request, address=None):
     	        'scan_pri': scanner_pri,
     	        'upload': uploader,
     	        'upload_max': uploader_max,
-		'position_x': position_x,
-		'position_y': position_y,
 	    }
 	)
 
@@ -265,12 +248,7 @@ def index(request):
 	for dongle in server.root.getDongles():
 	    a=dict()
 	    a['address'] = dongle
-	    
-	    search = BluetoothDongle.objects.filter(address=dongle)
-	    if search.count()>0:
-		a['position_x'] = search.all()[0].position_x
-		a['position_y'] = search.all()[0].position_y
-	    
+	    	    
 	    search = ScannerBluetoothDongle.objects.filter(address=dongle)
 	    a['isScanner'] = search.count()>0
 	    if search.count()>0:

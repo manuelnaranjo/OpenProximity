@@ -123,13 +123,15 @@ INSTALLED_APPS = (
 
 pluginsystem.find_plugins()
 for plugin in pluginsystem.get_plugins():
-    print "Loaded plugin: ", plugin.provides.get('name',plugin.name)
+    if plugin.provides.get('django', False) is False:
+	continue
+    
     if plugin.provides.get('TEMPLATE_DIRS', None) is not None :
-	print "Provides templates"
+	print plugin.name, "Provides templates"
 	TEMPLATE_DIRS += ( os.path.join(plugin.__path__[0], plugin.provides['TEMPLATE_DIRS']), )
     if plugin.provides.get('LOCALE_PATHS', None) is not None:
-	print "Provides locales"
+	print plugin.name, "Provides locales"
 	LOCALE_PATHS += ( os.path.join(plugin.__path__[0], plugin.provides['LOCALE_PATHS']), )
     if plugin.provides.get('INSTALLED_APPS', None) is not None:
-	print "Provides applications"
+	print plugin.name, "Provides applications"
 	INSTALLED_APPS += ( '%s.%s.%s' % ('plugins', plugin.name, plugin.provides['INSTALLED_APPS']), )

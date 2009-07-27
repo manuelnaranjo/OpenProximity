@@ -15,11 +15,11 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import threading, time, traceback, sys
+
 from django.core.management import setup_environ
 from rpyc import Service, async
-from rpyc.utils.server import ThreadedServer
-import threading, time
-import sys
+from rpyc.utils.server import ThreadedServer, ForkingServer
 
 try:
     import settings # Assumed to be in the same directory.
@@ -27,9 +27,18 @@ except ImportError:
     sys.stderr.write("Error: Can't find the file 'settings.py' in the directory containing %r. It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n(If the file settings.py does indeed exist, it's causing an ImportError somehow.)\n" % __file__)
     sys.exit(1)
 
+setup_environ(settings)
+from openproximity.models import CampaignFile
+import net.aircable.openproximity.signals as signals
+import openproximity.rpc as rpc
+import openproximity.rpc.scanner, openproximity.rpc.uploader
+from pluginsystem import pluginsystem	
+
+pluginsystem.post_environ()
+
 services = set()
 pending = set()
-	
+
 class OpenProximityService(Service):
 	dongles = None
 	remote_quit = None
@@ -48,50 +57,53 @@ class OpenProximityService(Service):
 		    except:
 			pass
 	    if exit:
-		sys.exit(0)
+		sys.exit(3) # restart me please
 	    
 	def listener(self, signal, *args, **kwargs):
-	    print signal, args, kwargs
+	    #print signal, args, kwargs
 	    kwargs['pending']=pending
-	    if signals.isScannerSignal(signal):
-		try:
+	    try:
+		for plugin in pluginsystem.get_plugins():
+		    if plugin.provides.get('rpc', None) is not None:
+			plugin.provides['rpc'](signal, services, self, args, kwargs)
+	    except:
+		print "ERROR on rpc listener"
+		traceback.print_exc()
+	    try:	
+		if signals.isScannerSignal(signal):
 		    rpc.scanner.handle(services, signal, self.scanner, args, kwargs)
-		except Exception, err:
-		    print err
-		    self.exit()
-	    elif signals.isUploaderSignal(signal):
-		try:
+		elif signals.isUploaderSignal(signal):
 		    rpc.uploader.handle(services, signal, self.uploader, args, kwargs)
-		except Exception, err:
-		    print err
-		    self.exit()
-	    else:
-		print "not known signal"
-	    
-	def exposed_scanner_register(self, remote_quit, scanner, dongles):
+	    except:
+		print "ERROR on rpc listener"
+		traceback.print_exc()    
+	    	    
+	def exposed_scanner_register(self, remote_quit, scanner, dongles, ping):
 	    self.dongles = set()
-	    self.add_dongle = async(scanner.add_dongle)
+	    self.add_dongle = scanner.add_dongle
 	    self.scanner = scanner
 	    self.scanner.addListener(self.listener)
+	    self.ping = ping
 
 	    for dongle in dongles:
 		self.dongles.add( str(dongle), )
-
 	    
 	    for dongle, priority, name in rpc.scanner.get_dongles(dongles):
 		print dongle, priority, name
 		self.add_dongle(dongle, priority, name)
-	    self.scanner.refreshScanners()
-	    print self.dongles
-	    
-	    self.scanner.startScanningCycle()
+		
 	    self.remote_quit = async(remote_quit)
+	    if self.scanner.refreshScanners():
+		async(self.scanner.doScan)()
+	    #print self.dongles
+	    #async(self.scanner.startScanningCycle)()
 
-	def exposed_uploader_register(self, remote_quit, uploader, dongles):
+	def exposed_uploader_register(self, remote_quit, uploader, dongles, ping):
 	    self.dongles = set()
 	    self.add_dongle = async(uploader.add_dongle)
 	    self.uploader = uploader
 	    self.uploader.addListener(self.listener)
+	    self.ping = ping
 
 	    for dongle in dongles:
 		self.dongles.add( str(dongle), )
@@ -142,12 +154,23 @@ class OpenProximityService(Service):
 	
 	def exposed_restart(self):
 	    return self.exit(False)
+
+def run():
+#    setup_environ(settings)
+#    from openproximity.models import CampaignFile
+#    import net.aircable.openproximity.signals as signals
+#    import openproximity.rpc as rpc
+#    import openproximity.rpc.scanner, openproximity.rpc.uploader
+    server=ThreadedServer(OpenProximityService, '0.0.0.0', 
+    #server=ForkingServer(OpenProximityService, '0.0.0.0', 
+		port=8010, auto_register=False)
+#    import threading
+#    t=threading.Thread(target=keep_open)
+#    t.start()
+    server.start()
+    
 	    
 if __name__ == "__main__":
-    setup_environ(settings)
-    from openproximity.models import CampaignFile
-    import net.aircable.openproximity.signals as signals
-    import openproximity.rpc as rpc
-    import openproximity.rpc.scanner, openproximity.rpc.uploader
-    server=ThreadedServer(OpenProximityService, '0.0.0.0', port=8010, auto_register=False)
-    server.start()
+    from net.aircable import autoreload
+
+    autoreload.main(run)

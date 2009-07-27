@@ -105,8 +105,6 @@
 	<td>{% trans "Is Uploader" %}</td>
 	<td>{% trans "Uploader Enabled" %}</td>	
 	<td>{% trans "Max Connections" %}</td>
-	<td>{% trans "Position X" %}</td>
-	<td>{% trans "Position Y" %}</td>
     </tr>
     {% for dongle in rpc.dongles %}
     <tr>
@@ -117,8 +115,6 @@
 	<td>{{ dongle.isUploader }}</td>
 	<td>{{ dongle.upload_enabled }}</td>
 	<td>{{ dongle.max_conn }}</td>
-	<td>{{ dongle.position_x }}</td>
-	<td>{{ dongle.position_y }}</td>
 	<td><a href="configure/dongle/{{ dongle.address }}" class="btn">{% trans "Configure" %}</a></td>
     </tr>
     {% endfor %}
