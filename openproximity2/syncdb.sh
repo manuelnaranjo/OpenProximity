@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# this script will start django shell for OpenProximity 2.0
+# this script will start syncdb for OpenProximity 2.0
 
 PYTHONPATH=$(pwd)/libs
 LOG_DIR=/var/log/aircable
