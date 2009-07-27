@@ -30,12 +30,16 @@ url = "net.aircable.RemoteScanner"
 rssi = list()
 
 def average(inp):
+    if len(inp)==0:
+	return
     acu = 0.0
     for i in inp:
         acu+=i
     return acu / len(inp)
 		    
 def deviation(inp, av=None):
+    if len(inp)==0:
+	return
     if av is None:
         av = average(inp)
     acu = 0.0
@@ -43,47 +47,70 @@ def deviation(inp, av=None):
         acu += pow(i-av,2)
     return sqrt( acu/len(inp) )
     
-def connected(local, remote):
-    print "ScannerConnected", local, remote
+def connected(local, remote, sender):
+    global remote_path
+    if remote_path == sender:
+	print "ScannerConnected", local, remote, sender
+	iface.StartScan(1)
+	
+def disconnected(local, remote, sender):
+    global rssi, remote_path
+    if remote_path == sender:
+	print "ScannerDisconnected", local, remote, sender
+	
+	av = average(rssi)
+	dev=deviation(rssi, av)
+	print av, dev    
+	loop.quit()
 
-def disconnected(local, remote):
-    print "ScannerDisconnected", local, remote
-    global rssi
-    av = average(rssi)
-    dev=deviation(rssi, av)
-    print av, dev    
-    loop.quit()
-
-def found(address, value):
-    global rssi
-    print "Device found:", address, int(value['RSSI'])
-    rssi+=(float(value['RSSI']),)
+def found(address, value, sender):
+    global rssi, remote_path
+    if remote_path == sender:
+	print "Device found:", address, int(value['RSSI'])
+	rssi+=(float(value['RSSI']),)
     
-def property(option, value):
-    print "Property:", option, value
+def property(option, value, sender):
+    global remote_path, iface
+    if remote_path == sender:
+	print "Property:", option, value
+	if option=="Discovering" and value ==0:
+	    iface.Disconnect()
+	    av = average(rssi)
+	    dev=deviation(rssi, av)
+	    print av, dev    
+	    loop.quit()
+
     
 def exception(msg):
     print "Exception", msg
     loop.quit()
 
+remote_path = None
+iface = None
+
 def main():
     bus = dbus.SystemBus()
+    #bus = dbus.SessionBus()
 
     try:
-	bus.add_signal_receiver(found, dbus_interface=url, signal_name="DeviceFound")
-	bus.add_signal_receiver(connected, dbus_interface=url, signal_name="ScannerConnected")
-	bus.add_signal_receiver(disconnected, dbus_interface=url, signal_name="ScannerDisconnected")
+	bus.add_signal_receiver(found, dbus_interface=url, signal_name="DeviceFound", path_keyword='sender')
+	bus.add_signal_receiver(connected, dbus_interface=url, signal_name="ScannerConnected", path_keyword='sender')
+	bus.add_signal_receiver(disconnected, dbus_interface=url, signal_name="ScannerDisconnected", path_keyword='sender')
 	bus.add_signal_receiver(exception, dbus_interface=url, signal_name="ConnectionException")
-	bus.add_signal_receiver(property, dbus_interface=url, signal_name="PropertyChanged")
+	bus.add_signal_receiver(property, dbus_interface=url, signal_name="PropertyChanged", path_keyword='sender')
 	
 	print "Signals registered"
 	
-        remote_object = bus.get_object(url,
-                                       "/RemoteScanner")
+	manager = bus.get_object(url, "/net/aircable/RemoteScanner/Manager")
+	
+	global remote_path, iface
+	
+	remote_path = manager.Connect(dbus_interface=url)
+	
+        remote_object = bus.get_object(url, remote_path)
 	iface = dbus.Interface(remote_object, url)
-
-	iface.StartScan(sys.argv[1], sys.argv[2])
-	print "scan started"
+	iface.Connect(sys.argv[1], sys.argv[2])
+	
     except dbus.DBusException:
         print_exc()
         sys.exit(1)

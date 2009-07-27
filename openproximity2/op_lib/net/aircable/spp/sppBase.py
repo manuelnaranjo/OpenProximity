@@ -19,11 +19,12 @@
 """
 
 import socket, time
+import logging
+import dbus
 
 from re import compile
 from errors import *
-import logging
-import dbus
+from select import select
 
 class sppBase:
 	'''
@@ -129,8 +130,9 @@ class sppBase:
 		if self.socket == None:
 		    raise SPPNotConnectedException, message
 		    
-	def disconnect(self):
-	    self.checkConnected("Can't close if it's opened");
+	def disconnect(self, force=False):
+	    if not force:
+		self.checkConnected("Can't close if it's opened");
 	    self.logInfo("Closing socket");
 	    self.socket.shutdown(socket.SHUT_RDWR);
 	    self.socket.close()
@@ -156,7 +158,7 @@ class sppBase:
 	    """
 	    self.send("%s\n\r" % text)
 
-	def read(self, bytes=10, log=True):
+	def read(self, bytes=10, log=True, timeout=None):
 	    '''
 		Read binary data from the port.
 	    
@@ -164,11 +166,26 @@ class sppBase:
 		    bytes: Amount of bytes to read
 	    '''
 	    self.checkConnected('Can\'t read if not connected');
-		
-	    ret = self.socket.recv(bytes);
+	    
+	    ret = None
+	    
+	    if timeout is None:
+		timeout = self.socket.gettimeout()
+	    
+	    if timeout is not None:
+		start = time.time()
+	    
+	    while [ 1 ]:
+		sel = select( (self.socket,), (), (), 0)
+		if len(sel[0]) > 0:
+		    ret = self.socket.recv(bytes);
+		    break
+		if timeout is not None and time.time() - start > timeout:
+		    raise SPPException("timeout reached on read")
+		time.sleep(0.1)
 	    
 	    if( log ):
-		    self.logDebug("<< %s" % ret)
+		self.logDebug("<< %s" % ret)
 	    
 	    return ret
 
@@ -186,24 +203,29 @@ class sppBase:
 			self.logDebug("<< %s" % out )
 			return out
 	
-	def readBuffer(self, honnor_eol=False,timeout=1):
+	def readBuffer(self, honnor_eol=False,timeout=1, log=False):
 	    '''
 		Reads all the data inside the buffer
 	    '''
 	    out = buffer("");
-	    timeout__ = self.socket.gettimeout()
-	    self.socket.settimeout(timeout)
+#	    timeout__ = self.socket.gettimeout()
+#	    self.socket.settimeout(timeout)
+	    start = time.time()
 	    try:
 		while ( 1 ):
-		    out += self.read(bytes=1, log=False)
+		    out += self.read(bytes=1, log=False, timeout=timeout)
 		    if honnor_eol and self.__pattern.match(out):
-			out = out.replace('\n', '')
 			break;
-	    except Exception, err:
-		pass
+		    if time.time() - start > timeout:
+			break;
+	    except SPPException, err:
+		if log:
+		    self.logDebug("readBuffer error: %s, out:%s"%(err, out))
 	    
-	    self.socket.settimeout(timeout__)
-	    return str(out)
+	    
+	    return str(out).replace('\n', '')
+#	    self.socket.settimeout(timeout__)
+#	    return 
 			
 	#shell functions wrappers
 	def shellGrabFile(self, file):
