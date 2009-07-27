@@ -28,6 +28,7 @@ remotescanner_url = "net.aircable.RemoteScanner"
 
 class ScanAdapter(Adapter):
 	priority = 0
+	found = None
 	
 	def __init__(self, priority, *args, **kwargs):
 		Adapter.__init__(self, *args, **kwargs)
@@ -42,11 +43,11 @@ class ScanAdapter(Adapter):
 		return '%s, %s' % (Adapter.__str__(self), self.priority)
 	
 	def scan(self):
+	    self.found = dict()
 	    self.dbus_interface.StartDiscovery()
 		
 	def endScan(self):
-		#traceback.print_stack()
-		self.dbus_interface.StopDiscovery()
+	    self.dbus_interface.StopDiscovery()
 
 class RemoteScanAdapter(ScanAdapter):
 	priority = 0
@@ -60,11 +61,16 @@ class RemoteScanAdapter(ScanAdapter):
 		self.local = local
 		self.bt_address = address
 		self.bus = bus
-		remote_object = self.bus.get_object(remotescanner_url,
-		    "/RemoteScanner")
+		
+		manager = self.bus.get_object(remotescanner_url,
+		    "/net/aircable/RemoteScanner/Manager")
+		self.remote_path = manager.Connect(dbus_interface=remotescanner_url)
+		
+		remote_object = self.bus.get_object(remotescanner_url, self.remote_path)
+		
 		self.iface = dbus.Interface(remote_object, remotescanner_url)
 
-		logger.debug("Initializated ScannerDongle: %s" % priority)
+		logger.debug("Initializated RemoteScannerDongle: %s" % priority)
 	
 	def __str__(self):
 		return 'RemoteScanner %s %s %s' % (
@@ -74,9 +80,12 @@ class RemoteScanAdapter(ScanAdapter):
 	    if self.sending:
 		return
 	    
+	    if not self.iface.isConnected():
+		self.iface.Connect(self.local, self.bt_address)
+	
 	    self.sending = True
-	    self.iface.StartScan(self.local, self.bt_address,
-		ignore_reply=True)
+	    self.found = dict()
+	    self.iface.StartScan(1)
 	    logger.debug("Scan started")
 
 	def endScan(self):

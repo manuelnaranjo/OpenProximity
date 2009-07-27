@@ -93,8 +93,9 @@ class OpenProximityService(Service):
 		self.add_dongle(dongle, priority, name)
 		
 	    self.remote_quit = async(remote_quit)
-	    if self.scanner.refreshScanners():
-		async(self.scanner.doScan)()
+	    async(self.scanner.refreshScanners)()
+#	    if self.scanner.refreshScanners():
+#		async(self.scanner.doScan)()
 	    #print self.dongles
 	    #async(self.scanner.startScanningCycle)()
 

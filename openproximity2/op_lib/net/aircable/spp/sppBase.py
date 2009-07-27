@@ -136,6 +136,7 @@ class sppBase:
 	    self.logInfo("Closing socket");
 	    self.socket.shutdown(socket.SHUT_RDWR);
 	    self.socket.close()
+	    self.socket = None
 
 	def send(self, text):
 	    '''
