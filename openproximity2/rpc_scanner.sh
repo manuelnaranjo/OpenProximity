@@ -12,4 +12,8 @@ export LOG_FILE
 
 cd serverXR
 echo "Starting RPC Scanner Client"
-exec python manager.py localhost 8010 scanner &
+if [ -z "$DEBUG" ]; then
+    exec python manager.py localhost 8010 scanner 2>&1 &
+else
+    exec python manager.py localhost 8010 scanner
+fi

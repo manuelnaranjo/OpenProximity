@@ -60,7 +60,10 @@ _mtimes = {}
 _win = (sys.platform == "win32")
 
 def isParent():
-    return os.getpid() == int(os.environ.get('RUN_PARENT', os.getpid()))
+    if os.environ.get('DEBUG', None) is None:
+	return os.getpid() == int(os.environ.get('RUN_PARENT', os.getpid()))
+    else:
+	return True
 
 def handle_child(signum, frame):
     sys.exit(3)
@@ -141,7 +144,10 @@ def python_reloader(main_func, args, kwargs):
             pass
 
 def main(main_func, args=(), kwargs={}):
-    python_reloader(main_func, args, kwargs)
+    if os.environ.get('DEBUG', None) is None:
+	python_reloader(main_func, args, kwargs)
+    else:
+	main_func(*args, **kwargs)
 
 if __name__ == '__main__':
     def test():

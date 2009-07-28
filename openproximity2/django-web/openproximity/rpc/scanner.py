@@ -145,7 +145,7 @@ def handle_addrecord(services, remote_, dongle, pending):
         print 'first time found, not yet known in our DB'
         remote = RemoteDevice()
         remote.address = address
-	if i['name'] is not None:
+	if remote_['name'] is not None:
     	    remote.name = remote_['name']
     	remote.devclass = remote_['devclass']
         remote.save()

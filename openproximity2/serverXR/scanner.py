@@ -64,9 +64,9 @@ class RemoteScanAdapter(ScanAdapter):
 		
 		manager = self.bus.get_object(remotescanner_url,
 		    "/net/aircable/RemoteScanner/Manager")
-		self.remote_path = manager.Connect(dbus_interface=remotescanner_url)
+		self.dbus_path = manager.Connect(dbus_interface=remotescanner_url)
 		
-		remote_object = self.bus.get_object(remotescanner_url, self.remote_path)
+		remote_object = self.bus.get_object(remotescanner_url, self.dbus_path)
 		
 		self.iface = dbus.Interface(remote_object, remotescanner_url)
 
@@ -100,6 +100,8 @@ class ScanManager:
 	__index = None
 	__repeat = False
 	scanners = dict()
+	concurrent = False
+	concurrent_pending = list()
 	    
 	def __init__(self, bus, listener=None):
 		logger.debug("ScanManager created")
@@ -135,8 +137,7 @@ class ScanManager:
 			dbus_interface=remotescanner_url, # interface name
 			path_keyword='path'
 			)
-
-
+	
 	def exposed_refreshScanners(self):
 		logger.debug("ScanManager refresh scanners %s" % self.scanners)
 		if self.scanners is None or len(self.scanners) == 0:
@@ -157,7 +158,7 @@ class ScanManager:
 			self.__dongles[i] = adapter
 		
 		self.__generateSequence()
-		return True
+		self.tellListenersAsync(DONGLES_ADDED)
 	
 	def __generateSequence(self):
 		# we want a sequence were we interleave devices as
@@ -195,6 +196,12 @@ class ScanManager:
 	    
 		self.__sequence=__sequence
 		self.__index = 0
+		
+	def exposed_setConcurrent(self, val):
+	    self.concurrent = val
+	
+	def exposed_getConcurrent(self):
+	    return self.concurrent
 	    
 	def exposed_addListener(self, func):
 		logger.debug("ScanManager adding listener")
@@ -214,6 +221,8 @@ class ScanManager:
 	    self.tellListenersSync(CYCLE_START)
 	    self.__index = 0
 	    self.__repeat = repeat
+	    if self.concurrent:
+		self.pending=list()
 	
 	def exposed_getDongles(self):
 	    out = set()
@@ -225,10 +234,17 @@ class ScanManager:
 	    self.scanners[address]=(priority, name)
 	    
 	def exposed_doScan(self):
+	    logger.debug('ScanManager scanning')
+	    
+	    if not self.concurrent:
+		self.__do_scan_no_concurrent()
+	    else:
+		self.__multi_scan()
+	    
+	def __do_scan_no_concurrent(self):
+	    logger.debug("No concurrent scan")
 	    logger.debug('ScanManager scanning on dongle: %s' % self.__sequence[self.__index].bt_address)
-
 	    if self.__index < len(self.__sequence):
-		self.__found=dict()
 		try:
 		    self.__sequence[self.__index].scan()
 		except Exception, err:
@@ -239,6 +255,18 @@ class ScanManager:
 		    if not ret:
 			self.tellListenersSync(DONGLE_NOT_AVAILABLE, 
 			    address=addr)
+			    
+	def __multi_scan(self):
+	    logger.debug("Concurrent scan")
+	    print len(self.pending)
+	    if self.pending is not None and len(self.pending) > 0:
+		raise Exception("Can't do multiple concurrent scans if pending")
+	    self.pending = list()
+	    for dongle in self.__dongles.itervalues():
+		print dongle.dbus_path, "scanning"
+		dongle.scan()
+		self.pending.append(dongle.dbus_path)
+		
 	
 	def __rotate_dongle(self):
 		self.__index += 1
@@ -249,22 +277,30 @@ class ScanManager:
 		    return True
 		logger.debug('ScanManager dongle rotated, dongle: %s' % self.__sequence[self.__index])
 		return False
+	
+	def __getScannerForPath(self, path):
+	    for dongle in self.__dongles.itervalues():
+		if dongle.dbus_path == path:
+		    return dongle
+	    raise Exception("Path not Valid")
 			
 	# signal callbacks		
 	def device_found(self, address, values, path=None):
-            if address not in self.__found:
-                    self.__found[address] = dict()
-		    self.__found[address]['rssi'] = list()
-		    self.__found[address]['time'] = list()
+	    dongle = self.__getScannerForPath(path)
+	    
+            if address not in dongle.found:
+                    dongle.found[address] = dict()
+		    dongle.found[address]['rssi'] = list()
+		    dongle.found[address]['time'] = list()
 		    
-	    if 'name' not in self.__found[address] and 'Name' in values:
-		self.__found[address]['name']=str(values['Name'])
-	    if  'devclass' not in self.__found[address] and 'Class' in values:
-		self.__found[address]['devclass'] = int(values['Class'])
+	    if 'name' not in dongle.found[address] and 'Name' in values:
+		dongle.found[address]['name']=str(values['Name'])
+	    if  'devclass' not in dongle.found[address] and 'Class' in values:
+		dongle.found[address]['devclass'] = int(values['Class'])
 		
-	    self.__found[address]['rssi'].append(int(values['RSSI']))
-	    self.__found[address]['time'].append(time.time())
-	    logger.debug('Device found: %s' % address)
+	    dongle.found[address]['rssi'].append(int(values['RSSI']))
+	    dongle.found[address]['time'].append(time.time())
+	    logger.debug('%s device found: %s' % (path, address) )
 	    
 	def property_changed(self, name, value, path=None):
 	    if self.__index == None:
@@ -272,8 +308,11 @@ class ScanManager:
 	    if name=='Discovering':
 		if value==0:
 		    logger.debug('Discovery completed for path: %s' % path)
-		    self.__sequence[self.__index].endScan()
-		    self.discovery_completed()
+		    dongle = self.__getScannerForPath(path)
+		    dongle.endScan()
+		    if self.concurrent:
+			self.pending.remove(dongle.dbus_path)
+		    self.discovery_completed(dongle)
 		    return
 		else:
 		    logger.debug('Discovery started for path: %s' % path)
@@ -283,10 +322,10 @@ class ScanManager:
 	def exposed_cycleCompleted(self):
 	    return self.__index == len(self.__sequence) - 1
 			
-	def discovery_completed(self):
+	def discovery_completed(self, dongle):
 		founds = list()
 		
-		for found,data in self.__found.iteritems():
+		for found,data in dongle.found.iteritems():
 			founds.append(
 			    { 
 				'address': str(found), 
@@ -297,15 +336,23 @@ class ScanManager:
 			    }
 			)
 
+		addr=str(dongle.bt_address)
+		
 		if len(founds) > 0:
 		    self.tellListenersSync(signal=FOUND_DEVICE, 
-			address=str(self.__sequence[self.__index].bt_address),
+			address=str(dongle.bt_address),
 			records=dumps(founds) )
-		addr=str(self.__sequence[self.__index].bt_address)		
-		ret=self.__rotate_dongle()
-		if not ret:
+		
+		if not self.concurrent:
+		    ret=self.__rotate_dongle()
+		    if not ret:
+			self.tellListenersSync(CYCLE_SCAN_DONGLE_COMPLETED,
+			    address=addr)
+		elif len(self.pending) == 0:
 		    self.tellListenersSync(CYCLE_SCAN_DONGLE_COMPLETED,
 			    address=addr)
+
+		    
 
 if __name__=='__main__':
 	def listen(signal, **kwargs):

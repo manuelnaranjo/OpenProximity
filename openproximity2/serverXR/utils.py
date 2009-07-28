@@ -75,7 +75,8 @@ def __initLog():
 	    logger.addHandler(socketHandler)
 	    logger.info('Socket Handler ready')
 	
-	if os.environ.get('CONSOLE_LOG') == 'yes':
+	if os.environ.get('CONSOLE_LOG') == 'yes' or \
+		    os.environ.get('DEBUG')=="yes":
 	    console=logging.StreamHandler()
     	    console.setLevel(logging.DEBUG)
 	    console.setFormatter(formatter)

@@ -110,6 +110,12 @@ class RemoteScanner(dbus.service.Object):
 	    )
 	    
 	    self.client.connect()
+	    
+	    # empty all buffers get it to clean state
+	    self.client.socket.settimeout(30)
+	    print self.client.readLine()
+	    print self.client.readBuffer()
+
     	    self.ScannerConnected(self.local, self.remote)
 
 	except Exception, err:
@@ -122,7 +128,6 @@ class RemoteScanner(dbus.service.Object):
     	    self.client.disconnect(True)
 	except Exception, err:
 	    print "Failed while disconnecting", err
-
 
 	self.ScannerDisconnected(self.local, self.remote)
 	self.client = None
@@ -138,8 +143,6 @@ class RemoteScanner(dbus.service.Object):
     def __scan(self, times):
 	try:
 	    self.client.socket.settimeout(30)
-	    print self.client.readLine()
-	    print self.client.readBuffer()
 	    self.client.sendLine("r%i" % times) 
 	    print self.client.readBuffer()
 

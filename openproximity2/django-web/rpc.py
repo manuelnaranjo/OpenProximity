@@ -28,7 +28,7 @@ except ImportError:
     sys.exit(1)
 
 setup_environ(settings)
-from openproximity.models import CampaignFile
+from openproximity.models import CampaignFile, GeneralSetting
 import net.aircable.openproximity.signals as signals
 import openproximity.rpc as rpc
 import openproximity.rpc.scanner, openproximity.rpc.uploader
@@ -93,9 +93,16 @@ class OpenProximityService(Service):
 		self.add_dongle(dongle, priority, name)
 		
 	    self.remote_quit = async(remote_quit)
-	    async(self.scanner.refreshScanners)()
-#	    if self.scanner.refreshScanners():
-#		async(self.scanner.doScan)()
+	    
+	    (setting, created) = GeneralSetting.objects.get_or_create(
+		name="scanner-concurrent")
+	    
+	    concurrent = (created == False and setting.getValue())
+	    print "Concurrent setting:", concurrent
+	    self.scanner.setConcurrent(concurrent)
+	    
+	    self.scanner.refreshScanners()
+	    #async(self.scanner.doScan)()
 	    #print self.dongles
 	    #async(self.scanner.startScanningCycle)()
 

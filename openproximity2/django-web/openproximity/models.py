@@ -16,6 +16,7 @@
 from datetime import datetime
 import time
 
+from pickle import dumps, loads
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext as _
@@ -26,6 +27,24 @@ import rpyc
 import net.aircable.openproximity.signals.scanner as scanner
 
 TIMEOUT_RET = [ 22 ]
+
+class GeneralSetting(models.Model):
+    name = models.CharField(max_length=200)
+    __value = models.CharField(max_length=200, 
+	verbose_name=_("Setting value, needs to be pickled"))
+    
+    def setValue(self, value):
+	if type(value)!=str:
+	    value=dumps(value)
+	self.__value = value
+	
+    def getValue(self):
+	try:
+	    val = loads(self.__value)
+	except:
+	    # this is a string can't unpickle
+	    val = self.__value
+	return val
 
 class BluetoothDongle(models.Model):
     address = models.CharField(max_length=17, 
