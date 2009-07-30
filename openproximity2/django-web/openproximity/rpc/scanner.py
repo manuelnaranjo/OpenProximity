@@ -101,7 +101,7 @@ def get_uploader(services):
 	    return i
     return None
 
-def handle_doaction(services, address, record):
+def handle_doaction(services, address, record, pending):
     uploader = get_uploader(services)
     
     if uploader is None:
@@ -136,7 +136,7 @@ def handle_doaction(services, address, record):
     if len(files) > 0:
 	uploaded.add(record.remote.address)
     	pending.add(record.remote.address)				
-    	i.upload(files, record.remote.address) # async call
+    	uploader.upload(files, record.remote.address) # async call
     
 def handle_addrecord(services, remote_, dongle, pending):
     address = remote_['address']
@@ -166,7 +166,7 @@ def handle_addrecord(services, remote_, dongle, pending):
     record.save()
     
     if address not in pending:
-	return handle_doaction(services, address,record)
+	return handle_doaction(services, address,record, pending)
 
     return True
     
