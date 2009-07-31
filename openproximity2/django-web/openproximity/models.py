@@ -148,24 +148,22 @@ class CampaignRule(models.Model):
 	    out += "*, "
 
 	return out.strip()[:-1]
-	
+
     def tryAgain(self, record):
 	if record.isTimeout():
 	    print "Timeout"
 	    if self.tries_count == -1:
 		print "No timeout filter"
 		return True
-	    return RemoteBluetoothDeviceFileTry. \
-		filter(remote=record.remote). \
-		count() < self.tries_count
+	    return RemoteBluetoothDeviceFileTry.objects.\
+	    filter(remote=record.remote).count() < self.tries_count
 	else:
 	    print "Rejected"
 	    if self.rejected_count == -1:
 		print "No rejection filter"
 		return True
-	    return RemoteBluetoothDeviceFilesRejected. \
-		filter(remote=record.remote). \
-		count() < self.rejected_count
+	    return RemoteBluetoothDeviceFilesRejected.objects.\
+	    filter(remote=record.remote).count() < self.rejected_count
 
 CampaignFile.rules = models.ManyToManyField(CampaignRule)
 
