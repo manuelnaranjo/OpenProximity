@@ -105,7 +105,7 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
 	    
 	    # from here we try again either on timeout or if rejected count is 
 	    # smaller than filter
-	    try_again = rule.tryAgain(record.remote)
+	    try_again = rule.tryAgain(record)
 		
 	    print "try again: %s" % try_again
 	    if try_again:
@@ -118,5 +118,6 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
 		pending.remove(remote)
 	except Exception, err:
 		print "OOPS!!!!!", err
+		
 		pending.remove(remote)
 
