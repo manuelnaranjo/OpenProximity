@@ -17,7 +17,7 @@
 
 import gobject
 
-import threading, os, traceback
+import threading, os, traceback, time
 import dbus
 import dbus.service
 import dbus.glib
@@ -108,9 +108,10 @@ class RemoteScanner(dbus.service.Object):
 		service = "spp",
 		device = self.local
 	    )
-	    
+		
 	    self.client.connect()
-	    
+	    time.sleep(3)
+
 	    # empty all buffers get it to clean state
 	    self.client.socket.settimeout(30)
 	    print self.client.readLine()

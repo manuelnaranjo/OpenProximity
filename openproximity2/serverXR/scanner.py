@@ -208,12 +208,12 @@ class ScanManager:
 		self.__listener.append(func)
 		
 	def tellListenersSync(self, *args, **kwargs):
-	    logger.debug("ScanManager telling listener - sync: %s, %s" % (str(args), str(kwargs)))
+	    logger.debug("ScanManager telling listener - sync: %s" % POST[args[0]])
 	    for func in self.__listener:
 	    	func(*args,**kwargs)
 	
 	def tellListenersAsync(self, *args, **kwargs):
-	    logger.debug("ScanManager telling listener - async: %s, %s" % (str(args), str(kwargs)))
+	    logger.debug("ScanManager telling listener - async: %s" % POST[args[0]])
 	    for func in self.__listener:
 		rpyc.async(func)(*args, **kwargs)
 
@@ -258,12 +258,11 @@ class ScanManager:
 			    
 	def __multi_scan(self):
 	    logger.debug("Concurrent scan")
-	    print len(self.pending)
 	    if self.pending is not None and len(self.pending) > 0:
 		raise Exception("Can't do multiple concurrent scans if pending")
 	    self.pending = list()
 	    for dongle in self.__dongles.itervalues():
-		print dongle.dbus_path, "scanning"
+		logger.debug("%s scanning" % dongle.dbus_path)
 		dongle.scan()
 		self.pending.append(dongle.dbus_path)
 		
@@ -339,18 +338,17 @@ class ScanManager:
 		addr=str(dongle.bt_address)
 		
 		if len(founds) > 0:
-		    self.tellListenersSync(signal=FOUND_DEVICE, 
+		    self.tellListenersAsync(FOUND_DEVICE, 
 			address=str(dongle.bt_address),
 			records=dumps(founds) )
 		
 		if not self.concurrent:
 		    ret=self.__rotate_dongle()
 		    if not ret:
-			self.tellListenersSync(CYCLE_SCAN_DONGLE_COMPLETED,
+			self.tellListenersAsync(CYCLE_SCAN_DONGLE_COMPLETED,
 			    address=addr)
 		elif len(self.pending) == 0:
-		    self.tellListenersSync(CYCLE_SCAN_DONGLE_COMPLETED,
-			    address=addr)
+		    self.tellListenersAsync(CYCLE_COMPLETE)
 
 		    
 
