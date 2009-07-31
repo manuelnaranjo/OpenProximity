@@ -199,10 +199,12 @@ def stats_restart(request):
 	effective.
     '''
     from django.core import management
-    from django.db import connection
-    
+    from django.db import connection, models
+    from django.core.management.color import no_style
+    from django.core.management import sql
+
     cursor = connection.cursor()
-    
+
     # this tables are not going to be deleted
     tables = [ 'openproximity_bluetoothdongle',
     		'openproximity_campaignfile',
@@ -213,26 +215,40 @@ def stats_restart(request):
 		'openproximity_scannerbluetoothdongle',
 		'openproximity_sensorsdkbluetoothdongle',
 		'openproximity_sensorsdkremotedevice',
-		'openproximity_uploaderbluetoothdongle'  ]
+		'openproximity_uploaderbluetoothdongle',
+		'openproximity_generalsetting',
+	    ]
+    model = models.get_app('openproximity')
+    exc = "BEGIN;\n"
+    
+    drop_table = sql.sql_reset(model, no_style())
+    
+    for line in drop_table:
+	if line.startswith('DROP TABLE'):
+	    # we don't want to loose settings
+	    table_name = line.split()[2].replace('"', '').replace(';','')
+	    if table_name not in tables:
+		exc+=line+"\n"
+	else:
+	    # add "IF NOT EXISTS"
+	    spl=line.split(" ", 2)
+	    exc+="%s %s IF NOT EXISTS %s\n" % (spl[0], spl[1], spl[2])
 
-    current_tables = connection.introspection.table_names()
+    print "about to execute"
+    print exc
     
-    for table in current_tables:
-        if table.startswith('openproximity') and table not in tables:
-	    try:
-	        cursor.execute("DROP TABLE %s" % table)
-	    except Exception,e:
-	        raise e
-	        #pass
-							
-    management.call_command('syncdb')
-    
+    try:
+        cursor.executemany(exc, ())
+    except Exception,e:
+        raise e
+        #pass
+
     try:
 	server=rpyc.connect('localhost', 8010)
 	server.root.restart()
     except:
 	pass
-    
+
     return HttpResponseRedirect('/')
 
 def index(request):

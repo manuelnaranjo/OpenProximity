@@ -110,8 +110,8 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
 	    print "try again: %s" % try_again
 	    if try_again:
 		for s in services:
-		    print "trying again"
 		    if getattr(s, 'uploader', None) is not None:
+			print "trying again"
 			s.upload(files, remote) # async call
 			return
 	    else:
