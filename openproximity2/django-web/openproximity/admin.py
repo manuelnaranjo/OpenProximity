@@ -16,6 +16,11 @@
 from models import *
 from django.contrib import admin
 
+class SettingAdmin(admin.ModelAdmin):
+    list_display = ('name', 'value')
+    
+admin.site.register(Setting, SettingAdmin)
+
 class DongleAdmin(admin.ModelAdmin):
     list_display = ( 'address', 'name', 'enabled' )
  

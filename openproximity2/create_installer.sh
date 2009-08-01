@@ -16,6 +16,7 @@ ln -s $CWD/django-web .
 ln -s $CWD/latest-version .
 ln -s $CWD/remoteScanner .
 ln -s $CWD/op_lib/net $LIB_TARGET/net
+ln -s $CWD/common.sh
 ln -s $CWD/rpc.sh
 ln -s $CWD/run.sh
 ln -s $CWD/shell.sh
