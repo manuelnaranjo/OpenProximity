@@ -16,7 +16,6 @@ ln -s $CWD/django-web .
 ln -s $CWD/latest-version .
 ln -s $CWD/remoteScanner .
 ln -s $CWD/op_lib/net $LIB_TARGET/net
-ln -s $CWD/common.sh
 ln -s $CWD/rpc.sh
 ln -s $CWD/run.sh
 ln -s $CWD/shell.sh
@@ -25,6 +24,8 @@ ln -s $CWD/rpc_scanner.sh
 ln -s $CWD/rpc_uploader.sh
 ln -s $CWD/remote_scanner.sh
 ln -s $CWD/clean.sh
+ln -s $CWD/syncdb.sh
+ln -s $CWD/manager.sh
 
 cd $OP2
 mkdir tmp
@@ -47,7 +48,7 @@ fi
 
 echo "extracting django"
 gunzip -c $CWD/libs/Django-1.1.tar.gz | tar -x
-cd Django-1.1-final
+cd Django-1.1
 cp -r django $LIB_TARGET
 cd ..
 

@@ -26,25 +26,13 @@ import rpyc
 
 import net.aircable.openproximity.signals.scanner as scanner
 
+from net.aircable.fields import PickledField
+
 TIMEOUT_RET = [ 22 ]
 
-class GeneralSetting(models.Model):
-    name = models.CharField(max_length=200)
-    _value = models.CharField(max_length=200, 
-	verbose_name=_("Setting value, needs to be pickled"))
-    
-    def setValue(self, value):
-	if type(value)!=str:
-	    value=dumps(value)
-	self._value = value
-	
-    def getValue(self):
-	try:
-	    val = loads(self._value)
-	except:
-	    # this is a string can't unpickle
-	    val = self._value
-	return val
+class Setting(models.Model):
+    name = models.CharField(max_length=40)
+    value = PickledField(max_length=200)
 
 class BluetoothDongle(models.Model):
     address = models.CharField(max_length=17, 
@@ -60,11 +48,6 @@ class BluetoothDongle(models.Model):
     
     def __unicode__(self):
 	return "%s - %s, %s" % (self.address, self.name, self.enabled_display() )
-
-#    class Meta:
-	# don't create a table for me please
-#	abstract = True
-#	ordering = ['address', 'name']
 
 class ScannerBluetoothDongle(BluetoothDongle):
     priority = models.IntegerField()
@@ -90,7 +73,6 @@ SERVICE_TYPES = (
     (0,	  u'opp'),
     (1,	  u'ftp'),
 )
-
 
 class Campaign(models.Model):
     #name is going to change
@@ -153,7 +135,6 @@ class CampaignFile(models.Model):
     def __unicode__(self):
 	return "%s: %.2f" % (self.file, self.chance)
 
-
 class RemoteDevice(models.Model):
     address = models.CharField(max_length=17, 
 	blank=False,
@@ -181,7 +162,6 @@ class DeviceRecord(models.Model):
 	abstract = True
 	ordering = ['time']
 
-
 class RemoteBluetoothDeviceRecord(DeviceRecord):
     remote = models.ForeignKey(RemoteDevice, verbose_name=_("remote address"))
 
@@ -201,7 +181,6 @@ class RemoteBluetoothDeviceRecord(DeviceRecord):
 	# don't create a table for me please
 	abstract = True
 	ordering = ['time']
-
 
 class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
     __rssi = models.CommaSeparatedIntegerField(max_length=200, verbose_name=_("rssi"))
@@ -241,7 +220,6 @@ class RemoteBluetoothDeviceFileTry(RemoteBluetoothDeviceRecord):
 	# don't create a table for me please
 	abstract = True
 	ordering = ['time']
-
     
 class RemoteBluetoothDeviceFilesRejected(RemoteBluetoothDeviceFileTry):
     ret_value = models.IntegerField()
