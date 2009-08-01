@@ -16,6 +16,10 @@
 from net.aircable.openproximity.signals import uploader as signals
 from openproximity.models import *
 
+from common import get_uploader
+
+import traceback
+
 def handle(services, signal, uploader, args, kwargs):
     print "uploader signal", signals.TEXT[signal], args, kwargs
     
@@ -109,15 +113,15 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
 		
 	    print "try again: %s" % try_again
 	    if try_again:
-		for s in services:
-		    if getattr(s, 'uploader', None) is not None:
-			print "trying again"
-			s.upload(files, remote) # async call
-			return
+		uploader = get_uploader(services)
+		if uploader:
+		    uploader.upload(files, remote)
+    		    print "trying again"
+    		else:
+    		    print "no uploader registered"
 	    else:
 		pending.remove(remote)
 	except Exception, err:
 		print "OOPS!!!!!", err
-		
+		traceback.print_exc()
 		pending.remove(remote)
-

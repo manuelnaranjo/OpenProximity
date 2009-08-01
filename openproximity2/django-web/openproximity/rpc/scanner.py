@@ -19,6 +19,8 @@ from openproximity.models import *
 from rpyc import async
 from pickle import loads
 
+from uploader import get_uploader
+
 def handle(services, signal, scanner, args, kwargs):
     print "scanner signal:", signals.TEXT[signal]
 
@@ -94,12 +96,6 @@ def cycle_completed(scanner):
 uploaded = set()
 
 from random import random
-
-def get_uploader(services):
-    for i in services:
-	if getattr(i, 'uploader', None) is not None:
-	    return i
-    return None
 
 def handle_doaction(services, address, record, pending):
     uploader = get_uploader(services)

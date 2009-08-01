@@ -21,8 +21,10 @@ ln -s $CWD/rpc.sh
 ln -s $CWD/run.sh
 ln -s $CWD/shell.sh
 ln -s $CWD/server.sh
-ln -s $CWD/client.sh
+ln -s $CWD/rpc_scanner.sh
+ln -s $CWD/rpc_uploader.sh
 ln -s $CWD/remote_scanner.sh
+ln -s $CWD/clean.sh
 
 cd $OP2
 mkdir tmp
