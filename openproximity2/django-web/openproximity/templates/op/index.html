@@ -122,7 +122,7 @@
 
 <h1>{% trans "Marketing Campaigns" %}</h1>
 {% for camp in camps %}
-    <h2><a href="admin/openproximity/marketingcampaign/{{camp.pk}}/" class="btn">{{ camp.friendly_name }}</a></h2>
+    <h2><a href="admin/openproximity/marketingcampaign/{{camp.pk}}/" class="btn">{{ camp.name }}</a></h2>
     <table id="camp">
     <tr>
 	<td>{% trans "Enabled" %}</td>
@@ -130,29 +130,29 @@
     </tr>
     <tr>
 	<td>{% trans "Service" %}</td>
-	<td>{{ camp.rules.get_service_display }}</td>
+	<td>{{ camp.get_service_display }}</td>
     </tr>
     <tr>
 	<td>{% trans "Start" %}</td>
-	<td>{{ camp.rules.start }}</td>
+	<td>{{ camp.start }}</td>
     </tr>
     <tr>
 	<td>{% trans "End" %}</td>
-	<td>{{ camp.rules.end }}</td>
+	<td>{{ camp.end }}</td>
     </tr>
     <tr>
 	<td>{% trans "Name Filter" %}</td>
-	<td>{{ camp.rules.name_filter }}</td>
+	<td>{{ camp.name_filter }}</td>
     </tr>
     <tr>
 	<td>{% trans "Address Filter" %}</td>
-	<td>{{ camp.rules.addr_filter }}</td>
+	<td>{{ camp.addr_filter }}</td>
     </tr>
     <tr>
 	<td>{% trans "DevClass Filter" %}</td>
-	<td>{{ camp.rules.devclass_filter }}</td>
+	<td>{{ camp.devclass_filter }}</td>
     </tr>
-    {% for file in camp.rules.files.all %}
+    {% for file in camp.campaignfile_set.all %}
     <tr>
 	<td>{% trans "Serving File" %}</td>
 	<td>{{ file.file.name }}</td>

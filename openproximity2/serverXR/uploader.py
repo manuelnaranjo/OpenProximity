@@ -140,7 +140,7 @@ class UploadManager:
 	    
 	def exposed_addListener(self, func):
 		logger.debug("UploadManager adding listener")
-		self.__listener.append(rpyc.async(func))
+		self.__listener.append(func)
 		
         def exposed_getDongles(self):
             out = set()
@@ -151,7 +151,8 @@ class UploadManager:
 	def tellListeners(self, *args, **kwargs):
 		logger.debug("UploadManager telling listener: %s, %s" % (str(args), str(kwargs)))
 		for func in self.__listener:
-			func(*args, **kwargs)
+			rpyc.async(func)(*args, **kwargs)
+		logger.debug("UploadManager signal dispatched")
 			
 	def __rotate_dongle(self):
 		if len(self.__sequence) == 1:

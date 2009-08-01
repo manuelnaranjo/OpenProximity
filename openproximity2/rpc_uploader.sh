@@ -11,5 +11,9 @@ export PYTHONPATH
 export LOG_FILE
 
 cd serverXR
-echo "Starting RPC Uploader Client"
-exec python manager.py localhost 8010 uploader &
+echo "Starting RPC Scanner Client"
+if [ -z "$DEBUG" ]; then
+    exec python manager.py localhost 8010 uploader &
+else
+    exec python manager.py localhost 8010 uploader
+fi

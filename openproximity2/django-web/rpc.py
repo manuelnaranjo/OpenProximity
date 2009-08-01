@@ -39,6 +39,8 @@ pluginsystem.post_environ()
 services = set()
 pending = set()
 
+enabled = True # useful when tables are been drop
+
 class OpenProximityService(Service):
 	dongles = None
 	remote_quit = None
@@ -79,11 +81,17 @@ class OpenProximityService(Service):
 		traceback.print_exc()    
 	    	    
 	def exposed_scanner_register(self, remote_quit, scanner, dongles, ping):
+	    global enabled
+	    
 	    self.dongles = set()
 	    self.add_dongle = scanner.add_dongle
 	    self.scanner = scanner
 	    self.scanner.addListener(self.listener)
 	    self.ping = ping
+	    self.remote_quit = async(remote_quit)
+
+	    if not enabled:
+		return
 
 	    for dongle in dongles:
 		self.dongles.add( str(dongle), )
@@ -91,8 +99,6 @@ class OpenProximityService(Service):
 	    for dongle, priority, name in rpc.scanner.get_dongles(dongles):
 		print dongle, priority, name
 		self.add_dongle(dongle, priority, name)
-		
-	    self.remote_quit = async(remote_quit)
 	    
 	    (setting, created) = GeneralSetting.objects.get_or_create(
 		name="scanner-concurrent")
@@ -107,11 +113,17 @@ class OpenProximityService(Service):
 	    #async(self.scanner.startScanningCycle)()
 
 	def exposed_uploader_register(self, remote_quit, uploader, dongles, ping):
+	    global enabled
+
 	    self.dongles = set()
 	    self.add_dongle = async(uploader.add_dongle)
 	    self.uploader = uploader
 	    self.uploader.addListener(self.listener)
 	    self.ping = ping
+	    self.remote_quit = async(remote_quit)
+
+	    if not enabled:
+		return
 
 	    for dongle in dongles:
 		self.dongles.add( str(dongle), )
@@ -123,7 +135,6 @@ class OpenProximityService(Service):
 	    
 	    self.upload = async(self.uploader.upload) # don't want to wait for you
 	    
-	    self.remote_quit = async(remote_quit)
 	    
 	def exposed_getFile(self, path):
 	    print "getFile", path
@@ -162,22 +173,22 @@ class OpenProximityService(Service):
 	
 	def exposed_restart(self):
 	    return self.exit(False)
+	    
+	def exposed_Lock(self):
+	    global enabled
+	    enabled = False
+	    self.exit(False)
+	    
+	def exposed_Unlock(self):
+	    global enabled
+	    enabled = True
+	    self.exit(False)
 
 def run():
-#    setup_environ(settings)
-#    from openproximity.models import CampaignFile
-#    import net.aircable.openproximity.signals as signals
-#    import openproximity.rpc as rpc
-#    import openproximity.rpc.scanner, openproximity.rpc.uploader
     server=ThreadedServer(OpenProximityService, '0.0.0.0', 
-    #server=ForkingServer(OpenProximityService, '0.0.0.0', 
 		port=8010, auto_register=False)
-#    import threading
-#    t=threading.Thread(target=keep_open)
-#    t.start()
     server.start()
-    
-	    
+    	    
 if __name__ == "__main__":
     from net.aircable import autoreload
 

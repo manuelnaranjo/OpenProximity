@@ -32,12 +32,10 @@ databrowse_root = databrowse.DatabrowseSite()
 databrowse_root.register(BluetoothDongle)
 databrowse_root.register(ScannerBluetoothDongle)
 databrowse_root.register(RemoteScannerBluetoothDongle)
-databrowse_root.register(DeviceRecord)
 databrowse_root.register(RemoteDevice)
 databrowse_root.register(RemoteBluetoothDeviceFoundRecord)
 
 databrowse_root.register(MarketingCampaign)
-databrowse_root.register(CampaignRule)
 databrowse_root.register(CampaignFile)
 
 info_dict = {

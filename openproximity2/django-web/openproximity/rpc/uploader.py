@@ -88,7 +88,7 @@ def handle_file_uploaded(dongle, remote, pending, channel, files):
     pending.remove(remote)
     record = RemoteBluetoothDeviceFilesSuccess()
     record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
-    record.rule = get_campaign_rule(files)
+    record.campaign = get_campaign_rule(files)
     record.setRemoteDevice(remote)
     record.save()
 
@@ -102,7 +102,7 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
 	    rule = get_campaign_rule(files)
 	    if rule is None:
 		raise Exception("Couldn't find rule")
-	    record.rule = rule
+	    record.campaign = rule
 	    record.ret_value = ret
 	    record.setRemoteDevice(remote)
 	    record.save()

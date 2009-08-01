@@ -30,20 +30,20 @@ TIMEOUT_RET = [ 22 ]
 
 class GeneralSetting(models.Model):
     name = models.CharField(max_length=200)
-    __value = models.CharField(max_length=200, 
+    _value = models.CharField(max_length=200, 
 	verbose_name=_("Setting value, needs to be pickled"))
     
     def setValue(self, value):
 	if type(value)!=str:
 	    value=dumps(value)
-	self.__value = value
+	self._value = value
 	
     def getValue(self):
 	try:
-	    val = loads(self.__value)
+	    val = loads(self._value)
 	except:
 	    # this is a string can't unpickle
-	    val = self.__value
+	    val = self._value
 	return val
 
 class BluetoothDongle(models.Model):
@@ -61,6 +61,10 @@ class BluetoothDongle(models.Model):
     def __unicode__(self):
 	return "%s - %s, %s" % (self.address, self.name, self.enabled_display() )
 
+#    class Meta:
+	# don't create a table for me please
+#	abstract = True
+#	ordering = ['address', 'name']
 
 class ScannerBluetoothDongle(BluetoothDongle):
     priority = models.IntegerField()
@@ -82,19 +86,61 @@ class UploaderBluetoothDongle(BluetoothDongle):
 	return "Uploader: %s, %s" % (BluetoothDongle.__unicode__(self), 
 	    self.max_conn)
 
-class SensorSDKBluetoothDongle(BluetoothDongle):
-    channels = models.IntegerField(default=4,
-	help_text='amount of records to create')
-    channel_desc = models.CharField(
-	default="SensorSDK SPP channel",
-	verbose_name = "Channel description",
-	max_length=100) 
-
 SERVICE_TYPES = (
     (0,	  u'opp'),
     (1,	  u'ftp'),
-    (3,	  u'spp'),
 )
+
+
+class Campaign(models.Model):
+    #name is going to change
+    name = models.CharField(max_length=100)    
+    enabled = models.BooleanField()
+    name_filter = models.CharField(null=True, max_length=10, blank=True,
+	verbose_name=_("name filter"))
+    addr_filter = models.CharField(null=True, max_length=10, blank=True,
+	verbose_name=_("address filter"))
+    devclass_filter = models.IntegerField(null=True, blank=True)
+    start = models.DateTimeField(null=True, blank=True,
+	help_text=_("starting date, or null to run for ever until end"))
+    end = models.DateTimeField(null=True, blank=True,
+	help_text=_("ending date, or null to run for ever since start"))
+
+    def __unicode__(self):
+	return self.name
+
+    class Meta:
+	# don't create a table for me please
+	abstract = True
+	ordering = ['start', 'end', 'name']
+
+class MarketingCampaign(Campaign):
+    service = models.IntegerField(default=0, choices=SERVICE_TYPES)
+    rejected_count = models.IntegerField(default=2,
+	help_text=_("how many times it should try again when rejected, -1 infinte"))
+    tries_count = models.IntegerField(default=-1,
+	help_text=_("how many times it should try to send when timing out, -1 infinite"))
+	
+    def __unicode__(self):
+	return "MarketingCampaign: %s" % self.name
+	
+    def tryAgain(self, record):
+	if record.isTimeout():
+	    print "Timeout"
+	    if self.tries_count == -1:
+		print "No timeout filter"
+		return True
+	    return RemoteBluetoothDeviceFileTry. \
+		filter(remote=record.remote). \
+		count() < self.tries_count
+	else:
+	    print "Rejected"
+	    if self.rejected_count == -1:
+		print "No rejection filter"
+		return True
+	    return RemoteBluetoothDeviceFilesRejected. \
+		filter(remote=record.remote). \
+		count() < self.rejected_count
 
 class CampaignFile(models.Model):
     chance = models.DecimalField(null=True, blank=True, default=1.0, decimal_places=2, max_digits=3,
@@ -102,80 +148,11 @@ class CampaignFile(models.Model):
     file = models.FileField(upload_to='campaign',
 	help_text=_("campaign file itself"))
     
+    campaign = models.ForeignKey(MarketingCampaign)
+    
     def __unicode__(self):
 	return "%s: %.2f" % (self.file, self.chance)
 
-
-class CampaignRule(models.Model):
-    name_filter = models.CharField(null=True, max_length=10, blank=True,
-	verbose_name=_("name filter"))
-    addr_filter = models.CharField(null=True, max_length=10, blank=True,
-	verbose_name=_("address filter"))
-    devclass_filter = models.IntegerField(null=True, blank=True)
-    service = models.IntegerField(default=0, choices=SERVICE_TYPES)
-    rejected_count = models.IntegerField(default=2,
-	help_text=_("how many times it should try again when rejected, -1 infinte"))
-    tries_count = models.IntegerField(default=-1,
-	help_text=_("how many times it should try to send when timing out, -1 infinite"))
-    start = models.DateTimeField(null=True, blank=True,
-	help_text=_("starting date, or null to run for ever until end"))
-    end = models.DateTimeField(null=True, blank=True,
-	help_text=_("ending date, or null to run for ever since start"))
-    files = models.ManyToManyField(CampaignFile)
-	
-    def __unicode__(self):
-	out = ""
-	if self.name_filter is not None and len(self.name_filter):
-	    out += "%s, " % self.name_filter
-	else:
-	    out += "*, "
-	    
-	if self.addr_filter is not None and len(self.addr_filter):
-	    out += "%s, " % self.addr_filter
-	else:
-	    out += "*, "
-
-	out += "%s, " % self.get_service_display()
-	
-	if self.start is not None:
-	    out += "%s, " % self.start
-	else:
-	    out += "*, "
-
-	if self.end is not None:
-	    out += "%s, " % self.end
-	else:
-	    out += "*, "
-
-	return out.strip()[:-1]
-
-    def tryAgain(self, record):
-	if record.isTimeout():
-	    print "Timeout"
-	    if self.tries_count == -1:
-		print "No timeout filter"
-		return True
-	    return RemoteBluetoothDeviceFileTry.objects.\
-	    filter(remote=record.remote).count() < self.tries_count
-	else:
-	    print "Rejected"
-	    if self.rejected_count == -1:
-		print "No rejection filter"
-		return True
-	    return RemoteBluetoothDeviceFilesRejected.objects.\
-	    filter(remote=record.remote).count() < self.rejected_count
-
-CampaignFile.rules = models.ManyToManyField(CampaignRule)
-
-class MarketingCampaign(models.Model):
-    #name is going to change
-    friendly_name = models.CharField(max_length=100)
-    rules = models.ForeignKey(CampaignRule)
-    
-    enabled = models.BooleanField()
-    
-    def __unicode__(self):
-	return self.friendly_name
 
 class RemoteDevice(models.Model):
     address = models.CharField(max_length=17, 
@@ -198,6 +175,12 @@ class DeviceRecord(models.Model):
 
     def __unicode__(self):
 	return self.dongle.address
+	
+    class Meta:
+	# don't create a table for me please
+	abstract = True
+	ordering = ['time']
+
 
 class RemoteBluetoothDeviceRecord(DeviceRecord):
     remote = models.ForeignKey(RemoteDevice, verbose_name=_("remote address"))
@@ -213,6 +196,12 @@ class RemoteBluetoothDeviceRecord(DeviceRecord):
 	    self.dongle.address, 
 	    self.remote.address
 	)
+	
+    class Meta:
+	# don't create a table for me please
+	abstract = True
+	ordering = ['time']
+
 
 class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
     __rssi = models.CommaSeparatedIntegerField(max_length=200, verbose_name=_("rssi"))
@@ -246,7 +235,13 @@ class RemoteBluetoothDeviceSDPTimeout(RemoteBluetoothDeviceRecord):
     pass
 
 class RemoteBluetoothDeviceFileTry(RemoteBluetoothDeviceRecord):
-    rule = models.ForeignKey(CampaignRule)
+    campaign = models.ForeignKey(MarketingCampaign)
+    
+    class Meta:
+	# don't create a table for me please
+	abstract = True
+	ordering = ['time']
+
     
 class RemoteBluetoothDeviceFilesRejected(RemoteBluetoothDeviceFileTry):
     ret_value = models.IntegerField()
@@ -266,10 +261,10 @@ def getMatchingCampaigns(remote=None,
     #print "getMatchingCampaigns", time_
     out  = list()
     
-    rules = CampaignRule.objects
+    rules = MarketingCampaign.objects
     
     if enabled is not None:
-	rules = rules.filter(marketingcampaign__enabled=enabled)
+	rules = rules.filter(enabled=enabled)
     
     rules=rules.all()
     
@@ -280,7 +275,7 @@ def getMatchingCampaigns(remote=None,
 	    if rule.end is None or time_ <= rule.end:
 		#print 'end matches'
 		if remote is None:
-		    out.append(rule.marketingcampaign_set.get())
+		    out.append(rule)
 		else:
 		    if rule.name_filter is None or remote.name.startswith(rule.name_filter):
 			#print "name filter matches"
@@ -289,7 +284,7 @@ def getMatchingCampaigns(remote=None,
 		    	    #print remote.devclass, rule.devclass_filter
 			    if rule.devclass_filter is None or (remote.devclass & rule.devclass_filter)>0:
 				#print "devclass filter matches"
-				out.append(rule.marketingcampaign_set.get())
+				out.append(rule)
     return out
 
 def get_campaign_rule(files):
@@ -299,7 +294,7 @@ def get_campaign_rule(files):
     for file, camp_id in files:
 	print file
         try:
-	    camp = CampaignRule.objects.get(pk=camp_id)
+	    camp = MarketingCampaign.objects.get(pk=camp_id)
     	    print camp
             if len(out) > 0 and camp not in out:
                 print "multiple return values"
@@ -324,13 +319,13 @@ def __restart_server():
 def bluetooth_dongle_signal(instance, **kwargs):
     ''' gets called when ever there is a change in dongles '''
     if type(instance) in [ BluetoothDongle, ScannerBluetoothDongle, 
-	    UploaderBluetoothDongle, SensorSDKBluetoothDongle ]:
+	    UploaderBluetoothDongle, RemoteScannerBluetoothDongle ]:
         print 'bluetooth_dongle_signal'
 	__restart_server()
 
 def campaign_signal(instance, **kwargs):
     ''' gets called when ever there is a change in marketing campaigns '''
-    if type(instance) in [ CampaignRule, CampaignFile, MarketingCampaign ]:
+    if type(instance) in [ CampaignFile, MarketingCampaign ]:
 	print 'campaing_signal'
 	__restart_server()
 

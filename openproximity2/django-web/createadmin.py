@@ -25,8 +25,5 @@ except ImportError:
 
 if __name__ == "__main__":
     setup_environ(settings)
-    call_command("createsuperuser", noinput=True, username="admin", email="foo@foo.com")
     from django.contrib.auth.models import User
-    user = User.objects.get(username='admin')
-    user.set_password("aircable")
-    user.save()
+    User.objects.create_superuser('admin', 'foo@foo.com', 'aircable').save()

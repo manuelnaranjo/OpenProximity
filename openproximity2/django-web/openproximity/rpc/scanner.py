@@ -97,7 +97,7 @@ uploaded = set()
 
 from random import random
 
-def handle_doaction(services, address, record, pending):
+def do_action(services, address, record, pending):
     uploader = get_uploader(services)
     
     if uploader is None:
@@ -112,21 +112,23 @@ def handle_doaction(services, address, record, pending):
     files=list()
 			
     for camp in camps:
-        if RemoteBluetoothDeviceFilesSuccess.objects.filter( 
-    	    rule=camp.rules, 
-	    remote=record.remote).count() > 0:
+	rec = RemoteBluetoothDeviceFilesSuccess.objects.filter( campaign=camp, 
+		remote=record.remote)
+        if rec.count() > 0:
 	    print "Allready accepted"
 	    continue
-	    
-	if RemoteBluetoothDeviceFilesRejected.objects.filter( 
-	    rule=camp.rules, 
-	    remote=record.remote).count() > 0:
-	    print "Allready rejected"
-	    continue
-			    
-	for f in camp.rules.files.all():
+	
+	rec = RemoteBluetoothDeviceFilesRejected.objects.filter(campaign=camp, 
+	    remote=record.remote).order_by('time')
+	if rec.count() > 0:
+	    try_ = camp.tryAgain(rec.latest(field_name='time'))
+	    print "Allready rejected, try again", try_
+	    if not try_ :
+		continue
+	    	    
+	for f in camp.campaignfile_set.all():
 	    if f.chance is None or random() <= f.chance:
-		print f.file
+		print 'going to upload', f.file
 		files.append( (str(f.file.name), camp.pk) ,)
     			    
     if len(files) > 0:
@@ -162,7 +164,7 @@ def handle_addrecord(services, remote_, dongle, pending):
     record.save()
     
     if address not in pending:
-	return handle_doaction(services, address,record, pending)
+	return do_action(services, address,record, pending)
 
     return True
     

@@ -21,6 +21,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template.loader import get_template
 from django.template import Context
 from django.views.generic import list_detail
+from django.db import transaction
 
 from re import compile
 from mimetypes import guess_type as guess_mime
@@ -192,7 +193,7 @@ def grab_file(request, file):
     mime = guess_mime(file.name)
     print mime
     return HttpResponse(file.read(), mimetype=mime[0] )
-    
+
 def stats_restart(request):
     '''
 	Delete statistics, we do drop table, not the recommended way but damn
@@ -204,45 +205,50 @@ def stats_restart(request):
     from django.core.management import sql
 
     cursor = connection.cursor()
+#    cursor = connection.make_debug_cursor(cursor)
 
     # this tables are not going to be deleted
     tables = [ 'openproximity_bluetoothdongle',
     		'openproximity_campaignfile',
-		'openproximity_campaignrule',
-	        'openproximity_campaignrule_files',
 		'openproximity_marketingcampaign',
-		'openproximity_remotescannerbluetoothdongle',
+		'openproximity_remotescannerbluetooethdongle',
 		'openproximity_scannerbluetoothdongle',
-		'openproximity_sensorsdkbluetoothdongle',
-		'openproximity_sensorsdkremotedevice',
 		'openproximity_uploaderbluetoothdongle',
 		'openproximity_generalsetting',
 	    ]
-    model = models.get_app('openproximity')
-    exc = "BEGIN;\n"
+    model  = models.get_app('openproximity')
+    drop = ""
     
-    drop_table = sql.sql_reset(model, no_style())
+    drop_table = sql.sql_delete(model, no_style())
     
     for line in drop_table:
+	table_name = line.split()[2].replace('"', '').replace(';','')
+
 	if line.startswith('DROP TABLE'):
-	    # we don't want to loose settings
-	    table_name = line.split()[2].replace('"', '').replace(';','')
+	    # we don't want to loose settings    
 	    if table_name not in tables:
-		exc+=line+"\n"
-	else:
-	    # add "IF NOT EXISTS"
-	    spl=line.split(" ", 2)
-	    exc+="%s %s IF NOT EXISTS %s\n" % (spl[0], spl[1], spl[2])
-
-    print "about to execute"
-    print exc
-    
+		drop+="DROP TABLE %s;\n" % table_name
+		
+	elif line.find('CREATE INDEX') > -1:
+	    drop += "DROP INDEX %s;\n" % table_name
     try:
-        cursor.executemany(exc, ())
-    except Exception,e:
-        raise e
-        #pass
+	server=rpyc.connect('localhost', 8010)
+	server.root.Lock()
+	print "database locked"
+    except:
+	pass
 
+    print "about to drop"
+    for line in drop.splitlines():
+	try:
+    	    connection.cursor().execute(line)	    
+	except:
+	    print line, "failed"
+
+    print "calling syncdb"
+    
+    management.call_command('syncdb')
+    
     try:
 	server=rpyc.connect('localhost', 8010)
 	server.root.restart()
@@ -293,13 +299,21 @@ def index(request):
 	    b['count'] = RemoteBluetoothDeviceFoundRecord.objects.filter(dongle=a).count()
 	    stats['seen']['perdongle'].append( b )
 	stats['valid'] = RemoteBluetoothDeviceSDP.objects.count()
-	stats['accepted'] = RemoteBluetoothDeviceFilesSuccess.objects.count()
+
+	accepted = RemoteBluetoothDeviceFilesSuccess.objects.count()
+	non_accepted = RemoteBluetoothDeviceFilesRejected.objects.count()
+
 	a=RemoteBluetoothDeviceFilesRejected.objects
 	for ret in TIMEOUT_RET:
 	    a=a.exclude(ret_value=ret)
-	stats['rejected'] = a.count()
-	stats['timeout'] = RemoteBluetoothDeviceFilesRejected.objects.all().count()-a.count()
-	stats['tries'] = RemoteBluetoothDeviceFileTry.objects.count()
+	    
+	rejected = a.count()
+	
+	stats['accepted'] = accepted
+	stats['rejected'] = rejected
+	stats['timeout'] = non_accepted-rejected
+	stats['tries'] = accepted+non_accepted
+	
     except Exception, err:
 	stats['error'] = err
 	

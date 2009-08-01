@@ -16,11 +16,28 @@
 from models import *
 from django.contrib import admin
 
+class DongleAdmin(admin.ModelAdmin):
+    list_display = ( 'address', 'name', 'enabled' )
+ 
+class ScannerBluetoothAdmin(admin.ModelAdmin):
+    list_display = ( 'address', 'name', 'priority', 'enabled' )
+      
+class RemoteDongleAdmin(admin.ModelAdmin):
+    list_display = ( 'address', 'name', 'local_dongle', 'priority', 'enabled' )
 
-class CampaignRuleAdmin(admin.ModelAdmin):
+admin.site.register(RemoteScannerBluetoothDongle, RemoteDongleAdmin)
+admin.site.register(ScannerBluetoothDongle, ScannerBluetoothAdmin)
+admin.site.register(UploaderBluetoothDongle, DongleAdmin)
+
+class CampaignFileAdmin(admin.StackedInline):
+    model = CampaignFile
+    date_hierarchy = None
+
+
+class MarketingCampaignAdmin(admin.ModelAdmin):
     fieldsets = (
 	(None, {
-	    'fields': ('service', 'files', 'rejected_count','tries_count'),
+	    'fields': ('name', 'enabled', 'service', 'rejected_count','tries_count'),
 	}),
 	('Timing Filters', {
 	    'classes': ('collapse', ),
@@ -31,12 +48,28 @@ class CampaignRuleAdmin(admin.ModelAdmin):
 	    'fields': ('name_filter', 'addr_filter', 'devclass_filter')
 	}),
     )
+    
+    inlines = [ CampaignFileAdmin, ]
+    
+    list_display = ( 'name', 
+			'service', 
+			'start',
+			'end', 
+			'name_filter', 
+			'addr_filter', 
+			'devclass_filter',
+			'enabled'
+		)
+    list_filter = ( 'service', 
+			'start', 
+			'end', 
+			'name_filter', 
+			'addr_filter',
+			'devclass_filter',
+			'enabled'
+		)
+			
+    ordering = [ 'name', 'service', 'start', 'end' ]
 
-admin.site.register(RemoteScannerBluetoothDongle)
-admin.site.register(ScannerBluetoothDongle)
-admin.site.register(UploaderBluetoothDongle)
-admin.site.register(BluetoothDongle)
 
-admin.site.register(CampaignRule, CampaignRuleAdmin)
-admin.site.register(MarketingCampaign)
-admin.site.register(CampaignFile)
+admin.site.register(MarketingCampaign, MarketingCampaignAdmin)
