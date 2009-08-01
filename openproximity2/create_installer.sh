@@ -40,14 +40,14 @@ cd rpyc-3.0.6
 cp -r rpyc $LIB_TARGET
 cd ..
 
-if [ ! -f $CWD/libs/Django-1.0.2-final.tar.gz ]; then
-    wget -O $CWD/libs/Django-1.0.2-final.tar.gz http://media.djangoproject.com/releases/1.0.2/Django-1.0.2-final.tar.gz
+if [ ! -f $CWD/libs/Django-1.1.tar.gz ]; then
+    wget -O $CWD/libs/Django-1.1.tar.gz http://media.djangoproject.com/releases/1.1/Django-1.1.tar.gz
 fi
 
 
 echo "extracting django"
-gunzip -c $CWD/libs/Django-1.0.2-final.tar.gz | tar -x
-cd Django-1.0.2-final
+gunzip -c $CWD/libs/Django-1.1.tar.gz | tar -x
+cd Django-1.1-final
 cp -r django $LIB_TARGET
 cd ..
 
