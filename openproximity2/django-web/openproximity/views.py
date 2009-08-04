@@ -330,3 +330,45 @@ def index(request):
 	    "stats": stats,
 	    "version": version,
 	})
+
+import time
+
+TOTAL = 30000
+
+class FakeFile(HttpResponse):
+    head = False
+    foot = False
+    counter = TOTAL
+    def read(self, size):
+	print "fake file read"
+	
+	out = ""
+	if not self.head:
+	    self.head = True
+	    return '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Test of Stream content</title>
+<script type="text/javascript">
+    setInterval("window.scrollBy(0,300)",2);
+</script>
+<body>
+'''	    
+	if self.counter > 0:
+	    self.counter -= 1
+	    time.sleep(.1)
+	    return "<p>Hi you wanted me to read: %s times</p>" % (TOTAL-self.counter)
+	elif not self.foot:
+	    self.foot = True
+	    return '''</body></html>'''
+	return None
+
+    def next(self):
+	out = self.read(20)
+	if out is not None:
+	    return out
+	return HttpResponse.next(self)
+
+def test(request):
+    return FakeFile()

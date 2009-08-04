@@ -19,7 +19,9 @@ from openproximity.models import *
 from rpyc import async
 from pickle import loads
 
-from uploader import get_uploader
+from common import get_uploader, do_upload
+
+import time
 
 def handle(services, signal, scanner, args, kwargs):
     print "scanner signal:", signals.TEXT[signal]
@@ -64,15 +66,17 @@ def get_dongles(dongles):
     
     for address in dongles:
 	try:
-	    dongle = ScannerBluetoothDongle.objects.get(address=address, enabled=True)
-	    out.append( (address, dongle.priority, dongle.name) )
-	    
+	    dongle = ScannerBluetoothDongle.objects.get(address=address)
 	    print "%s is a scanner dongle" % address
 	    
+	    if dongle.enabled:
+		out.append( (address, dongle.priority, dongle.name) )
+	    	
 	    if dongle.remote_dongles.count() > 0:
 		print "We have remote dongles available"
 		for remote in dongle.remote_dongles.all():
-		    out.append( (remote.address, remote.priority, dongle.address) )
+		    if remote.enabled:
+			out.append( (remote.address, remote.priority, dongle.address) )
 
 	except Exception, err:
 	    print err
@@ -133,9 +137,9 @@ def do_action(services, address, record, pending):
     			    
     if len(files) > 0:
 	uploaded.add(record.remote.address)
-    	pending.add(record.remote.address)				
-    	uploader.upload(files, record.remote.address) # async call
-    
+    	pending.add(record.remote.address)
+    	do_upload(uploader, files, record.remote.address)
+
 def handle_addrecord(services, remote_, dongle, pending):
     address = remote_['address']
 

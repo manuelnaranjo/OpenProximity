@@ -69,16 +69,16 @@ class OpenProximityService(Service):
 		    if plugin.provides.get('rpc', None) is not None:
 			plugin.provides['rpc'](signal, services, self, args, kwargs)
 	    except:
-		print "ERROR on rpc listener"
-		traceback.print_exc()
+		print "ERROR on rpc listener while doing plugins"
+		traceback.print_exc(file=sys.stdout)
 	    try:	
 		if signals.isScannerSignal(signal):
 		    rpc.scanner.handle(services, signal, self.scanner, args, kwargs)
 		elif signals.isUploaderSignal(signal):
 		    rpc.uploader.handle(services, signal, self.uploader, args, kwargs)
 	    except:
-		print "ERROR on rpc listener"
-		traceback.print_exc()    
+		print "ERROR on rpc listener while doing scanner or uploader"
+		traceback.print_exc(file=sys.stdout)    
 	    	    
 	def exposed_scanner_register(self, remote_quit, scanner, dongles, ping):
 	    global enabled
@@ -130,8 +130,7 @@ class OpenProximityService(Service):
 		self.add_dongle(dongle, max_conn, name)
 	    self.uploader.refreshUploaders()
 	    
-	    self.upload = async(self.uploader.upload) # don't want to wait for you
-	    
+	    self.upload = self.uploader.upload # don't want to wait for you
 	    
 	def exposed_getFile(self, path):
 	    print "getFile", path

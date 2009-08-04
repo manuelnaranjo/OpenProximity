@@ -16,7 +16,7 @@
 from net.aircable.openproximity.signals import uploader as signals
 from openproximity.models import *
 
-from common import get_uploader
+from common import get_uploader, do_upload
 
 import traceback
 
@@ -115,8 +115,8 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
 	    if try_again:
 		uploader = get_uploader(services)
 		if uploader:
-		    uploader.upload(files, remote)
-    		    print "trying again"
+		    print "trying again"
+		    do_upload(uploader, files, remote)
     		else:
     		    print "no uploader registered"
 	    else:

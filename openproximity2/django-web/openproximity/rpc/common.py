@@ -24,3 +24,8 @@ def get_uploader(services):
 	if getattr(i, 'uploader', None) is not None:
 	    return i
     return None
+
+def do_upload(uploader, files, remote):
+    print "About to call upload"
+    async(uploader.upload)(files, remote)
+    print "upload called async"

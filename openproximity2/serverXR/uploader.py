@@ -29,7 +29,6 @@ import os
 import rpyc
 
 # TODO add hci connection handling for detecting real timeout or out of range
-# TODO add license
 
 class UploadAdapter(Adapter):
 	queue = None
@@ -73,6 +72,7 @@ class UploadAdapter(Adapter):
 		manager.tellListeners(signal=FILE_FAILED, address=str(target), 
 			dongle=self.bt_address, port=port, ret=retcode,
 			files = files, stdout=stdout, stderr=stderr)
+	    logger.debug("Uploader dowork finished")
 
 	def __init__(self, max_uploads = 7, *args, **kwargs):
     	    Adapter.__init__(self, *args, **kwargs)	
@@ -166,7 +166,7 @@ class UploadManager:
 		
 	def exposed_upload(self, files, target, id=None, uuid=sdp.OBEX_UUID, service='opp'):
 		dongle=self.__sequence[self.__index]
-		print files, target, uuid
+		logger.debug("uploading %s %s %s" % ( files, target, uuid ) )
 		
 		for file_, fk in files:
 		    f = os.path.join(settings.MEDIA_ROOT, file_)
@@ -181,6 +181,7 @@ class UploadManager:
 				
 		dongle.queue.enqueue( id, files, target, uuid, service, self )
 		self.__rotate_dongle()
+		logger.debug("upload in queue")
 		
 	def exposed_add_dongle(self, address, conns, name):
 	    self.uploaders[address]=(conns, name)

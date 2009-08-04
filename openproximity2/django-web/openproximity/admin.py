@@ -18,20 +18,28 @@ from django.contrib import admin
 
 class SettingAdmin(admin.ModelAdmin):
     list_display = ('name', 'value')
-    
+
 admin.site.register(Setting, SettingAdmin)
 
 class DongleAdmin(admin.ModelAdmin):
     list_display = ( 'address', 'name', 'enabled' )
- 
-class ScannerBluetoothAdmin(admin.ModelAdmin):
-    list_display = ( 'address', 'name', 'priority', 'enabled' )
-      
+
 class RemoteDongleAdmin(admin.ModelAdmin):
     list_display = ( 'address', 'name', 'local_dongle', 'priority', 'enabled' )
 
+class RemoteDongleInline(admin.TabularInline):
+    model = RemoteScannerBluetoothDongle
+    fk_name = 'local_dongle'
+    fields = ('address', 'name','priority', 'enabled')
+    extra = 7
+    template = 'op/tabular_remotescanner.html'
+        
+class ScannerDongleAdmin(admin.ModelAdmin):
+    inlines = [ RemoteDongleInline ]
+    list_display = ( 'address', 'name', 'priority', 'enabled' )
+
+admin.site.register(ScannerBluetoothDongle, ScannerDongleAdmin)
 admin.site.register(RemoteScannerBluetoothDongle, RemoteDongleAdmin)
-admin.site.register(ScannerBluetoothDongle, ScannerBluetoothAdmin)
 admin.site.register(UploaderBluetoothDongle, DongleAdmin)
 
 class CampaignFileAdmin(admin.StackedInline):

@@ -36,8 +36,8 @@ def ping():
     try:
 	server.ping()
 	return True
-    except:
-	logger.info("ping lost connection")
+    except Exception, err:
+	logger.info("ping lost connection, cause: %s" % err)
 	loop.quit()
 	
 def exposed_ping():
