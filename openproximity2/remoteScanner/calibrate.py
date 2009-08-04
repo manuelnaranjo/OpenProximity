@@ -48,25 +48,20 @@ def deviation(inp, av=None):
     return sqrt( acu/len(inp) )
     
 def connected(local, remote, sender):
-    global remote_path
+    global remote_path, connection
+    connection = True
+    sys.stderr.write("connected\n")
     if remote_path == sender:
-	print "ScannerConnected", local, remote, sender
 	iface.StartScan(1)
 	
 def disconnected(local, remote, sender):
-    global rssi, remote_path
     if remote_path == sender:
-	print "ScannerDisconnected", local, remote, sender
-	
-	av = average(rssi)
-	dev=deviation(rssi, av)
-	print av, dev    
 	loop.quit()
 
 def found(address, value, sender):
     global rssi, remote_path
+    sys.stderr.write("found %s\n" % address)
     if remote_path == sender:
-	print "Device found:", address, int(value['RSSI'])
 	if address not in rssi:
 	    rssi[address]=list()
 	rssi[address]+=(float(value['RSSI']),)
@@ -74,11 +69,8 @@ def found(address, value, sender):
 def property(option, value, sender):
     global remote_path, iface
     if remote_path == sender:
-	print "Property:", option, value
 	if option=="Discovering" and value ==0:
 	    iface.Disconnect()
-	    print "Inquiry done, results"
-	    print "address\t\t\taverage\tstd dev"
 	    for address, values in rssi.iteritems():
 		av = average(values)
 		dev=deviation(values, av)
@@ -89,9 +81,17 @@ def property(option, value, sender):
 def exception(msg):
     print "Exception", msg
     loop.quit()
+    
+def check_connection():
+    global connection
+    if not connection:
+	print "no connection"
+	loop.quit()
+    return False
 
 remote_path = None
 iface = None
+connection = False
 
 def main():
     bus = dbus.SystemBus()
@@ -104,8 +104,6 @@ def main():
 	bus.add_signal_receiver(exception, dbus_interface=url, signal_name="ConnectionException")
 	bus.add_signal_receiver(property, dbus_interface=url, signal_name="PropertyChanged", path_keyword='sender')
 	
-	print "Signals registered"
-	
 	manager = bus.get_object(url, "/net/aircable/RemoteScanner/Manager")
 	
 	global remote_path, iface
@@ -115,7 +113,7 @@ def main():
         remote_object = bus.get_object(url, remote_path)
 	iface = dbus.Interface(remote_object, url)
 	iface.Connect(sys.argv[1], sys.argv[2])
-	
+	gobject.timeout_add(10000, check_connection)
     except dbus.DBusException:
         print_exc()
         sys.exit(1)

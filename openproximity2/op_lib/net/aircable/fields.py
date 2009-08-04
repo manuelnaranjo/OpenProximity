@@ -30,9 +30,10 @@ class PickledField(models.CharField):
 	    
     def get_db_prep_value(self, value):
 	try:
-	    val=eval(value)
-	    if type(val) is not str:
-		val = dumps(val)
+	    if type(value) is str:
+		value=eval(value)
+	    if type(value) is not str:
+		value = dumps(value)
 	except:
-	    val = value
-	return ''.join(val)
+	    pass
+	return ''.join(value)

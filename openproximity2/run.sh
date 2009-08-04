@@ -9,6 +9,15 @@ CWD=$(pwd)
 
 . common.sh
 
+if [ -n $REMOTE_SCANNER ]; then
+    bash remote_scanner.sh 1>&2 2>$LOG_DIR/remotescanner.log &
+fi
+
+if [ -n $PAIR_MANAGER ]; then
+    . pair.sh
+    echo $! > $PID_FILE
+fi
+
 . rpc.sh
 echo $! > $PID_FILE
 cd $CWD

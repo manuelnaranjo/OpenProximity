@@ -255,7 +255,7 @@ def getMatchingCampaigns(remote=None,
 		if remote is None:
 		    out.append(rule)
 		else:
-		    if rule.name_filter is None or remote.name.startswith(rule.name_filter):
+		    if rule.name_filter is None or remote.name is None or remote.name.startswith(rule.name_filter):
 			#print "name filter matches"
 			if rule.addr_filter is None or remote.address.startswith(rule.addr_filter):
 			    #print "address filter matches"

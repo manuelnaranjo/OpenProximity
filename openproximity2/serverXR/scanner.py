@@ -328,10 +328,10 @@ class ScanManager:
 			founds.append(
 			    { 
 				'address': str(found), 
-				'name': str(getattr(data, 'name', None)),
+				'name': str(data.get('name', None)),
 				'rssi': data['rssi'],
 				'time': data['time'],
-				'devclass': int(getattr(data,'devclass',-1))
+				'devclass': int(data.get('devclass',-1))
 			    }
 			)
 
