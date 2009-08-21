@@ -7,7 +7,7 @@ function compare_version(CURRENT_VERSION) {
     a.latest = LATEST_VERSION
     if (a.new_available){
         if (message_show==0){
-           alert("There's a new version of OpenProximity2 available, for more information on how to upgrade visit http://code.google.com/p/proximitymarketing/")
+           alert("There's a new version of OpenProximity2 available, for more information on how to upgrade visit http://code.google.com/p/proximitymarketing/wiki/Updates")
            message_show=1
         }
     }
