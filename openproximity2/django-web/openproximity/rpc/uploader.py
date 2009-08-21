@@ -21,7 +21,7 @@ from common import get_uploader, do_upload
 import traceback
 
 def handle(services, signal, uploader, args, kwargs):
-    print "uploader signal", signals.TEXT[signal], args, kwargs
+    print "uploader signal", signals.TEXT[signal]
     
     if signal == signals.SDP_RESOLVED:
 	handle_sdp_resolved(kwargs['dongle'], kwargs['address'], kwargs['port'])
