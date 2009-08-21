@@ -8,7 +8,7 @@
 
 {% block content %}
 <script type="text/javascript">
-    var reply=compare_version({{version.current}});
+    var reply=compare_version("{{version.current}}");
     if ( reply.new_available ){
         document.write("<h1><a href=\"http://code.google.com/p/proximitymarketing/\">{% trans "There's a new version available" %}</a><h1/>")
         document.write("<p>{% trans "New Version" %}: ")
@@ -169,7 +169,7 @@
 {% endblock %}
 {% block footer %}
 <script type="text/javascript">
-    var reply=compare_version({{version.current}});
+    var reply=compare_version("{{version.current}}");
     document.write("<p>server version: <b>")
     document.write(reply.latest)
     document.write("</b> running version: <b>{{ version.current }}</b></p>")

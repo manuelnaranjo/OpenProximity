@@ -11,22 +11,27 @@ mkdir -p $OP2/openproximity2
 mkdir -p $LIB_TARGET
 
 cd $OP2/openproximity2
-ln -s $CWD/serverXR .
-ln -s $CWD/django-web .
-ln -s $CWD/latest-version .
-ln -s $CWD/remoteScanner .
-ln -s $CWD/op_lib/net $LIB_TARGET/net
+ln -s $CWD/client.sh
 ln -s $CWD/common.sh
-ln -s $CWD/rpc.sh
-ln -s $CWD/run.sh
-ln -s $CWD/shell.sh
-ln -s $CWD/server.sh
-ln -s $CWD/rpc_scanner.sh
-ln -s $CWD/rpc_uploader.sh
-ln -s $CWD/remote_scanner.sh
-ln -s $CWD/clean.sh
-ln -s $CWD/syncdb.sh
+ln -s $CWD/django-web
+#ln -s $CWD/docs
+ln -s $CWD/latest-version
+ln -s $CWD/LICENSE
 ln -s $CWD/manager.sh
+ln -s $CWD/op_lib/net $LIB_TARGET/net
+ln -s $CWD/op_lib/plugins $LIB_TARGET/plugins
+ln -s $CWD/pair.py
+ln -s $CWD/pair.sh
+ln -s $CWD/remoteScanner
+ln -s $CWD/remote_scanner.sh
+ln -s $CWD/rpc_scanner.sh
+ln -s $CWD/rpc.sh
+ln -s $CWD/rpc_uploader.sh
+ln -s $CWD/run.sh
+ln -s $CWD/server.sh
+ln -s $CWD/serverXR
+ln -s $CWD/shell.sh
+ln -s $CWD/syncdb.sh
 
 cd $OP2
 mkdir tmp
