@@ -1,4 +1,4 @@
-var message_show = True
+var message_show = 0
 
 function compare_version(CURRENT_VERSION) {
     var LATEST_VERSION="05312009";
@@ -6,10 +6,10 @@ function compare_version(CURRENT_VERSION) {
     a.new_available = CURRENT_VERSION != LATEST_VERSION
     a.latest = LATEST_VERSION
     if (a.new_available){
-	if (message_show){
-	    alert("There's a new version of OpenProximity2 available, for more information on how to upgrade visit http://code.google.com/p/proximitymarketing/")
-	    message_show=False
-	}
+        if (message_show==0){
+           alert("There's a new version of OpenProximity2 available, for more information on how to upgrade visit http://code.google.com/p/proximitymarketing/")
+           message_show=1
+        }
     }
     return a
 }
