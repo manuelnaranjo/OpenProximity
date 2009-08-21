@@ -14,7 +14,6 @@ cd $OP2/openproximity2
 ln -s $CWD/client.sh
 ln -s $CWD/common.sh
 ln -s $CWD/django-web
-#ln -s $CWD/docs
 ln -s $CWD/latest-version
 ln -s $CWD/LICENSE
 ln -s $CWD/manager.sh
