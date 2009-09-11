@@ -30,6 +30,10 @@ from net.aircable.fields import PickledField
 
 TIMEOUT_RET = [ 22 ]
 
+class LogLine(models.Model):
+    time = models.DateTimeField(auto_now=True, verbose_name=_("time"))
+    content = models.CharField(max_length=255)
+
 class Setting(models.Model):
     name = models.CharField(max_length=40)
     value = PickledField(max_length=200)
@@ -149,9 +153,9 @@ class RemoteDevice(models.Model):
 	return "%s, %s" % (self.address, self.name)
 
 class DeviceRecord(models.Model):
-    time = models.DateTimeField(auto_now=True, blank=False,
+    time = models.DateTimeField(auto_now=True, blank=False, serialize = True,
 	verbose_name=_("time"))
-    dongle = models.ForeignKey(BluetoothDongle, blank=True, null=True,
+    dongle = models.ForeignKey(BluetoothDongle, blank=True, null=True, serialize = True,
 	verbose_name=_("dongle address"))
 
     def __unicode__(self):
@@ -159,11 +163,11 @@ class DeviceRecord(models.Model):
 	
     class Meta:
 	# don't create a table for me please
-	abstract = True
+#	abstract = True
 	ordering = ['time']
 
 class RemoteBluetoothDeviceRecord(DeviceRecord):
-    remote = models.ForeignKey(RemoteDevice, verbose_name=_("remote address"))
+    remote = models.ForeignKey(RemoteDevice, verbose_name=_("remote address"), serialize = True)
 
     def setRemoteDevice(self, address):
 	try:
@@ -183,7 +187,7 @@ class RemoteBluetoothDeviceRecord(DeviceRecord):
 	ordering = ['time']
 
 class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
-    __rssi = models.CommaSeparatedIntegerField(max_length=200, verbose_name=_("rssi"))
+    __rssi = models.CommaSeparatedIntegerField(max_length=200, verbose_name=_("rssi"), serialize = True)
 
     def setRSSI(self, rssi):
 	self.__rssi = str(rssi).replace('[','').replace(']','')

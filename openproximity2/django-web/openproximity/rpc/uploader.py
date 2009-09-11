@@ -22,25 +22,33 @@ import traceback
 
 def handle(services, signal, uploader, args, kwargs):
     print "uploader signal", signals.TEXT[signal]
+    logl = LogLine()
+    logl.content += signals.TEXT[signal]
     
     if signal == signals.SDP_RESOLVED:
+	logl.content += ' %s:%s' %( kwargs['address'], kwargs['port'])
 	handle_sdp_resolved(kwargs['dongle'], kwargs['address'], kwargs['port'])
     elif signal == signals.SDP_NORECORD:
+	logl.content += ' %s' %( kwargs['address'])
 	handle_sdp_norecord(kwargs['dongle'], kwargs['address'], 
 	    kwargs['pending'])
     elif signal == signals.SDP_TIMEOUT:
+	logl.content += ' %s' %( kwargs['address'])
 	handle_sdp_timeout(kwargs['dongle'], kwargs['address'], 
 	    kwargs['pending'])
     elif signal == signals.FILE_UPLOADED:
+	logl.content += ' %s' %( kwargs['address'])
 	handle_file_uploaded(kwargs['dongle'], kwargs['address'], 
 	    kwargs['pending'], kwargs['port'], kwargs['files'])
     elif signal == signals.FILE_FAILED:
+	logl.content += ' %s, ret:%s' %( kwargs['address'], kwargs['ret'])
 	handle_file_failed(kwargs['dongle'], kwargs['address'], 
 	    kwargs['pending'], kwargs['port'], kwargs['files'], kwargs['ret'], 
 	    kwargs['stderr'], services)
     else:
 	print "signal ignored"
     
+    logl.save()
 
 def get_dongles(dongles):
     out = list()

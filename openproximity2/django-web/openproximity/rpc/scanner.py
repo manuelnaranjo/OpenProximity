@@ -25,26 +25,31 @@ import time
 
 def handle(services, signal, scanner, args, kwargs):
     print "scanner signal:", signals.TEXT[signal]
+    logl = LogLine()
+    logl.content += signals.TEXT[signal]
 
     if signal == signals.DONGLES_ADDED:
 	print "Dongles initializated"
 	cycle_completed(scanner)
     elif signal == signals.NO_DONGLES:
 	print "NO SCANNER DONGLES!!!" 
-	return 1
     elif signal == signals.DONGLE_NOT_AVAILABLE:
 	print "DONGLE NOT AVAILABLE", kwargs['address']
+	logl.content += " " + kwargs['address']
 	do_scan(scanner)
     elif signal == signals.CYCLE_SCAN_DONGLE_COMPLETED:
 	print "DONGLE DONE WITH SCAN", kwargs['address']
+	logl.content += " " + kwargs['address']
 	do_scan(scanner)
     elif signal == signals.CYCLE_COMPLETE:
 	cycle_completed(scanner)
     elif signal == signals.CYCLE_START:
-	return 0
+	pass
     elif signal == signals.CYCLE_SCAN_DONGLE:
+	logl.content += " " + kwargs['address']
 	started(scanner, kwargs['address'])
     elif signal == signals.FOUND_DEVICE:
+	logl.content += " " + kwargs['address']
 	addrecords(services, kwargs['address'], 
 	    loads(kwargs['records']), 
 	    # this object is pickled so we can get multiple threads
@@ -52,6 +57,8 @@ def handle(services, signal, scanner, args, kwargs):
 	    kwargs['pending'])
     else:
 	raise Exception("Not known signal")
+    
+    logl.save()
 
 def started(scanner, address):
     print 'scan_started', address

@@ -43,6 +43,12 @@ info_dict = {
     'post_save_redirect': '../accepted/',
 }
 
+from microblog.sites import TweetSite
+def convert(time_string):
+    return datetime.strptime(time_string, '%Y-%m-%d %H:%M:%S')
+
+blog = TweetSite(LogLine, 'time', convert)
+
 urlpatterns = patterns('',
     (r'^accepted/$', views.add_record_accepted),
     (r'^genericadd/$', 'django.views.generic.create_update.create_object', info_dict),
@@ -55,5 +61,6 @@ urlpatterns = patterns('',
     (r'^configure/camp/', views.configure_campaign),
     (r'^stats/restart.*', views.stats_restart),
     (r'^file/grab/(?P<file>.+)', views.grab_file),
+    (r'^microblog/', include(blog.urlpatterns)),
     (r'.*', views.index),
 )

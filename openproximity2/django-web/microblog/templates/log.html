@@ -1,0 +1,70 @@
+<script type="text/javascript">
+
+var last_post = null;
+var queue = Array();
+
+function sort_queue(a, b){
+    return a.pk - b.pk
+}
+
+function update_posts(){
+    var defer;
+    if ( last_post != null ){
+	defer = loadJSONDoc('{{url}}/posts/?pk=' + escape(last_post));
+    }
+    else
+    {
+	defer = loadJSONDoc('{{url}}/posts/?amount={{ amount }}');
+    }
+    var gotPosts=function(posts){
+	
+	var mesg = getElement('{{ element }}')
+	
+	for ( var i in posts ){
+	    var post = posts[i]
+	    queue.unshift(post)
+	}
+	
+	queue.sort(sort_queue)
+	
+	while ( queue.length > {{ amount }}){
+	    queue.shift()
+	}
+	
+	mesg.innerHTML=""
+	
+	for ( var i in queue ){
+	    var post = queue[i]
+	    {% autoescape off %}
+	    mesg.innerHTML={{ line_format }}+mesg.innerHTML;
+	    {% endautoescape %}
+	}
+    };
+    var postsFetchFailed = function(err){
+	var mesg = getElement('{{ element }}')
+	mesg.innerHTML="There are no messages"
+    }
+    
+    defer.addCallbacks(gotPosts, postsFetchFailed);
+}
+
+function check_last_post(){
+    var last_post_server = loadJSONDoc('{{ url }}/latest/');
+    var gotLastPostServer=function(meta){
+	if ( last_post != meta[0].{{ field }} ){
+	    update_posts()
+	    last_post = meta[0].{{ field }};
+	}
+    };
+    var lastPostServerFetchFailed = function(err){
+	var mesg = getElement('{{ element }}')
+	mesg.innerHTML="There are no messages"
+    };
+    last_post_server.addCallbacks(gotLastPostServer, lastPostServerFetchFailed);
+}
+
+check_last_post()
+
+setInterval("check_last_post()", {{ interval }}000)
+
+</script>

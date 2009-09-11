@@ -23,12 +23,16 @@ class PickledField(models.CharField):
     __metaclass__ = models.SubfieldBase
     
     def to_python(self, value):
+	if type(value) is unicode:
+	    value=str(value)
 	try:
 	    return loads(value)
 	except:
 	    return value
 	    
     def get_db_prep_value(self, value):
+	if type(value) is unicode:
+	    value=str(value)
 	try:
 	    if type(value) is str:
 		value=eval(value)
