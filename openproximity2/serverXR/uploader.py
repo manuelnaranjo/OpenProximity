@@ -27,6 +27,7 @@ import subprocess
 import time
 import os
 import rpyc
+from pickle import loads, dumps
 
 # TODO add hci connection handling for detecting real timeout or out of range
 
@@ -67,11 +68,11 @@ class UploadAdapter(Adapter):
 	    
 	    if retcode==0 or retcode==255: # bug in my patch, it gives negative ret code
 		manager.tellListeners(signal=FILE_UPLOADED, dongle=self.bt_address,
-			address=str(target), port=port, files=files)
+			address=str(target), port=port, files=dumps(files))
 	    else:
 		manager.tellListeners(signal=FILE_FAILED, address=str(target), 
 			dongle=self.bt_address, port=port, ret=retcode,
-			files = files, stdout=stdout, stderr=stderr)
+			files=dumps(files), stdout=stdout, stderr=stderr)
 	    logger.debug("Uploader dowork finished")
 
 	def __init__(self, max_uploads = 7, *args, **kwargs):
@@ -93,28 +94,29 @@ class UploadManager:
 	__dongles = dict()
 	bus = None
 	manager = None
-	__listener = list()
+	__listener_sync = list()
+	__listener_async = list()
 	__sequence = list()
 	__index = None
 	uploaders = dict()
-    
+
 	def __init__(self, bus, listener=None, rpc=None):
 		logger.debug("UploadManager created")
 		self.bus = bus
 		self.manager = dbus.Interface(bus.get_object(const.BLUEZ, const.BLUEZ_PATH), const.BLUEZ_MANAGER)
-				
+
 		if listener is not None:
 		    for x in listener:
 			self.addListener(x)
 		self.rpc = rpc
-			
+
 	def exposed_refreshUploaders(self):
 		logger.debug("UploadManager refresh uploaders %s" % self.uploaders)
 		if self.uploaders is None or len(self.uploaders) == 0:
 			self.__dongles = dict()
 			self.tellListeners(NO_DONGLES)
 			return False
-			
+
 		for i in self.uploaders.keys():
 			adapter = UploadAdapter(
 				self.uploaders[i][0],
@@ -140,7 +142,8 @@ class UploadManager:
 	    
 	def exposed_addListener(self, func):
 		logger.debug("UploadManager adding listener")
-		self.__listener.append(func)
+		self.__listener_sync.append(func)
+		self.__listener_async.append(rpyc.async(func))
 		
         def exposed_getDongles(self):
             out = set()
@@ -150,8 +153,8 @@ class UploadManager:
 		
 	def tellListeners(self, *args, **kwargs):
 		logger.debug("UploadManager telling listener: %s, %s" % (str(args), str(kwargs)))
-		for func in self.__listener:
-			rpyc.async(func)(*args, **kwargs)
+		for func in self.__listener_async:
+			func(*args, **kwargs)
 		logger.debug("UploadManager signal dispatched")
 			
 	def __rotate_dongle(self):
@@ -165,7 +168,9 @@ class UploadManager:
 		logger.debug('UploadManager dongle rotated, dongle: %s' % self.__sequence[self.__index])
 		
 	def exposed_upload(self, files, target, id=None, uuid=sdp.OBEX_UUID, service='opp'):
+		files = loads(files)
 		dongle=self.__sequence[self.__index]
+		print type(files), type(target), type(uuid)
 		logger.debug("uploading %s %s %s" % ( files, target, uuid ) )
 		
 		for file_, fk in files:

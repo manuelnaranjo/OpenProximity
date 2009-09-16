@@ -17,7 +17,7 @@ from net.aircable.openproximity.signals import scanner as signals
 from openproximity.models import *
 
 from rpyc import async
-from pickle import loads
+from pickle import loads, dumps
 
 def get_uploader(services):
     for i in services:
@@ -27,5 +27,5 @@ def get_uploader(services):
 
 def do_upload(uploader, files, remote):
     print "About to call upload"
-    async(uploader.upload)(files, remote)
+    uploader.upload(dumps(files), remote)
     print "upload called async"

@@ -73,64 +73,73 @@ class OpenProximityService(Service):
 		traceback.print_exc(file=sys.stdout)
 	    try:	
 		if signals.isScannerSignal(signal):
-		    rpc.scanner.handle(services, signal, self.scanner, args, kwargs)
+		    rpc.scanner.handle(services, signal, self, args, kwargs)
 		elif signals.isUploaderSignal(signal):
-		    rpc.uploader.handle(services, signal, self.uploader, args, kwargs)
+		    rpc.uploader.handle(services, signal, self, args, kwargs)
 	    except:
 		print "ERROR on rpc listener while doing scanner or uploader"
 		traceback.print_exc(file=sys.stdout)    
-	    	    
+
 	def exposed_scanner_register(self, remote_quit, scanner, dongles, ping):
 	    global enabled
-	    
+
 	    self.dongles = set()
-	    self.add_dongle = scanner.add_dongle
+	    # wrap all calls as async, to avoid collitions
+	    self.add_dongle = async(scanner.add_dongle)
 	    self.scanner = scanner
-	    self.scanner.addListener(self.listener)
-	    self.ping = ping
+	    self.setConcurrent = async(scanner.setConcurrent)
+	    self.refreshScanners = async(scanner.refreshScanners)
+	    self.addListener = async(scanner.addListener)
+	    self.doScan = async(scanner.doScan)
+	    self.startScanningCycle = async(scanner.startScanningCycle)
 	    self.remote_quit = async(remote_quit)
+	    self.ping = ping
 
 	    if not enabled:
 		return
 
+	    self.addListener(self.listener)
+
 	    for dongle in dongles:
 		self.dongles.add( str(dongle), )
-	    
-	    for dongle, priority, name in rpc.scanner.get_dongles(dongles):
+
+	    for dongle, priority, name in rpc.scanner.get_dongles(dongles): # local
 		print dongle, priority, name
 		self.add_dongle(dongle, priority, name)
-	    
-	    (setting, created) = Setting.objects.get_or_create(name="scanner-concurrent")
-	    
+
+	    (setting, created) = Setting.objects.get_or_create(name="scanner-concurrent") # local
+
 	    concurrent = (created == False and setting.value)
 
 	    print "Concurrent setting:", concurrent
 	    self.scanner.setConcurrent(concurrent)
-	    
-	    self.scanner.refreshScanners()
+	    self.refreshScanners()
 
 	def exposed_uploader_register(self, remote_quit, uploader, dongles, ping):
 	    global enabled
 
 	    self.dongles = set()
 	    self.add_dongle = async(uploader.add_dongle)
-	    self.uploader = uploader
-	    self.uploader.addListener(self.listener)
+	    self.addListener = async(uploader.addListener)
+	    self.upload = async(uploader.upload)
 	    self.ping = ping
 	    self.remote_quit = async(remote_quit)
+	    self.refreshUploaders = async(uploader.refreshUploaders)
+
+	    self.uploader = uploader
 
 	    if not enabled:
 		return
 
+	    self.addListener(self.listener)
+
 	    for dongle in dongles:
 		self.dongles.add( str(dongle), )
-	    
+
 	    for dongle, max_conn, name in rpc.uploader.get_dongles(dongles):
 		print dongle, max_conn, name
 		self.add_dongle(dongle, max_conn, name)
-	    self.uploader.refreshUploaders()
-	    
-	    self.upload = self.uploader.upload # don't want to wait for you
+	    self.refreshUploaders()
 	    
 	def exposed_getFile(self, path):
 	    print "getFile", path

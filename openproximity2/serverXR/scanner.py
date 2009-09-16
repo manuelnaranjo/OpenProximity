@@ -95,7 +95,8 @@ class ScanManager:
 	__dongles = dict()
 	bus = None
 	manager = None
-	__listener = list()
+	__listener_sync = list()
+	__listener_async = list()
 	__sequence = list()
 	__index = None
 	__repeat = False
@@ -205,20 +206,21 @@ class ScanManager:
 	    
 	def exposed_addListener(self, func):
 		logger.debug("ScanManager adding listener")
-		self.__listener.append(func)
-		
+		self.__listener_sync.append(func)
+		self.__listener_async.append(rpyc.async(func))
+
 	def tellListenersSync(self, *args, **kwargs):
 	    logger.debug("ScanManager telling listener - sync: %s" % POST[args[0]])
-	    for func in self.__listener:
+	    for func in self.__listener_sync:
 	    	func(*args,**kwargs)
-	
+
 	def tellListenersAsync(self, *args, **kwargs):
 	    logger.debug("ScanManager telling listener - async: %s" % POST[args[0]])
-	    for func in self.__listener:
-		rpyc.async(func)(*args, **kwargs)
+	    for func in self.__listener_async:
+		func(*args, **kwargs)
 
 	def exposed_startScanningCycle(self, repeat=False):
-	    self.tellListenersSync(CYCLE_START)
+	    self.tellListenersAsync(CYCLE_START)
 	    self.__index = 0
 	    self.__repeat = repeat
 	    if self.concurrent:
@@ -243,9 +245,9 @@ class ScanManager:
 	    
 	def __do_scan_no_concurrent(self):
 	    logger.debug("No concurrent scan")
-	    logger.debug('ScanManager scanning on dongle: %s' % self.__sequence[self.__index].bt_address)
 	    if self.__index < len(self.__sequence):
 		try:
+		    logger.debug('ScanManager scanning on dongle: %s' % self.__sequence[self.__index].bt_address)
 		    self.__sequence[self.__index].scan()
 		except Exception, err:
 		    logger.debug("Couldn't scan, error: %s" % err)
@@ -253,7 +255,7 @@ class ScanManager:
 		    addr = str(self.__sequence[self.__index].bt_address)
 		    ret=self.__rotate_dongle()
 		    if not ret:
-			self.tellListenersSync(DONGLE_NOT_AVAILABLE, 
+			self.tellListenersAsync(DONGLE_NOT_AVAILABLE, 
 			    address=addr)
 			    
 	def __multi_scan(self):
@@ -270,7 +272,7 @@ class ScanManager:
 	def __rotate_dongle(self):
 		self.__index += 1
 		if self.__index >= len(self.__sequence):
-		    self.tellListenersSync(CYCLE_COMPLETE)
+		    self.tellListenersAsync(CYCLE_COMPLETE)
 		    self.__index = 0
 		    logger.debug('ScanManager dongle cycle completed')
 		    return True

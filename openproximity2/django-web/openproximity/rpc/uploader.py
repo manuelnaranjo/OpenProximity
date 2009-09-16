@@ -18,6 +18,8 @@ from openproximity.models import *
 
 from common import get_uploader, do_upload
 
+from pickle import loads
+
 import traceback
 
 def handle(services, signal, uploader, args, kwargs):
@@ -39,11 +41,11 @@ def handle(services, signal, uploader, args, kwargs):
     elif signal == signals.FILE_UPLOADED:
 	logl.content += ' %s' %( kwargs['address'])
 	handle_file_uploaded(kwargs['dongle'], kwargs['address'], 
-	    kwargs['pending'], kwargs['port'], kwargs['files'])
+	    kwargs['pending'], kwargs['port'], loads(kwargs['files']))
     elif signal == signals.FILE_FAILED:
 	logl.content += ' %s, ret:%s' %( kwargs['address'], kwargs['ret'])
 	handle_file_failed(kwargs['dongle'], kwargs['address'], 
-	    kwargs['pending'], kwargs['port'], kwargs['files'], kwargs['ret'], 
+	    kwargs['pending'], kwargs['port'], loads(kwargs['files']), kwargs['ret'], 
 	    kwargs['stderr'], services)
     else:
 	print "signal ignored"

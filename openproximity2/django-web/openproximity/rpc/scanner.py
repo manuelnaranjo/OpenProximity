@@ -91,7 +91,7 @@ def get_dongles(dongles):
 
 def do_scan(scanner):
     print "start scan"
-    async(scanner.doScan)()
+    scanner.doScan()
 
 def cycle_completed(scanner):
     print 'scanner_cycle_complete'
@@ -102,7 +102,7 @@ def cycle_completed(scanner):
     
     print "starting scan cycle"
     scanner.startScanningCycle()
-    async(scanner.doScan)()
+    scanner.doScan()
 
 uploaded = set()
 
