@@ -116,8 +116,8 @@ class MarketingCampaign(Campaign):
 	    if self.tries_count == -1:
 		print "No timeout filter"
 		return True
-	    return RemoteBluetoothDeviceFileTry. \
-		filter(remote=record.remote). \
+	    return RemoteBluetoothDeviceFileTry.\
+		objects.filter(remote=record.remote).\
 		count() < self.tries_count
 	else:
 	    print "Rejected"
@@ -125,7 +125,7 @@ class MarketingCampaign(Campaign):
 		print "No rejection filter"
 		return True
 	    return RemoteBluetoothDeviceFilesRejected. \
-		filter(remote=record.remote). \
+		objects.filter(remote=record.remote). \
 		count() < self.rejected_count
 
 class CampaignFile(models.Model):
@@ -163,7 +163,7 @@ class DeviceRecord(models.Model):
 	
     class Meta:
 	# don't create a table for me please
-#	abstract = True
+	abstract = True
 	ordering = ['time']
 
 class RemoteBluetoothDeviceRecord(DeviceRecord):
@@ -222,7 +222,7 @@ class RemoteBluetoothDeviceFileTry(RemoteBluetoothDeviceRecord):
     
     class Meta:
 	# don't create a table for me please
-	abstract = True
+#	abstract = True
 	ordering = ['time']
     
 class RemoteBluetoothDeviceFilesRejected(RemoteBluetoothDeviceFileTry):
