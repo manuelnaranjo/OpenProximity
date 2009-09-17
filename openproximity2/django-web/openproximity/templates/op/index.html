@@ -6,6 +6,76 @@
 <script type="text/javascript" src="http://proximitymarketing.googlecode.com/svn/trunk/openproximity2/latest-version.js"></script>
 <script type="text/javascript" src="/site_media/MochiKit.js"></script>
 
+<script type="text/javascript">
+    function update_field(el, val){
+	getElement(el).innerHTML=val
+    }
+    
+    function update_field_complex(el, id, val){
+	getElement(el+'_'+id).innerHTML=val
+    }
+
+    function update_stats(){
+	var defer;
+	 
+        defer = loadJSONDoc('rpc/stats');    
+
+	var gotStats=function(stats){
+	    var td;
+	    
+	    update_field('stats_seen', stats.seen.total)
+	    
+	    for (var addr in stats.seen.perdongle){
+		var val = stats.seen.perdongle[addr]
+		update_field_complex('stats_count', val.address, val.count)
+	    }
+	    
+	    update_field('stats_valid', stats.valid)
+	    update_field('stats_tries', stats.tries)
+	    update_field('stats_timeout', stats.timeout)
+	    update_field('stats_rejected', stats.rejected)
+	    update_field('stats_accepted', stats.accepted)
+	};
+	
+	var statsFetchFailed = function(err){
+	    alert(err)
+	}
+	defer.addCallbacks(gotStats, statsFetchFailed);
+    }
+
+    function update_rpc_info(){
+	var defer;
+
+        defer = loadJSONDoc('rpc/info');
+
+	var gotInfo=function(info){
+	    update_field('rpc_running', info.running)
+	    update_field('rpc_uploadres', info.uploaders)
+	    update_field('rpc_scanners', info.scanners)
+	    
+	    for (var addr in info.dongles){
+		var val = info.dongles[addr]
+		update_field_complex('dongle_address',val.address, val.address)
+		update_field_complex('dongle_scan',val.address, val.isScanner)
+		update_field_complex('dongle_scan_enabled',val.address, val.scan_enabled)
+		update_field_complex('dongle_scan_priority',val.address, val.scan_pri)
+		update_field_complex('dongle_upload',val.address, val.isUploader)
+		update_field_complex('dongle_upload_enabled',val.address, val.upload_enabled)
+		update_field_complex('dongle_upload_maxconn',val.address, val.max_conn)
+	    }
+	};
+	
+	var infoFetchFailed = function(err){
+	    alert(err)
+	}
+	defer.addCallbacks(gotInfo, infoFetchFailed);
+    }
+
+setInterval("update_stats()", 20000) <!-- update each 20 seconds -->
+setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
+
+</script>
+
 {% comment %} field line content refresh 'amount to show' 'first read' {% endcomment %}
 {% Tweet 'messages' 'fields.time' './microblog' 'post.fields.time.split(\' \')[1] + " " + post.fields.content + "<br>"' 5 17 %}
 
@@ -29,7 +99,7 @@
 	<table id="stats">
 	    <tr>
 		<td>{% trans "Seen" %}</td>
-		<td>{{ stats.seen.total }}</td>
+		<td id="stats_seen">{{ stats.seen.total }}</td>
 	    </tr>
 	    <tr>
 		<td>{% trans "Per Dongle" %}</td>
@@ -38,30 +108,30 @@
 			{% for d in stats.seen.perdongle %}
 			    <tr>
 				<td>{{ d.address}}</td>
-				<td>{{ d.count }}</td>
+				<td id="stats_count_{{ d.address }}">{{ d.count }}</td>
 			    </tr>
 			{% endfor %}
 		    </table>
 		</td>
 	    <tr>
 		<td>{% trans "Valid Obex" %}</td>
-		<td>{{ stats.valid }}</td>
+		<td id="stats_valid">{{ stats.valid }}</td>
 	    </tr>
 	    <tr>
 		<td>{% trans "Tried" %}</td>
-		<td>{{ stats.tries }}</td>
+		<td id="stats_tries">{{ stats.tries }}</td>
 	    </tr>
 	    <tr>
 		<td>{% trans "Timeout" %}</td>
-		<td>{{ stats.timeout }}</td>
+		<td id="stats_timeout">{{ stats.timeout }}</td>
 	    </tr>
 	    <tr>
 		<td>{% trans "Rejected" %}</td>
-		<td>{{ stats.rejected }}</td>
+		<td id="stats_rejected">{{ stats.rejected }}</td>
 	    </tr>
 	    <tr>
 		<td>{% trans "Accepted" %}</td>
-		<td>{{ stats.accepted }}</td>
+		<td id="stats_accepted">{{ stats.accepted }}</td>
 	    <tr>
 	    <tr>
 		<td><a href="stats/restart" class="btn">{% trans "Reset Statistics" %}</a></td>
@@ -78,15 +148,15 @@
 	<table id="rpc">
 	    <tr>
 		<td>{% trans "RPC Server is running" %}</td>
-		<td>{{ rpc.running|yesno:_("yes,no") }}</td>
+		<td id="rpc_running">{{ rpc.running|yesno:_("yes,no") }}</td>
 	    </tr>
 	    <tr>
 		<td>{% trans "Uploaders Connected" %}</td>
-		<td>{{ rpc.uploaders }}</td>
+		<td id="rpc_uploadres">{{ rpc.uploaders }}</td>
 	    </tr>
 	    <tr>
 		<td>{% trans "Scanners Connected" %}</td>
-		<td>{{ rpc.scanners }}</td>
+		<td id="rpc_scanners">{{ rpc.scanners }}</td>
 	    </tr>
 	    {% if rpc.error %}
 		    <tr id="error">
@@ -122,14 +192,14 @@
     </tr>
     {% for dongle in rpc.dongles %}
     <tr>
-	<td>{{ dongle.address }}</td>
-	<td>{{ dongle.isScanner }}</td>
-	<td>{{ dongle.scan_enabled }}</td>	
-	<td>{{ dongle.scan_pri }}</td>
-	<td>{{ dongle.isUploader }}</td>
-	<td>{{ dongle.upload_enabled }}</td>
-	<td>{{ dongle.max_conn }}</td>
-	<td><a href="configure/dongle/{{ dongle.address }}" class="btn">{% trans "Configure" %}</a></td>
+	<td id="dongle_address_{{dongle.address}}">{{ dongle.address }}</td>
+	<td id="dongle_scan_{{dongle.address}}">{{ dongle.isScanner }}</td>
+	<td id="dongle_scan_enabled_{{dongle.address}}">{{ dongle.scan_enabled }}</td>	
+	<td id="dongle_scan_priority_{{dongle.address}}">{{ dongle.scan_pri }}</td>
+	<td id="dongle_upload_{{dongle.address}}">{{ dongle.isUploader }}</td>
+	<td id="dongle_upload_enabled_{{dongle.address}}">{{ dongle.upload_enabled }}</td>
+	<td id="dongle_upload_maxconn_{{dongle.address}}">{{ dongle.max_conn }}</td>
+	<td id="dongle_config_{{dongle.address}}"><a href="configure/dongle/{{ dongle.address }}" class="btn">{% trans "Configure" %}</a></td>
     </tr>
     {% endfor %}
 </table>

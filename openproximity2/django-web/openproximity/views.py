@@ -14,14 +14,16 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # Create your views here.
-from django.http import HttpResponse
 
+from django.db import transaction
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response, get_object_or_404
-from django.template.loader import get_template
 from django.template import Context
+from django.template.loader import get_template
+from django.utils import simplejson
 from django.views.generic import list_detail
-from django.db import transaction
+
+
 
 from re import compile
 from mimetypes import guess_type as guess_mime
@@ -257,7 +259,7 @@ def stats_restart(request):
 
     return HttpResponseRedirect('/')
 
-def index(request):
+def generate_rpc_information():
     # generate rpc information
     rpc = dict()
     rpc['running'] = None
@@ -286,7 +288,10 @@ def index(request):
 	    rpc['dongles'].append(a)
     except Exception, err:
 	rpc['error'] = err
-	
+
+    return rpc
+
+def generate_stats():
     # generate stastics information
     stats = dict()
     try:
@@ -313,10 +318,19 @@ def index(request):
 	stats['rejected'] = rejected
 	stats['timeout'] = non_accepted-rejected
 	stats['tries'] = accepted+non_accepted
-	
+
     except Exception, err:
 	stats['error'] = err
-	
+
+    return stats
+
+def index(request):
+    # generate rpc information
+    rpc = generate_rpc_information()
+    
+    # generate stastics information
+    stats = generate_stats()
+
     version = dict()
     try:
 	version['current'] = os.environ['OP2_VERSION'].strip().upper()
@@ -330,6 +344,25 @@ def index(request):
 	    "stats": stats,
 	    "version": version,
 	})
+
+def rpc_stats(request):
+    stats = generate_stats()
+    return HttpResponse(
+	simplejson.dumps(stats), 
+	content_type="application/json")
+
+def rpc_info(request):
+    info = generate_rpc_information()
+    return HttpResponse(
+	simplejson.dumps(info), 
+	content_type="application/json")
+
+def rpc_command(request, command):
+    if command=='stats':
+	return rpc_stats(request)
+    if command=='info':
+	return rpc_info(request)
+    return HttpResponse("Non Valid Command")
 
 import time
 
