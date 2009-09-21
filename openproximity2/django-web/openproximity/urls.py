@@ -34,7 +34,9 @@ databrowse_root.register(ScannerBluetoothDongle)
 databrowse_root.register(RemoteScannerBluetoothDongle)
 databrowse_root.register(RemoteDevice)
 databrowse_root.register(RemoteBluetoothDeviceFoundRecord)
-
+databrowse_root.register(RemoteBluetoothDeviceFileTry)
+databrowse_root.register(RemoteBluetoothDeviceFilesSuccess)
+databrowse_root.register(RemoteBluetoothDeviceFilesRejected)
 databrowse_root.register(MarketingCampaign)
 databrowse_root.register(CampaignFile)
 

@@ -42,7 +42,23 @@ def ping():
 	
 def exposed_ping():
     return "hi"
-	
+    
+def handle_name_owner_changed(own, old, new):
+    if own.startswith('org.bluez'):
+	if new is None or len(str(new))==0:
+	    logger.info( "bluez has gone down, time to get out")
+	else:
+	    logger.info( "bluez started, time to restart")
+	loop.quit()
+
+def handle_adapter_added_or_removed(path, signal):
+    logger.info("bluez.%s: %s" % (signal, path))
+    loop.quit()
+
+#def handle_adapter_removed(path):
+#    logger.info("blue.AdapterRemoved: %s" % (path))
+#    loop.quit()
+
 def init():
     global manager, bus, loop, server
     
@@ -54,7 +70,8 @@ def init():
     for b in manager.manager.ListAdapters():
 	obj = bus.get_object('org.bluez', b)
 	adapter = dbus.Interface(obj, 'org.bluez.Adapter')
-    	a.append(str(adapter.GetProperties()['Address']))
+	a.append(str(adapter.GetProperties()['Address']))
+    logger.info("Connected dongles: %s" % a)
 
     if type == 'scanner':
 	server.root.scanner_register(loop.quit, manager, a, exposed_ping)
@@ -75,24 +92,44 @@ def run(server_, port, type_):
     try:
 	server = rpyc.connect(server_, int(port))
     except:
-#	print "connection refused, time to exit"
+	import time
+	logger.info("servcer is not running")
+	time.sleep(10)
 	autoreload.RELOAD = True
 	sys.exit(3)
 
     bus=dbus.SystemBus()
     gobject.threads_init()
     dbus.glib.init_threads()
+    
+    bus.add_signal_receiver(handle_name_owner_changed,
+	'NameOwnerChanged',
+	'org.freedesktop.DBus',
+	'org.freedesktop.DBus',
+	'/org/freedesktop/DBus')
 
-    if type_ == 'scanner':
-        from scanner import ScanManager
-	logger.info("init scanner")
-	manager = ScanManager(bus)
-    elif type_ == 'uploader':
-        logger.info("init uploader")
-        from uploader import UploadManager
-        manager = UploadManager(bus, rpc=server)
+    bus.add_signal_receiver(handle_adapter_added_or_removed,
+	signal_name='AdapterAdded',
+	dbus_interface='org.bluez.Manager',
+	member_keyword='signal')
 
-    gobject.timeout_add(100, init) # delay initialization 'til loop is running
+    bus.add_signal_receiver(handle_adapter_added_or_removed,
+	signal_name='AdapterRemoved',
+	dbus_interface='org.bluez.Manager',
+	member_keyword='signal')
+
+    try:
+	if type_ == 'scanner':
+	    from scanner import ScanManager
+	    logger.info("init scanner")
+	    manager = ScanManager(bus)
+	elif type_ == 'uploader':
+	    logger.info("init uploader")
+	    from uploader import UploadManager
+	    manager = UploadManager(bus, rpc=server)
+	gobject.timeout_add(100, init) # delay initialization 'til loop is running
+    except dbus.DBusException, err:
+	logger.info("bluez isn't ready, delaying init")
     gobject.timeout_add(1000, ping)
 
     loop=gobject.MainLoop()
