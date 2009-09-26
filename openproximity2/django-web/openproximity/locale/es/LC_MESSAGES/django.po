@@ -18,7 +18,7 @@ msgstr ""
 
 #: models.py:34 models.py:149 models.py:157
 msgid "time"
-msgstr ""
+msgstr "tiempo"
 
 #: models.py:43 models.py:145
 msgid "bluetooth address"
