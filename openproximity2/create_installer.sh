@@ -17,6 +17,8 @@ ln -s $CWD/django-web
 ln -s $CWD/latest-version
 ln -s $CWD/LICENSE
 ln -s $CWD/manager.sh
+ln -s $CWD/op_lib/rosetta $LIB_TARGET/rosetta
+ln -s $CWD/op_lib/django_cpserver $LIB_TARGET/django_cpserver
 ln -s $CWD/op_lib/net $LIB_TARGET/net
 ln -s $CWD/op_lib/plugins $LIB_TARGET/plugins
 ln -s $CWD/pair.py
@@ -59,6 +61,7 @@ cd ..
 
 cd $OP2
 rm -rf tmp
+bash manage.sh compilemessages
 rm -f $(find . | grep "\.pyc$")
 rm -f $(find . | grep "\.pyo$")
 tar --numeric-owner -h --group=0 --exclude=\*svn --owner=0 -czf $CWD/openproximity2-$(cat $CWD/latest-version).tar.gz openproximity2

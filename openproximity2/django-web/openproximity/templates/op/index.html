@@ -105,7 +105,7 @@ setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
 <script type="text/javascript">
     var reply=compare_version("{{version.current}}");
     if ( reply.new_available ){
-        document.write("<h1><a href=\"http://code.google.com/p/proximitymarketing/\">{% trans "There's a new version available" %}</a><h1/>")
+        document.write("<h1><a href=\"http://code.google.com/p/proximitymarketing/\">{% trans "There's a new version available" %}</a></h1>")
         document.write("<p>{% trans "New Version" %}: ")
         document.write(reply.latest)
         document.write("</p><p>{% trans "Your Version" %}: {{ version.current }}</p>")
