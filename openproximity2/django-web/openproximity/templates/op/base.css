@@ -10,19 +10,19 @@ a:hover { text-decoration:underline; }
 
 a img { border:none; }
 
-#wrapper { background: #e4e4e4; width: 720px; padding: 10px; margin: 10px auto 0 auto; }
+#wrapper { background: #e4e4e4; width: 90%; padding: 10px; margin: 10px auto 0 auto; }
 /* #wrapper { background: #e4e4e4; width: 640px; padding: 10px; margin: 10px auto 0 auto; } */
 
 /* NAVIGATION */
 #logo { float: left; width: 206px; height: 66px; padding: 0; margin: 0 10px 0 0; background: url(/site_media/logo.gif) no-repeat; }
-#navwrapper { overflow: auto;  background: #def url(/site_media/button-gradient.gif) repeat-x; margin-top: 2px; }
+#navwrapper { overflow: auto; background: #a3d3e8 url(/site_media/button-gradient.gif) repeat-x; margin-top: 2px; }
 #nav { padding: 0; overflow: hidden; height: 66px; }
-#nav a { padding: 2px 10px; margin:0; float: left; width: 85px; text-align: center; text-decoration: none; text-transform: uppercase; color: #555; white-space: nowrap; }
-#nav a:hover { background: #bcd url(/site_media/button-gradient-over.gif) repeat-x; }
+#nav a { padding: 2px 10px; margin:0; float: left; width: 100px; text-align: center; text-decoration: none; text-transform: uppercase; color: #555; white-space: nowrap; height:57px; }
+#nav a:hover { background: #6ea8c4 url(/site_media/button-gradient-over.gif) repeat-x; }
 
 /* HEADER */
 #header a { display:block; background:#eee; color:#eee; padding:10px 20px; font-weight:bold; font-size:1em; text-decoration:none; border-bottom:1px solid #ddd; }
-#header a:hover { text-decoration:underline; }
+#header a:hover { text-decoration:underline; height: 57px; }
 
 /* CONTENT */
 #content { background:#fff; padding:0 20px; margin-top: 10px; clear: left; }
@@ -33,7 +33,7 @@ a img { border:none; }
 
 /* FOOTER */
 /* #footer { width: 640px; padding: 7px 10px; margin: 10px auto 0 auto; background: #e4e4e4; } */
-#footer { width: 720px; padding: 7px 10px; margin: 10px auto 0 auto; background: #e4e4e4; }
+#footer { width: 90%; padding: 7px 10px; margin: 10px auto 0 auto; background: #e4e4e4; }
 #footer p { margin: 0; padding: 3px 0; }
 
 /* ------- Custom Classes ------- */
@@ -92,3 +92,22 @@ a img { border:none; }
 .modelgroup:hover p a { color:#becfe5; }
 .modelgroup:hover a { color:#fff; }
 .modelgroup:hover a.more { color:#fff; }
+
+/* KNOWN TABLE */
+table.known { 
+	border-width: 1px;
+	border-spacing: 2px;
+	border-style: inset;
+	border-color: gray;
+	border-collapse: collapse;
+	background-color: white;
+}
+
+table.known td {
+	border-width: 1px;
+	padding: 5px;
+	border-style: solid;
+	border-color: gray;
+}
+
+

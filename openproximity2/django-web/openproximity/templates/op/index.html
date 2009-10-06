@@ -7,69 +7,89 @@
 <script type="text/javascript" src="/site_media/MochiKit.js"></script>
 
 <script type="text/javascript">
-    function update_field(el, val){
-	getElement(el).innerHTML=val
-    }
+	function update_field(el, val){
+		getElement(el).innerHTML=val
+	}
     
-    function update_field_complex(el, id, val){
-	getElement(el+'_'+id).innerHTML=val
-    }
-
-    function update_stats(){
-	var defer;
-	 
-        defer = loadJSONDoc('rpc/stats');    
-
-	var gotStats=function(stats){
-	    var td;
-	    
-	    update_field('stats_seen', stats.seen.total)
-	    
-	    for (var addr in stats.seen.perdongle){
-		var val = stats.seen.perdongle[addr]
-		update_field_complex('stats_count', val.address, val.count)
-	    }
-	    
-	    update_field('stats_valid', stats.valid)
-	    update_field('stats_tries', stats.tries)
-	    update_field('stats_timeout', stats.timeout)
-	    update_field('stats_rejected', stats.rejected)
-	    update_field('stats_accepted', stats.accepted)
-	};
-	
-	var statsFetchFailed = function(err){
-	    alert(err)
+	function update_field_complex(el, id, val){
+		getElement(el+'_'+id).innerHTML=val
 	}
-	defer.addCallbacks(gotStats, statsFetchFailed);
-    }
-
-    function update_rpc_info(){
-	var defer;
-
-        defer = loadJSONDoc('rpc/info');
-
-	var gotInfo=function(info){
-	    update_field('rpc_running', info.running)
-	    update_field('rpc_uploadres', info.uploaders)
-	    update_field('rpc_scanners', info.scanners)
-	    
-	    for (var addr in info.dongles){
-		var val = info.dongles[addr]
-		update_field_complex('dongle_address',val.address, val.address)
-		update_field_complex('dongle_scan',val.address, val.isScanner)
-		update_field_complex('dongle_scan_enabled',val.address, val.scan_enabled)
-		update_field_complex('dongle_scan_priority',val.address, val.scan_pri)
-		update_field_complex('dongle_upload',val.address, val.isUploader)
-		update_field_complex('dongle_upload_enabled',val.address, val.upload_enabled)
-		update_field_complex('dongle_upload_maxconn',val.address, val.max_conn)
-	    }
-	};
 	
-	var infoFetchFailed = function(err){
-	    alert(err)
+	function create_td(id, content){
+		td = TD()
+		td.id = id
+		td.innerHTML = content
+		return td
 	}
-	defer.addCallbacks(gotInfo, infoFetchFailed);
-    }
+
+	function update_stats(){
+		var defer;
+		 
+		defer = loadJSONDoc('rpc/stats');    
+
+		var gotStats=function(stats){
+		    var td;
+		    
+		    update_field('stats_seen', stats.seen.total)
+		    
+		    for (var addr in stats.seen.perdongle){
+			var val = stats.seen.perdongle[addr]
+			update_field_complex('stats_count', val.address, val.count)
+		    }
+		    
+		    update_field('stats_valid', stats.valid)
+		    update_field('stats_tries', stats.tries)
+		    update_field('stats_timeout', stats.timeout)
+		    update_field('stats_rejected', stats.rejected)
+		    update_field('stats_accepted', stats.accepted)
+		};
+	
+		var statsFetchFailed = function(err){
+		    /*alert(err)*/
+		}
+		defer.addCallbacks(gotStats, statsFetchFailed);
+	}
+
+	function update_rpc_info(){
+		var defer;
+
+		defer = loadJSONDoc('rpc/info');
+
+		var gotInfo=function(info){
+			update_field('rpc_running', info.running)
+			update_field('rpc_uploadres', info.uploaders)
+			update_field('rpc_scanners', info.scanners)
+
+			var i;
+			while ( true ){
+				i = getElement('rpc_dongles')
+				if (i == null) break;
+				
+				removeElement(i) 
+			}
+
+			parent = getElement('known')
+
+			for (var addr in info.dongles){
+				var val = info.dongles[addr]
+				tr = parent.insertRow(parent.rows.length)
+				tr.id="rpc_dongles"
+				tr.appendChild(create_td('dongle_address', val.address))
+				tr.appendChild(create_td('dongle_scan', val.isScanner))
+				tr.appendChild(create_td('dongle_scan_enabled', val.scan_enabled))
+				tr.appendChild(create_td('dongle_scan_priority', val.scan_pri))
+				tr.appendChild(create_td('dongle_upload', val.isUploader))
+				tr.appendChild(create_td('dongle_upload_enabled', val.upload_enabled))
+				tr.appendChild(create_td('dongle_upload_maxconn', val.max_conn))
+				tr.appendChild(create_td('dongle_setup', '<a href="configure/dongle/' + val.address +'" class="btn">{% trans "Configure" %}</a>'))
+			}
+		};
+	
+		var infoFetchFailed = function(err){
+			/*alert(err)*/
+		}
+		defer.addCallbacks(gotInfo, infoFetchFailed);
+	}
 
 setInterval("update_stats()", 20000) <!-- update each 20 seconds -->
 setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
@@ -92,7 +112,8 @@ setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
     }
 </script>
 					    
-<table>
+<table width="100%">
+    <colgroup span="2" width="50%">
     <tr>
        <td>
        <h1>{% trans "Server Statistics" %}</h1>
@@ -180,7 +201,7 @@ setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
 
 
 <h1>{% trans "Known Dongles" %}</h1>
-<table id="knwon">
+<table id="known" class="known">
     <tr>
 	<td>{% trans "Address" %}</td>
 	<td>{% trans "Is Scanner" %}</td>
@@ -190,18 +211,6 @@ setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
 	<td>{% trans "Uploader Enabled" %}</td>	
 	<td>{% trans "Max Connections" %}</td>
     </tr>
-    {% for dongle in rpc.dongles %}
-    <tr>
-	<td id="dongle_address_{{dongle.address}}">{{ dongle.address }}</td>
-	<td id="dongle_scan_{{dongle.address}}">{{ dongle.isScanner }}</td>
-	<td id="dongle_scan_enabled_{{dongle.address}}">{{ dongle.scan_enabled }}</td>	
-	<td id="dongle_scan_priority_{{dongle.address}}">{{ dongle.scan_pri }}</td>
-	<td id="dongle_upload_{{dongle.address}}">{{ dongle.isUploader }}</td>
-	<td id="dongle_upload_enabled_{{dongle.address}}">{{ dongle.upload_enabled }}</td>
-	<td id="dongle_upload_maxconn_{{dongle.address}}">{{ dongle.max_conn }}</td>
-	<td id="dongle_config_{{dongle.address}}"><a href="configure/dongle/{{ dongle.address }}" class="btn">{% trans "Configure" %}</a></td>
-    </tr>
-    {% endfor %}
 </table>
 
 <h1>{% trans "Marketing Campaigns" %}</h1>
@@ -253,9 +262,11 @@ setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
 {% endblock %}
 {% block footer %}
 <script type="text/javascript">
-    var reply=compare_version("{{version.current}}");
-    document.write("<p>server version: <b>")
-    document.write(reply.latest)
-    document.write("</b> running version: <b>{{ version.current }}</b></p>")
+	var reply=compare_version("{{version.current}}");
+	document.write("<p>server version: <b>")
+	document.write(reply.latest)
+	document.write("</b> running version: <b>{{ version.current }}</b></p>")
+
+	update_rpc_info()
 </script>
 {% endblock %}

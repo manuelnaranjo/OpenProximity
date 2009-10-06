@@ -1,8 +1,8 @@
+{% load i18n %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="{{ LANGUAGE_CODE }}" xml:lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}><head>
 <title>OpenProximity 2.0 {% block title %}{% endblock %}</title>
 {% block style %}
-
 <style type="text/css">
 {% include "op/base.css" %}
 </style>
@@ -13,7 +13,15 @@
 <div id="wrapper" class="down">
 <div id="nav">
 <div id="logo">&nbsp;</div>
-<div id="navwrapper" class="up"><a href="/" id="nav_index">Index</a><a href="/data/" id="nav_data">Data Browse</a><a href="/admin/openproximity/" id="nav_admin">Admin Site</a><a href="/bluez/" id="nav_debug">Debug</a></div>
+<div id="navwrapper" class="up">
+    {% block navbar %}
+	<a href="/" id="nav_index">{% trans "Index" %}</a>
+	<a href="/data/" id="nav_data">{% trans "Data Browse" %}</a>
+	<a href="/admin/openproximity/" id="nav_admin">{% trans "Admin Site" %}</a>
+	<a href="/bluez/" id="nav_debug">{% trans "Debug" %}</a>
+	<a href="/admin/translate/" id="nav_trans">{% trans "Translate" %}</a>
+    {% endblock%}
+</div>
 </div>
 <div id="header">{% block header %}{% endblock %}</div>
 <div id="content" class="up">

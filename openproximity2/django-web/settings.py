@@ -51,7 +51,15 @@ TIME_ZONE = 'America/Los_Angeles'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+
+from gettext import gettext as _
+
+#LANGUAGES=(
+#    ('es', _('Spanish')),
+#    ('de', _('German')),
+#    ('en', _('English')),
+#)
 
 SITE_ID = 1
 
@@ -84,10 +92,10 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
 
 ROOT_URLCONF = 'urls'
@@ -117,6 +125,8 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.databrowse',
+    'django_cpserver',
+    'rosetta',
     'microblog', 
     'bluez',
     'openproximity',    

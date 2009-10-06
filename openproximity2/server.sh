@@ -15,8 +15,24 @@ IP=$(ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ p
 echo "Starting Web server, you can manage me at http://$IP"
 
 if [ -z "$DEBUG" ]; then
-    exec python manage.py runserver $@ 0.0.0.0:80 2>&1 1>$LOG_DIR/server.log &
+    #exec python manage.py runserver $@ 0.0.0.0:80 2>&1 1>$LOG_DIR/server.log &
+    exec python manage.py runcpserver \
+	port=80 \
+	host=0.0.0.0 \
+	server_name=OpenProximity \
+	server_user=root \
+	server_group=root \
+	--traceback \
+	-v 2 2>&1 1>$LOG_DIR/server.log &
 else
-    exec python manage.py runserver $@ 0.0.0.0:80 
+    #exec python manage.py runserver $@ 0.0.0.0:80 
+    exec python manage.py runcpserver \
+	port=80 \
+	host=0.0.0.0 \
+	server_name=OpenProximity \
+	server_user=root \
+	server_group=root \
+	--traceback \
+	-v 2
 fi;
 

@@ -33,6 +33,9 @@ urlpatterns = patterns ('',
     (r'^bluez/', include('bluez.urls')),
     (r'^openproximity/', include('openproximity.urls')),
     
+    #include translation site
+    (r'^admin/translate/', include('rosetta.urls')),
+    
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
     # to INSTALLED_APPS to enable admin documentation:
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
