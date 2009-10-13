@@ -41,6 +41,7 @@ DATABASE_USER = ''             # Not used with sqlite3.
 DATABASE_PASSWORD = ''         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+DATABASE_OPTIONS = {'timeout': 30}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -132,17 +133,22 @@ INSTALLED_APPS = (
     'openproximity',    
 )
 
+SERIALIZATION_MODULES = {
+    'json': 'wadofstuff.django.serializers.json'
+}
+
+
+
 pluginsystem.find_plugins()
 for plugin in pluginsystem.get_plugins():
     if plugin.provides.get('django', False) is False:
 	continue
     
     if plugin.provides.get('TEMPLATE_DIRS', None) is not None :
-	print plugin.name, "Provides templates"
 	TEMPLATE_DIRS += ( os.path.join(plugin.__path__[0], plugin.provides['TEMPLATE_DIRS']), )
     if plugin.provides.get('LOCALE_PATHS', None) is not None:
-	print plugin.name, "Provides locales"
 	LOCALE_PATHS += ( os.path.join(plugin.__path__[0], plugin.provides['LOCALE_PATHS']), )
     if plugin.provides.get('INSTALLED_APPS', None) is not None:
-	print plugin.name, "Provides applications"
 	INSTALLED_APPS += ( '%s.%s.%s' % ('plugins', plugin.name, plugin.provides['INSTALLED_APPS']), )
+
+print "plugin system initializated"

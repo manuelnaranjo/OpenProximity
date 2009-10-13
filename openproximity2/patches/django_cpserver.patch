@@ -1,0 +1,16 @@
+diff -upr django_cpserver.orig/management/commands/runcpserver.py django_cpserver/management/commands/runcpserver.py
+--- django_cpserver.orig/management/commands/runcpserver.py	2009-08-11 18:17:38.000000000 -0300
++++ django_cpserver/management/commands/runcpserver.py	2009-10-06 15:53:42.000000000 -0300
+@@ -153,9 +153,11 @@ def start_server(options):
+     
+     from cherrypy.wsgiserver import CherryPyWSGIServer as Server
+     from django.core.handlers.wsgi import WSGIHandler
++    from django.core.servers.basehttp import AdminMediaHandler
++    app = AdminMediaHandler(WSGIHandler())
+     server = Server(
+         (options['host'], int(options['port'])),
+-        WSGIHandler(), 
++        app, 
+         int(options['threads']), 
+         options['server_name']
+     )
