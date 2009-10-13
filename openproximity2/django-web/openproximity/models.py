@@ -55,6 +55,7 @@ class BluetoothDongle(models.Model):
 
 class ScannerBluetoothDongle(BluetoothDongle):
     priority = models.IntegerField()
+#    dongle = models.OneToOneField(BluetoothDongle, parent_link=True)
     
     def __unicode__(self):
 	return "Scanner: %s, %s" % (BluetoothDongle.__unicode__(self), 
@@ -63,12 +64,14 @@ class ScannerBluetoothDongle(BluetoothDongle):
 class RemoteScannerBluetoothDongle(ScannerBluetoothDongle):
     local_dongle = models.ForeignKey(ScannerBluetoothDongle, 
 	related_name="remote_dongles" )
+#    scanner_dongle = models.OneToOneField(ScannerBluetoothDongle, parent_link=True)
 
 class UploaderBluetoothDongle(BluetoothDongle):
     max_conn = models.IntegerField(default=7,
 	verbose_name=_("connections"),
 	help_text=_("maximum allowed connections"))
-	
+#    dongle = models.OneToOneField(BluetoothDongle, parent_link=True)
+    
     def __unicode__(self):
 	return "Uploader: %s, %s" % (BluetoothDongle.__unicode__(self), 
 	    self.max_conn)
@@ -163,12 +166,13 @@ class DeviceRecord(models.Model):
 	
     class Meta:
 	# don't create a table for me please
-	abstract = True
+#	abstract = True
 	ordering = ['time']
 
 class RemoteBluetoothDeviceRecord(DeviceRecord):
     remote = models.ForeignKey(RemoteDevice, verbose_name=_("remote address"), serialize = True)
-
+#    record = models.OneToOneField(DeviceRecord, parent_link=True)
+    
     def setRemoteDevice(self, address):
 	try:
 	    self.remote=RemoteDevice.objects.get(address=address)
@@ -183,11 +187,13 @@ class RemoteBluetoothDeviceRecord(DeviceRecord):
 	
     class Meta:
 	# don't create a table for me please
-	abstract = True
+#	abstract = True
 	ordering = ['time']
 
 class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
     __rssi = models.CommaSeparatedIntegerField(max_length=200, verbose_name=_("rssi"), serialize = True)
+#    bluetoothrecord = models.OneToOneField(RemoteBluetoothDeviceRecord, parent_link=True,
+#	serialize=True)
 
     def setRSSI(self, rssi):
 	self.__rssi = str(rssi).replace('[','').replace(']','')
@@ -203,6 +209,7 @@ class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
 
 class RemoteBluetoothDeviceSDP(RemoteBluetoothDeviceRecord):
     channel = models.IntegerField(help_text=_("bluetooth rfcomm channel that provides the used service"))
+#    bluetoothrecord = models.OneToOneField(RemoteBluetoothDeviceRecord, parent_link=True)
     
     def __unicode__(self):
 	return "%s, %s, %s" % (
@@ -212,13 +219,16 @@ class RemoteBluetoothDeviceSDP(RemoteBluetoothDeviceRecord):
 	)
 
 class RemoteBluetoothDeviceNoSDP(RemoteBluetoothDeviceRecord):
+#    bluetoothrecord = models.OneToOneField(RemoteBluetoothDeviceRecord, parent_link=True)
     pass
 
 class RemoteBluetoothDeviceSDPTimeout(RemoteBluetoothDeviceRecord):
+#    bluetoothrecord = models.OneToOneField(RemoteBluetoothDeviceRecord, parent_link=True)
     pass
 
 class RemoteBluetoothDeviceFileTry(RemoteBluetoothDeviceRecord):
     campaign = models.ForeignKey(MarketingCampaign)
+#    bluetoothrecord = models.OneToOneField(RemoteBluetoothDeviceRecord, parent_link=True)
     
     class Meta:
 	# don't create a table for me please
@@ -227,6 +237,7 @@ class RemoteBluetoothDeviceFileTry(RemoteBluetoothDeviceRecord):
     
 class RemoteBluetoothDeviceFilesRejected(RemoteBluetoothDeviceFileTry):
     ret_value = models.IntegerField()
+#    bluetoothrecordtry = models.OneToOneField(RemoteBluetoothDeviceFileTry, parent_link=True)
     
     def isTimeout(self):
 	return self.ret_value is not None and self.ret_value in TIMEOUT_RET
@@ -235,6 +246,7 @@ class RemoteBluetoothDeviceFilesRejected(RemoteBluetoothDeviceFileTry):
 	return "%s %s" % (RemoteBluetoothDeviceFileTry.__unicode__(self), self.ret_value)
 
 class RemoteBluetoothDeviceFilesSuccess(RemoteBluetoothDeviceFileTry):
+#    bluetoothrecordtry = models.OneToOneField(RemoteBluetoothDeviceFileTry, parent_link=True)
     pass
 
 def getMatchingCampaigns(remote=None, 
@@ -296,7 +308,6 @@ def __restart_server():
     except:
 	#could be that we're only running the web server
 	pass
-    
 
 def bluetooth_dongle_signal(instance, **kwargs):
     ''' gets called when ever there is a change in dongles '''
