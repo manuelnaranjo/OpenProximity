@@ -181,7 +181,7 @@ def configure_dongle(request, address=None):
 	    'messages': messages,
 	})
 	
-def rpc_command(request, command):
+def server_rpc_command(request, command):
     server=rpyc.connect('localhost', 8010)
     func=getattr(server.root, command, None)
     if func is not None:
@@ -207,11 +207,10 @@ def stats_restart(request):
     from django.core.management import sql
 
     cursor = connection.cursor()
-#    cursor = connection.make_debug_cursor(cursor)
 
     # this tables are not going to be deleted
     tables = [ 'openproximity_bluetoothdongle',
-    		'openproximity_campaignfile',
+		'openproximity_campaignfile',
 		'openproximity_marketingcampaign',
 		'openproximity_remotescannerbluetooethdongle',
 		'openproximity_scannerbluetoothdongle',
