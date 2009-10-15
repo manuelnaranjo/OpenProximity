@@ -98,6 +98,13 @@ class XMLTool:
     def getValueOrDefault(self, key, default=None):
 	"""Generic return function"""
 	return self.__getValueOrDefault(key, default)
+	
+    def getDict(self, parent, default={}):
+	"""Generic access to dict values"""
+	key = self.tree.findall('parent')
+	if len(key) > 0:
+	    return self.__todict(key[0])
+	return default
 
     # Admin stuff...
     def getAdminPasswd(self, default="aircable"):

@@ -1,0 +1,14 @@
+{% extends "op/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<form method=post>
+<table>
+{{ form.as_table }}
+</table>
+<input type="submit" value="{% trans "Save Settings" %}" />
+</form>
+{% if messages %}
+<p class="messages">{{ messages }}</p>
+{% endif %}
+{% endblock %}
