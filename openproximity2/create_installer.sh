@@ -60,6 +60,7 @@ download_and_uncompress rpyc 3.0.6 rpyc http://ufpr.dl.sourceforge.net/sourcefor
 download_and_uncompress Django 1.1 django http://media.djangoproject.com/releases/1.1
 download_and_uncompress lincolnloop-django-cpserver 19739be django_cpserver http://github.com/lincolnloop/django-cpserver/tarball
 download_and_uncompress django-rosetta 0.4.7 rosetta http://django-rosetta.googlecode.com/files
+download_and_uncompress wadofstuff-django-serializers 1.0.0 wadofstuff http://wadofstuff.googlecode.com/files
 
 cd $OP2
 

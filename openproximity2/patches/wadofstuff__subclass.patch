@@ -1,0 +1,115 @@
+diff -ur wadofstuff.orig/django/serializers/base.py wadofstuff/django/serializers/base.py
+--- wadofstuff.orig/django/serializers/base.py	2009-10-14 10:04:21.000000000 -0300
++++ wadofstuff/django/serializers/base.py	2009-10-14 10:09:24.000000000 -0300
+@@ -6,6 +6,12 @@
+ 
+ from django.core.serializers import base
+ 
++def get_subclass(object):
++  for related in object._meta.get_all_related_objects():
++      if type(object) in related.model._meta.get_parent_list():
++        if hasattr(object,related.var_name):
++           return get_subclass(getattr(object, related.var_name))
++  return object
+ 
+ class Serializer(base.Serializer):
+     """Serializer for Django models inspired by Ruby on Rails serializer.
+@@ -20,6 +26,7 @@
+         self.excludes = None
+         self.relations = None
+         self.extras = None
++        self.subclass = False
+         super(Serializer, self).__init__(*args, **kwargs)
+ 
+     def serialize(self, queryset, **options):
+@@ -30,6 +37,8 @@
+             relations - list of related fields to be fully serialized.
+             extras - list of attributes and methods to include.
+                 Methods cannot take arguments.
++            subclass - binary variable set to true if you want to get the subclass
++        	before serializing.
+         """
+         self.options = options
+         self.stream = options.get("stream", StringIO())
+@@ -37,11 +46,14 @@
+         self.excludes = options.get("excludes", [])
+         self.relations = options.get("relations", [])
+         self.extras = options.get("extras", [])
++        self.subclass = options.get("subclass", False)
+ 
+         self.start_serialization()
+         for obj in queryset:
++            if self.subclass is True:
++                obj = get_subclass(obj)
+             self.start_object(obj)
+-            for field in obj._meta.local_fields:
++            for field  in obj._meta.fields:
+                 attname = field.attname
+                 if field.serialize:
+                     if field.rel is None:
+diff -ur wadofstuff.orig/django/serializers/json.py wadofstuff/django/serializers/json.py
+--- wadofstuff.orig/django/serializers/json.py	2009-10-14 10:04:21.000000000 -0300
++++ wadofstuff/django/serializers/json.py	2009-10-08 17:52:26.000000000 -0300
+@@ -17,6 +17,7 @@
+         self.options.pop('excludes', None)
+         self.options.pop('relations', None)
+         self.options.pop('extras', None)
++        self.options.pop('subclass', None)
+         simplejson.dump(self.objects, self.stream, cls=DjangoJSONEncoder,
+             **self.options)
+ 
+diff -ur wadofstuff.orig/django/serializers/python.py wadofstuff/django/serializers/python.py
+--- wadofstuff.orig/django/serializers/python.py	2009-10-14 10:04:21.000000000 -0300
++++ wadofstuff/django/serializers/python.py	2009-10-10 13:33:44.000000000 -0300
+@@ -5,6 +5,13 @@
+ from django.utils.encoding import smart_unicode
+ from django.core.serializers.python import Deserializer as PythonDeserializer
+ 
++__models = dict()
++    
++def _Serializer__get_class_unicode(meta):
++    if meta not in __models:
++        __models[meta] = smart_unicode(meta)
++    return __models[meta]
++
+ class Serializer(base.Serializer):
+     """
+     Python serializer for Django modelled after Ruby on Rails.
+@@ -42,13 +49,14 @@
+         """
+         self._fields = {}
+         self._extras = {}
++    
+ 
+     def end_object(self, obj):
+         """
+         Called when serializing of an object ends.
+         """
+         self.objects.append({
+-            "model"  : smart_unicode(obj._meta),
++            "model"  : __get_class_unicode(obj._meta),
+             "pk"     : smart_unicode(obj._get_pk_val(), strings_only=True),
+             "fields" : self._fields
+         })
+@@ -76,11 +84,12 @@
+                 # perform full serialization of FK
+                 serializer = Serializer()
+                 options = {}
++                options['subclass']=self.subclass
+                 if isinstance(self.relations, dict):
+                     if isinstance(self.relations[fname], dict):
+                         options = self.relations[fname]
+                 self._fields[fname] = serializer.serialize([related],
+-                    **options)[0]
++                    **self.options)[0]
+             else:
+                 # emulate the original behaviour and serialize the pk value
+                 if field.rel.field_name == related._meta.pk.name:
+@@ -106,6 +115,7 @@
+             if isinstance(self.relations, dict):
+                 if isinstance(self.relations[fname], dict):
+                     options = self.relations[fname]
++            options['subclass']=self.subclass
+             self._fields[fname] = [
+                 serializer.serialize([related], **options)[0]
+                    for related in getattr(obj, fname).iterator()]
