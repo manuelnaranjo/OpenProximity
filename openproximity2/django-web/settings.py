@@ -16,6 +16,7 @@
 # Django settings for openproximity2.0
 import os
 from pluginsystem import pluginsystem
+from lxmltool import XMLTool
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -137,7 +138,10 @@ SERIALIZATION_MODULES = {
     'json': 'wadofstuff.django.serializers.json'
 }
 
+# load xml settings
+OPENPROXIMITY = XMLTool('/etc/openproximity2/settings.xml')
 
+print OPENPROXIMITY.getAllSettings()
 
 pluginsystem.find_plugins()
 for plugin in pluginsystem.get_plugins():
@@ -152,3 +156,4 @@ for plugin in pluginsystem.get_plugins():
 	INSTALLED_APPS += ( '%s.%s.%s' % ('plugins', plugin.name, plugin.provides['INSTALLED_APPS']), )
 
 print "plugin system initializated"
+

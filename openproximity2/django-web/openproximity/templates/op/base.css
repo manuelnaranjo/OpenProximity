@@ -14,7 +14,7 @@ a img { border:none; }
 /* #wrapper { background: #e4e4e4; width: 640px; padding: 10px; margin: 10px auto 0 auto; } */
 
 /* NAVIGATION */
-#logo { float: left; width: 206px; height: 66px; padding: 0; margin: 0 10px 0 0; background: url(/site_media/logo.gif) no-repeat; }
+#logo { float: left; width: 206px; height: 66px; padding: 0; margin: 0 10px 0 0; background: url(/site_media/{{ settings.logo }}) no-repeat; }
 #navwrapper { overflow: auto; background: #a3d3e8 url(/site_media/button-gradient.gif) repeat-x; margin-top: 2px; }
 #nav { padding: 0; overflow: hidden; height: 66px; }
 #nav a { padding: 2px 10px; margin:0; float: left; width: 100px; text-align: center; text-decoration: none; text-transform: uppercase; color: #555; white-space: nowrap; height:57px; }

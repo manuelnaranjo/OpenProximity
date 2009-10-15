@@ -13,17 +13,21 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+from django.conf import settings
+from django.utils.translation import ugettext as _
 from net.aircable.openproximity.signals import scanner as signals
 from openproximity.models import *
 
-from rpyc import async
-from pickle import loads
 
-from common import get_uploader, do_upload
+from rpyc import async
+
+from common import get_uploader, do_upload, is_known_dongle
 
 import time
 
-def handle(services, signal, scanner, args, kwargs):
+SET = settings.OPENPROXIMITY
+
+def handle(services, signal, scanner, *args, **kwargs):
     print "scanner signal:", signals.TEXT[signal]
     logl = LogLine()
     logl.content += signals.TEXT[signal]
@@ -51,9 +55,7 @@ def handle(services, signal, scanner, args, kwargs):
     elif signal == signals.FOUND_DEVICE:
 	logl.content += " " + kwargs['address']
 	addrecords(services, kwargs['address'], 
-	    loads(kwargs['records']), 
-	    # this object is pickled so we can get multiple threads
-	    # working without locks
+	    kwargs['records'], 
 	    kwargs['pending'])
     else:
 	raise Exception("Not known signal")
@@ -73,6 +75,22 @@ def get_dongles(dongles):
     
     for address in dongles:
 	try:
+	    if not is_known_dongle(address, ScannerBluetoothDongle):
+		print "dongle not known yet", address
+		settings = SET.getSettingsByAddress(address)
+		print "settings", settings
+		if 'scanner' in settings:
+		    print "found scanner"
+		    priority = settings['scanner'].get('priority', 1)
+		    enabled = settings['scanner'].get('enable', True)
+		    obj, created = ScannerBluetoothDongle.objects.get_or_create(address=address, 
+			defaults={
+			    'priority': priority,
+			    'enabled': enabled,
+			    'name': _("Auto Discovered Dongle")
+			})
+		    print created
+	
 	    dongle = ScannerBluetoothDongle.objects.get(address=address)
 	    print "%s is a scanner dongle" % address
 	    

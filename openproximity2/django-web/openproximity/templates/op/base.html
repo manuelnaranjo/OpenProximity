@@ -16,10 +16,16 @@
 <div id="navwrapper" class="up">
     {% block navbar %}
 	<a href="/" id="nav_index">{% trans "Index" %}</a>
-	<a href="/data/" id="nav_data">{% trans "Data Browse" %}</a>
+	{% if settings.debug %}
+	    <a href="/data/" id="nav_data">{% trans "Data Browse" %}</a>
+	{% endif %}
 	<a href="/admin/openproximity/" id="nav_admin">{% trans "Admin Site" %}</a>
-	<a href="/bluez/" id="nav_debug">{% trans "Debug" %}</a>
-	<a href="/admin/translate/" id="nav_trans">{% trans "Translate" %}</a>
+	{% if settings.debug %}
+	    <a href="/bluez/" id="nav_debug">{% trans "Debug" %}</a>
+	{% endif %}
+	{% if settings.translate %}
+	    <a href="/admin/translate/" id="nav_trans">{% trans "Translate" %}</a>
+	{% endif %}
     {% endblock%}
 </div>
 </div>

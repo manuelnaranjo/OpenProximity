@@ -16,8 +16,18 @@
 from net.aircable.openproximity.signals import scanner as signals
 from openproximity.models import *
 
+from re import compile
 from rpyc import async
-from pickle import loads, dumps
+from rpyc.utils.lib import ByValWrapper
+
+def is_known_dongle(address, klass):
+    return klass.objects.filter(address=address).count() > 0
+    
+AIRCABLE_MAC=['00:50:C2', '00:25:BF']
+ADDRESS_MAC=compile("([0-9A-F]{2}\:){5}([0-9A-F]{2})")
+
+def isAIRcable(address):
+    return address[:8].upper() in AIRCABLE_MAC
 
 def get_uploader(services):
     for i in services:
@@ -27,5 +37,5 @@ def get_uploader(services):
 
 def do_upload(uploader, files, remote):
     print "About to call upload"
-    uploader.upload(dumps(files), remote)
+    uploader.upload(ByValWrapper(files), remote)
     print "upload called async"

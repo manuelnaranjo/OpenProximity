@@ -62,20 +62,20 @@ class OpenProximityService(Service):
 		sys.exit(3) # restart me please
 	    
 	def listener(self, signal, *args, **kwargs):
-	    #print signal, args, kwargs
+	    print signal, args, kwargs
 	    kwargs['pending']=pending
 	    try:
 		for plugin in pluginsystem.get_plugins():
 		    if plugin.provides.get('rpc', None) is not None:
-			plugin.provides['rpc'](signal, services, self, args, kwargs)
+			plugin.provides['rpc'](signal=signal, services=services, manager=self, *args, **kwargs)
 	    except:
 		print "ERROR on rpc listener while doing plugins"
 		traceback.print_exc(file=sys.stdout)
 	    try:	
 		if signals.isScannerSignal(signal):
-		    rpc.scanner.handle(services, signal, self, args, kwargs)
+		    rpc.scanner.handle(services, signal, self, *args, **kwargs)
 		elif signals.isUploaderSignal(signal):
-		    rpc.uploader.handle(services, signal, self, args, kwargs)
+		    rpc.uploader.handle(services, signal, self, *args, **kwargs)
 	    except:
 		print "ERROR on rpc listener while doing scanner or uploader"
 		traceback.print_exc(file=sys.stdout)    

@@ -26,4 +26,8 @@ except ImportError:
 if __name__ == "__main__":
     setup_environ(settings)
     from django.contrib.auth.models import User
-    User.objects.create_superuser('admin', 'foo@foo.com', 'aircable').save()
+    user = settings.OPENPROXIMITY.getAdminName()
+    mail = settings.OPENPROXIMITY.getAdminEmail()
+    passw = settings.OPENPROXIMITY.getAdminPasswd()
+    print user, mail, passw
+    User.objects.create_superuser(user, mail, passw).save()

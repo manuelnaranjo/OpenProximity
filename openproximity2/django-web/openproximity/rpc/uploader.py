@@ -13,16 +13,20 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+from django.conf import settings
+from django.utils.translation import ugettext as _
 from net.aircable.openproximity.signals import uploader as signals
 from openproximity.models import *
 
-from common import get_uploader, do_upload
+from common import get_uploader, do_upload, is_known_dongle, isAIRcable
 
-from pickle import loads
+#from pickle import loads
 
 import traceback
 
-def handle(services, signal, uploader, args, kwargs):
+SET = settings.OPENPROXIMITY
+
+def handle(services, signal, uploader, *args, **kwargs):
     print "uploader signal", signals.TEXT[signal]
     logl = LogLine()
     logl.content += signals.TEXT[signal]
@@ -41,11 +45,11 @@ def handle(services, signal, uploader, args, kwargs):
     elif signal == signals.FILE_UPLOADED:
 	logl.content += ' %s' %( kwargs['address'])
 	handle_file_uploaded(kwargs['dongle'], kwargs['address'], 
-	    kwargs['pending'], kwargs['port'], loads(kwargs['files']))
+	    kwargs['pending'], kwargs['port'], kwargs['files'])
     elif signal == signals.FILE_FAILED:
 	logl.content += ' %s, ret:%s' %( kwargs['address'], kwargs['ret'])
 	handle_file_failed(kwargs['dongle'], kwargs['address'], 
-	    kwargs['pending'], kwargs['port'], loads(kwargs['files']), kwargs['ret'], 
+	    kwargs['pending'], kwargs['port'], kwargs['files'], kwargs['ret'], 
 	    kwargs['stderr'], services)
     else:
 	print "signal ignored"
@@ -58,6 +62,23 @@ def get_dongles(dongles):
     for address in dongles:
         print address
         try:
+            if not is_known_dongle(address, UploaderBluetoothDongle) and isAIRcable(address):
+        	print 'not known uploader', address
+                settings = SET.getSettingsByAddress(address)
+                if 'uploader' in settings:
+            	    print 'got settings for it'
+            	    print settings['uploader']
+                    max_conn = settings['uploader'].get('max_conn', 1)
+                    enabled = settings['uploader'].get('enable', True)
+                    
+                    UploaderBluetoothDongle.objects.get_or_create(address=address, 
+                	    defaults={
+                		'name':_("Auto Discovered Dongle"),
+                		'enabled': enabled,
+                		'max_conn': max_conn
+                	    }
+            	    )
+        
     	    dongle = UploaderBluetoothDongle.objects.get(address=address, enabled=True)
             out.append( (address, dongle.max_conn, dongle.name) )
         except Exception, err:
