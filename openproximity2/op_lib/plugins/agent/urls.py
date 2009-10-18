@@ -22,9 +22,6 @@ from agent.admin import myadmin
 
 import views
 
-def hello(request, argument="/"):
-    return HttpResponse("Hello world, you called me from %s" % argument)
-
 urlpatterns = patterns( '',
 	(r'^admin/', myadmin.urls),
 	(r'^configure', views.configure),

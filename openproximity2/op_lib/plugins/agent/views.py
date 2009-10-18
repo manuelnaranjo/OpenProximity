@@ -32,10 +32,10 @@ AGENT = settings.OPENPROXIMITY.getDict('agent/', {
 
 class SetupForm(forms.Form):
     server = forms.CharField(max_length=200, initial=AGENT['server'])
-    customer_id = forms.CharField(max_length=30, required=False, initial=AGENT['customer'])
-    site_id = forms.CharField(max_length=30, required=False, initial=AGENT['site'])
-    enabled = forms.BooleanField(initial=AGENT['enabled'])
-    interval = forms.IntegerField(required=False, initial=AGENT['interval'])
+    customer_id = forms.CharField(max_length=30, required=False, initial=AGENT.get('customer', ''))
+    site_id = forms.CharField(max_length=30, required=False, initial=AGENT.get('site',''))
+    enabled = forms.BooleanField(initial=AGENT.get('enabled',True))
+    interval = forms.IntegerField(required=False, initial=AGENT.get('interval', 15))
 
     def clean(self):
 	cleaned_data = self.cleaned_data

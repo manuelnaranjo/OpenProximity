@@ -5,9 +5,10 @@ from django.core import serializers
 from django.conf import settings
 from django.db import connection, transaction
 from django.utils import translation, simplejson as json
-from openproximity.models import RemoteDevice, BluetoothDongle, DeviceRecord, MarketingCampaign
+from openproximity.models import RemoteDevice, BluetoothDongle, DeviceRecord, MarketingCampaign, CampaignFile
 from openproximity.models import RemoteBluetoothDeviceFoundRecord, RemoteBluetoothDeviceSDP, RemoteBluetoothDeviceNoSDP, RemoteBluetoothDeviceSDPTimeout, RemoteBluetoothDeviceFileTry, RemoteBluetoothDeviceFilesRejected, RemoteBluetoothDeviceFilesSuccess
-from plugins.agent.agent.models import AgentRecord, AgentDeviceRecord
+from plugins.agent.agent.models import AgentRecord, AgentDeviceRecord, AgentMarketingCampaign
+from plugins.agent.views import AGENT as SETTINGS
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
 from itertools import chain
@@ -31,6 +32,11 @@ Agent Options: (settings=value)
     site_id=AGENT_SITEID		siteID used to identify with the server
     customer_id=AGENT_CUSTOMERID	customerID used to identify with the 
 					server
+    save_settings=[False]		if present then any change to customer_id or
+					agent_id will be persisted to settings file
+					
+    by default this settings are taken from /etc/openproximity2/settings.xml
+    except for save_settings which should be used wisely (only once)
 """
 
 class Command(BaseCommand):
@@ -73,11 +79,11 @@ def compress_data(non_compressed):
     return stream
 
 def generate_data(SITEID, CUSTID):
-    print time.time(), "generating data"
+    print time.time(), "generating data", SITEID, CUSTID
     content = dict()
-    if len(SITEID) > 0:
+    if SITEID and len(SITEID) > 0:
 	content['site-id'] = SITEID
-    if len(CUSTID) > 0:
+    if CUSTID and len(CUSTID) > 0:
 	content['customer-id'] = CUSTID
 
     print time.time(), "remote-devices"
@@ -111,11 +117,26 @@ def generate_data(SITEID, CUSTID):
     )
     return content
 
-def do_post(SERVER, content):
+def do_post(SERVER, content, function='push-to-registry'):
     data,head = multipart_encode({'content': content})
-    req = urllib2.Request("%s/push-to-registry/" % SERVER,data, head)
+    req = urllib2.Request("%s/%s/" % (SERVER, function),data, head)
     fd = urllib2.urlopen(req, data)
     return fd.read()
+
+def grab_file(SERVER, file_name):
+    print time.time(), "grabbing %s" % file_name
+    req = urllib2.Request("%s/get-files/%s/" % (SERVER, file_name))
+    file_name = os.path.join(settings.MEDIA_ROOT, file_name)
+    fd = urllib2.urlopen(req)
+    try:
+	os.makedirs(os.path.dirname(file_name))
+    except:
+	# folder might all ready exist
+	pass
+    a = file(file_name, 'w')
+    a.write(fd.read())
+    a.close()
+    print time.time(), "saved", file_name
 
 def slice(records, size=100):
     i = 0
@@ -134,6 +155,45 @@ def reply_process_device_records(records):
     for sub in slice(records):
 	AgentDeviceRecord.objects.filter(record__id__in=sub).update(commited=True)
     return True
+    
+def do_campaing_sync(data, SERVER):
+    camps = dict()
+    for camp in json.loads(data['camps']):
+	# create campaign objects from server request
+	if camp['model'] != 'op_www.sitemarketingcampaign':
+	    print "model not supported yet", camp['model']
+	    continue
+	ncamp = AgentMarketingCampaign()
+	fields = camp['fields']
+	ncamp.name = fields['name']
+	ncamp.service = fields['service']
+	ncamp.name_filter = fields['name_filter']
+	ncamp.devclass_filter = fields['devclass_filter']
+	ncamp.enabled = fields['enabled']
+	ncamp.start = fields['start']
+	ncamp.rejected_count = fields['rejected_count']
+	ncamp.addr_filter = fields['addr_filter']
+	ncamp.tries_count = fields['tries_count']
+	ncamp.hash_id = fields['hash_id']
+	ncamp.save()
+	camps[camp['pk']]=ncamp
+    
+    for file in json.loads(data['files']):
+	if file['model'] != "openproximity.campaignfile":
+	    print "file type not supported yet", file['model']
+	# create file objects from server request
+	nfile = CampaignFile()
+	fields = file['fields']
+	nfile.chance = fields['chance']
+	nfile.campaign = camps[fields['campaign']]
+	nfile.file = fields['file']
+	nfile.save()
+
+	transaction.commit()
+	#grab file it self
+	grab_file(SERVER, fields['file'])
+
+
 
 @transaction.commit_manually
 def do_data_upload(*args, **kwargs):
@@ -144,9 +204,9 @@ def do_data_upload(*args, **kwargs):
 	else:
 	    print "ignoring option", x
     
-    SERVER=os.environ.get('AGENT_SERVER', None)
-    SITEID=os.environ.get('AGENT_SITEID', '')
-    CUSTID=os.environ.get('AGENT_CUSTOMERID', '')
+    SERVER=SETTINGS.get('server', "http://www.openproximity.com/stats")
+    SITEID=SETTINGS.get('site', "")
+    CUSTID=SETTINGS.get('customer', "")
     
     if kwargs.get('server', None):
 	SERVER=kwargs.get('server')
@@ -175,7 +235,7 @@ def do_data_upload(*args, **kwargs):
 
     print time.time(), 'uncompressed', len(post_data)
     
-    print time.time(), "posting"
+    print time.time(), "posting to", SERVER
     reply = do_post(SERVER, compress)
     print time.time(), "got-reply"
 
@@ -192,3 +252,34 @@ def do_data_upload(*args, **kwargs):
     
     if 'error' in reply:
 	raise Exception(reply['error'])
+
+    if 'available-campaigns' in reply:
+	new_camps = list()
+	for hash_ in reply['available-campaigns']:
+	    if AgentMarketingCampaign.objects.filter(hash_id=hash_).count() == 0:
+		new_camps.append(hash_)
+    
+	print "new camps available, I need to get %s camps" % len(new_camps)
+    
+	print time.time(), "dumping"
+	post_data = json.dumps({'campaigns': new_camps})
+	print time.time(), "data-generated"
+    
+	compress = compress_data(post_data)
+
+	print time.time(), 'uncompressed', len(post_data)
+    
+	print time.time(), "posting to", SERVER
+	camps = json.loads(do_post(SERVER, compress, 'get-campaigns'))
+	print time.time(), "got-reply"
+	print camps
+	do_campaing_sync(camps, SERVER)
+	transaction.commit()
+
+	
+    if kwargs.get('save_settings', 'false').lower()=='true':
+	SETTINGS['customer']=reply['customer-id']
+	SETTINGS['site']=reply['site-id']
+	op = settings.OPENPROXIMITY.getDict('/')
+	op['agent'] = SETTINGS
+	settings.OPENPROXIMITY.saveSettings(op)

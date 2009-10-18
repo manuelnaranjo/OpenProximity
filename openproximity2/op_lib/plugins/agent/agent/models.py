@@ -17,7 +17,7 @@
 # agent plugin
 # defines new clases for db integration
 
-from openproximity.models import DeviceRecord, RemoteDevice
+from openproximity.models import DeviceRecord, RemoteDevice, MarketingCampaign
 from django.db import models
 from django.utils.translation import ugettext as _
 
@@ -88,3 +88,6 @@ except Exception, err:
     if str(err).lower().find('table not') > -1:
 	print err
 	print 'You need to run syncdb first to init Agent plugin'
+
+class AgentMarketingCampaign(MarketingCampaign):
+    hash_id = models.CharField(max_length=100, unique=True)
