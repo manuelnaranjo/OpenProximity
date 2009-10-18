@@ -23,7 +23,9 @@ from django.template.loader import get_template
 from django.utils import simplejson
 from django.views.generic import list_detail
 
+from django.conf import settings
 
+from pluginsystem import pluginsystem
 
 from re import compile
 from mimetypes import guess_type as guess_mime
@@ -31,6 +33,8 @@ from mimetypes import guess_type as guess_mime
 from models import *
 from forms import *
 import rpyc, os
+
+SET = settings.OPENPROXIMITY.getAllSettings()
 
 def add_record_accepted(request):    
     return HttpResponse('Recorded\n')
@@ -118,6 +122,7 @@ def configure_campaign(request, name=None):
     return render_to_response('op/campaign_form.html',
 	{ 
 	    'form':  form,
+	    'settings': SET
 	})
         
 def configure_dongle(request, address=None):
@@ -179,6 +184,7 @@ def configure_dongle(request, address=None):
 	{ 
 	    'form':  form,
 	    'messages': messages,
+	    'settings': SET
 	})
 	
 def server_rpc_command(request, command):
@@ -246,8 +252,17 @@ def stats_restart(request):
 	except:
 	    print line, "failed"
 
+    print "allowing plugins to drop statistic it's tables"
+
+    for plugin in pluginsystem.get_plugins():
+	if plugin.provides.get('statistics_reset', None):
+	    try:
+		plugin.provides['statistics_reset'](connection)
+	    except Exception, err:
+		print "plugin failed to reset statistics", plugin
+		print err
+
     print "calling syncdb"
-    
     management.call_command('syncdb')
     
     try:
@@ -342,6 +357,7 @@ def index(request):
 	    "camps": getMatchingCampaigns(),
 	    "stats": stats,
 	    "version": version,
+	    "settings": SET,
 	})
 
 def rpc_stats(request):

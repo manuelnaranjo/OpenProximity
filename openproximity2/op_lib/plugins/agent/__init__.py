@@ -22,6 +22,17 @@ def post_environ():
     from rpc import handle
     provides['rpc'] = handle		# provide rpc handle
 
+def reset_stats(connection):
+    from django.db import models
+    from django.core.management.color import no_style
+    from django.core.management import sql
+    tables = [ 
+	'agent_agentdevicerecord',
+	'agent_agentrecord'
+    ]
+    
+    for table in tables:
+	connection.cursor().execute("drop table %s" % table)
 
 provides = { 
     'name': 'agent plugin', 		# friendly name
@@ -39,7 +50,9 @@ provides = {
     'LOCALE_PATHS': 'locale',
     'INSTALLED_APPS': 'agent',		# we provide an application so we can
 					# define models
-    
+   
+
+    'statistics_reset':	reset_stats, 
     'urls': ( 'agent', 'urls' )		# urls I give to django
 }
 
