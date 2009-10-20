@@ -124,8 +124,9 @@ def do_post(SERVER, content, function='push-to-registry'):
     return fd.read()
 
 def grab_file(SERVER, file_name):
-    print time.time(), "grabbing %s" % file_name
-    req = urllib2.Request("%s/get-files/%s/" % (SERVER, file_name))
+    url = "%s/get-files/%s" % (SERVER, file_name)
+    print time.time(), "grabbing %s" % url
+    req = urllib2.Request(url)
     file_name = os.path.join(settings.MEDIA_ROOT, file_name)
     fd = urllib2.urlopen(req)
     try:
@@ -158,6 +159,7 @@ def reply_process_device_records(records):
     
 def do_campaing_sync(data, SERVER):
     camps = dict()
+    
     for camp in json.loads(data['camps']):
 	# create campaign objects from server request
 	if camp['model'] != 'op_www.sitemarketingcampaign':
@@ -171,6 +173,7 @@ def do_campaing_sync(data, SERVER):
 	ncamp.devclass_filter = fields['devclass_filter']
 	ncamp.enabled = fields['enabled']
 	ncamp.start = fields['start']
+	ncamp.end = fields['end']
 	ncamp.rejected_count = fields['rejected_count']
 	ncamp.addr_filter = fields['addr_filter']
 	ncamp.tries_count = fields['tries_count']
@@ -189,9 +192,11 @@ def do_campaing_sync(data, SERVER):
 	nfile.file = fields['file']
 	nfile.save()
 
-	transaction.commit()
 	#grab file it self
 	grab_file(SERVER, fields['file'])
+    
+    # don't commit changes until we got the full campaign
+    transaction.commit()
 
 
 
@@ -252,7 +257,7 @@ def do_data_upload(*args, **kwargs):
     
     if 'error' in reply:
 	raise Exception(reply['error'])
-
+	
     if 'available-campaigns' in reply:
 	new_camps = list()
 	for hash_ in reply['available-campaigns']:

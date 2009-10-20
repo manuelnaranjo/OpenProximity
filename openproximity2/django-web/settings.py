@@ -17,6 +17,7 @@
 import os
 from pluginsystem import pluginsystem
 from lxmltool import XMLTool
+from pytz import timezone
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -49,7 +50,12 @@ DATABASE_OPTIONS = {'timeout': 30}
 # although not all choices may be available on all operating systems.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Los_Angeles'
+if os.path.isfile('/etc/timezone'):
+    TIME_ZONE = file('/etc/timezone').readline().strip()
+else:
+    TIME_ZONE="America/Chicago"
+
+TZINFO=timezone(TIME_ZONE)
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -140,8 +146,6 @@ SERIALIZATION_MODULES = {
 
 # load xml settings
 OPENPROXIMITY = XMLTool('/etc/openproximity2/settings.xml')
-
-print OPENPROXIMITY.getAllSettings()
 
 pluginsystem.find_plugins()
 for plugin in pluginsystem.get_plugins():

@@ -7,6 +7,9 @@ PYTHONPATH=$(pwd)/libs
 LOG_DIR=/var/log/aircable
 
 export PYTHONPATH
+if [ -f /etc/timezone ]; then
+    export TZ=$(cat /etc/timezone)
+fi
 
 if [ ! -d $LOG_DIR ]; then
     mkdir -p $LOG_DIR

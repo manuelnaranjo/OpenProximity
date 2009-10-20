@@ -83,11 +83,12 @@ def get_dongles(dongles):
 		    print "found scanner"
 		    priority = settings['scanner'].get('priority', 1)
 		    enabled = settings['scanner'].get('enable', True)
+		    name = settings['scanner'].get('name', _("Auto Discovered Dongle"))
 		    obj, created = ScannerBluetoothDongle.objects.get_or_create(address=address, 
 			defaults={
 			    'priority': priority,
 			    'enabled': enabled,
-			    'name': _("Auto Discovered Dongle")
+			    'name': name
 			})
 		    print created
 	

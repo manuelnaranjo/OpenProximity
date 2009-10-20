@@ -70,10 +70,11 @@ def get_dongles(dongles):
             	    print settings['uploader']
                     max_conn = settings['uploader'].get('max_conn', 1)
                     enabled = settings['uploader'].get('enable', True)
+                    name = settings['uploader'].get('name', _("Autodiscovered Bluetooth dongle"))
                     
                     UploaderBluetoothDongle.objects.get_or_create(address=address, 
                 	    defaults={
-                		'name':_("Auto Discovered Dongle"),
+                		'name': name,
                 		'enabled': enabled,
                 		'max_conn': max_conn
                 	    }

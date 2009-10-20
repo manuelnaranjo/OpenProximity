@@ -51,6 +51,8 @@ ln -s $CWD/server.sh
 ln -s $CWD/serverXR
 ln -s $CWD/shell.sh
 ln -s $CWD/syncdb.sh
+ln -s $CWD/syncagent.sh
+
 
 cd $OP2
 mkdir tmp
@@ -61,7 +63,8 @@ download_and_uncompress Django 1.1 django http://media.djangoproject.com/release
 download_and_uncompress lincolnloop-django-cpserver 19739be django_cpserver http://github.com/lincolnloop/django-cpserver/tarball
 download_and_uncompress django-rosetta 0.4.7 rosetta http://django-rosetta.googlecode.com/files
 download_and_uncompress wadofstuff-django-serializers 1.0.0 wadofstuff http://wadofstuff.googlecode.com/files
-
+download_and_uncompress poster 0.4 poster http://pypi.python.org/packages/source/p/poster/
+#download_and_uncompress pytz 2009n pytz http://pypi.python.org/packages/source/p/pytz/
 cd $OP2
 
 for i in $(ls $CWD/patches/*.patch); do

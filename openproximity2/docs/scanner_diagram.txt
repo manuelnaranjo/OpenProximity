@@ -1,0 +1,42 @@
+participant "rpc\n(django-web/rpc.py)" as R 
+participant "scanner\n(serverXR/scanner.py)" as S
+participant "BlueZ" as B
+participant "uploader\n(serverXR/uploader.py)" as U
+
+S-->R: scanner_register\n(known_dongles)
+
+loop for each scanner dongle
+R->S: add_dongle(address, priority)
+end
+
+loop for each uploader dongle
+R->U: add_dongle(address, connections)
+end
+
+R->R: if MatchingCampaign?
+
+R-->S: Start Scan Cycle
+activate S
+loop on each scanner
+S-->R: Start Scan Cycle for scanner
+S->B: Start Scan Cycle
+
+loop found
+      B->B: Found Device?
+      B->S: Found Device (address, name, rssi)
+end
+
+B->S: End Scan
+
+S->S: Found?
+S-->R: Found Devices
+R->R: Upload again?
+R-->U: doUpload(target, address, files)
+
+S-->R: Scan Completed
+
+end
+S-->R: Scan Cycle Completed
+
+
+deactivate S

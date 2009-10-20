@@ -238,9 +238,8 @@ class RemoteBluetoothDeviceFilesSuccess(RemoteBluetoothDeviceFileTry):
     pass
 
 def getMatchingCampaigns(remote=None, 
-	    time_=datetime.fromtimestamp(time.time()), 
+	    time_=datetime(*time.localtime()[:-2]),
 	    enabled=None):
-    #print "getMatchingCampaigns", time_
     out  = list()
     
     rules = MarketingCampaign.objects

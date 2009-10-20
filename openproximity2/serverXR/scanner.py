@@ -144,22 +144,27 @@ class ScanManager:
 		if self.scanners is None or len(self.scanners) == 0:
 			self.__dongles = dict()
 			return False
-			
-		for i in self.scanners.keys():
+		try:
+		    for i in self.scanners.keys():
 			try:
 			    path=self.manager.FindAdapter(i)
 			    adapter = ScanAdapter(self.scanners[i][0], 
 				name=self.scanners[i][1], 
 				bus=self.bus, path=path)
-			except:
+			except Exception, err:
+			    print err
+			    print "trying with a remote scanner"
 			    adapter = RemoteScanAdapter(self.scanners[i][0], 
 				local=self.scanners[i][1], address=i, 
 				bus=self.bus)
 			
 			self.__dongles[i] = adapter
 		
-		self.__generateSequence()
-		self.tellListenersAsync(DONGLES_ADDED)
+		    self.__generateSequence()
+		    self.tellListenersAsync(DONGLES_ADDED)
+		except Exception, err:
+		    print err
+		    raise err
 	
 	def __generateSequence(self):
 		# we want a sequence were we interleave devices as
@@ -200,6 +205,7 @@ class ScanManager:
 		
 	def exposed_setConcurrent(self, val):
 	    self.concurrent = val
+	    print "setConcurrent", val
 	
 	def exposed_getConcurrent(self):
 	    return self.concurrent

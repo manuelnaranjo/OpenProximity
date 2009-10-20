@@ -24,3 +24,5 @@ from django.contrib import admin
 
 myadmin = admin.AdminSite()
 myadmin.register(AgentRecord)
+myadmin.register(AgentMarketingCampaign)
+myadmin.register(AgentDeviceRecord)

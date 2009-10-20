@@ -91,7 +91,7 @@ class XMLTool:
 	
     def saveSettings(self, settings):
 	out = file(self.__file, 'w')
-	out.write(self.genXML(), settings)
+	out.write(self.genXML(settings))
 	out.close()
 	
     # generic functions
@@ -101,9 +101,10 @@ class XMLTool:
 	
     def getDict(self, parent, default={}):
 	"""Generic access to dict values"""
-	key = self.tree.findall('parent')
+	self.__sanitize()
+	key = self.tree.findall(parent)
 	if len(key) > 0:
-	    return self.__todict(key[0])
+	    return self.__todict(key[0], False)
 	return default
 
     # Admin stuff...
@@ -126,7 +127,7 @@ class XMLTool:
     def getLogo(self, default='logo.gif'):
         """ Return the path to the logo file as string
         """
-        return self.__getValueOrDefault('logo/path', default)
+        return self.__getValueOrDefault('logo', default)
 
     # debug staff
     def isDebugEnabled(self, default="true"):
@@ -215,12 +216,12 @@ class XMLTool:
 	except AttributeError:
 	    return {}
 
-    def __todict(self, block):
+    def __todict(self, block, ignore_address=True):
 	out = dict()
 	for children in list(block):
-	    if children.tag!='address':
+	    if children.tag!='address' or not ignore_address:
 		if len(list(children)) > 0:
-		    out[children.tag] = self.__todict(children)
+		    out[children.tag] = self.__todict(children, ignore_address)
 		else:
 		    out[children.tag]=children.text
 	return out
