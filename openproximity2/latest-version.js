@@ -3,7 +3,7 @@ var message_show = 0
 function compare_version(CURRENT_VERSION) {
     var LATEST_VERSION="beta-10062009";
     var a = new Array();
-    a.new_available=False
+    a.new_available=false
     if (CURRENT_VERSION.toLowerCase().indexOf('svn') == -1){
 	a.new_available = CURRENT_VERSION.toLowerCase() != LATEST_VERSION.toLowerCase()
         if (a.new_available){
