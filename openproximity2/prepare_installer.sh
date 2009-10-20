@@ -75,4 +75,3 @@ rm -rf tmp
 (cd openproximity2; bash manager.sh compilemessages)
 rm -f $(find . | grep "\.pyc$")
 rm -f $(find . | grep "\.pyo$")
-tar --numeric-owner -h --group=0 --exclude=\*svn --owner=0 -czf $CWD/openproximity2-$(cat $CWD/latest-version).tar.gz openproximity2
