@@ -1,0 +1,89 @@
+diff -uprN rpyc.orig/core/brine.py rpyc-3.0.7/rpyc/core/brine.py
+--- rpyc.orig/core/brine.py	2009-10-07 17:34:02.000000000 -0300
++++ rpyc/core/brine.py	2009-10-07 17:37:44.000000000 -0300
+@@ -6,8 +6,8 @@ slice, complex, tuple(of simple types), 
+ as well as the following singletons: None, NotImplemented, Ellipsis
+ """
+ from cStringIO import StringIO
+-from rpyc.utils.lib import Struct, all
+-
++from rpyc.utils.lib import Struct, all, ByValWrapper
++from pickle import loads, dumps
+ 
+ # singletons
+ TAG_NONE = "\x00"
+@@ -38,6 +38,7 @@ TAG_FLOAT = "\x18"
+ TAG_SLICE = "\x19"
+ TAG_FSET = "\x1a"
+ TAG_COMPLEX = "\x1b"
++TAG_BYVAL = "\x1c"
+ IMM_INTS = dict((i, chr(i + 0x50)) for i in range(-0x30, 0xa0))
+ 
+ I1 = Struct("!B")
+@@ -155,6 +156,11 @@ def _dump_tuple(obj, stream):
+     for item in obj:
+         _dump(item, stream)
+ 
++@register(_dump_registry, ByValWrapper)
++def _dump_by_val(obj, stream):
++    stream.append(TAG_BYVAL)
++    _dump_str(dumps(obj.data), stream)
++
+ def _undumpable(obj, stream):
+     raise TypeError("cannot dump %r" % (obj,))
+ 
+@@ -261,6 +267,11 @@ def _load_int_l4(stream):
+     l, = I4.unpack(stream.read(4))
+     return int(stream.read(l))
+ 
++@register(_load_registry, TAG_BYVAL)
++def _load_byval(stream):
++    obj = loads(_load(stream))
++    return obj
++
+ def _load(stream):
+     tag = stream.read(1)
+     if tag in IMM_INTS_LOADER:
+@@ -282,7 +293,7 @@ def load(data):
+     return _load(stream)
+ 
+ simple_types = frozenset([type(None), int, long, bool, str, float, unicode, 
+-    slice, complex, type(NotImplemented), type(Ellipsis)])
++    slice, complex, type(NotImplemented), type(Ellipsis), ByValWrapper])
+ def dumpable(obj):
+     """indicates whether the object is dumpable by brine"""
+     if type(obj) in simple_types:
+@@ -300,11 +311,9 @@ if __name__ == "__main__":
+     z = load(y)
+     assert x == z
+     
+-
+-
+-
+-
+-
+-
+-
+-
++    x = {'test1': "hello world", 'test2': "hello world2"}
++    x1 = ByValWrapper(x)
++    assert dumpable(x1)
++    y = dump(x1)
++    z = load(y)
++    assert x == z
+diff -uprN rpyc.orig/utils/lib.py rpyc-3.0.7/rpyc/utils/lib.py
+--- rpyc.orig/utils/lib.py	2009-10-07 17:34:02.000000000 -0300
++++ rpyc/utils/lib.py	2009-10-07 17:35:01.000000000 -0300
+@@ -30,6 +30,12 @@ except NameError:
+     def callable(obj):
+         return hasattr(obj, "__call__")
+ 
++class ByValWrapper(object):
++    "A simple wrapper that allows to send byValue objects"
++    
++    def __init__(self, data=None):
++	self.data = data
++
+ from threading import Lock, RLock, Event
+ 
+ import weakref
