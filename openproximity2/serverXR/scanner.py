@@ -20,7 +20,8 @@ from wrappers import Adapter
 from utils import logger
 from utils import settings
 from net.aircable.openproximity.signals.scanner import *
-from pickle import dumps
+#from pickle import dumps
+from rpyc.utils.lib import ByValWrapper
 
 import net.aircable.openproximity.signals as signals
 
@@ -348,7 +349,7 @@ class ScanManager:
 		if len(founds) > 0:
 		    self.tellListenersAsync(FOUND_DEVICE, 
 			address=str(dongle.bt_address),
-			records=dumps(founds) )
+			records=ByValWrapper(founds) )
 		
 		if not self.concurrent:
 		    ret=self.__rotate_dongle()

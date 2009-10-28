@@ -27,8 +27,8 @@ import subprocess
 import time
 import os
 import rpyc
-from pickle import loads, dumps
-
+#from pickle import loads, dumps
+from rpyc.utils.lib import ByValWrapper
 # TODO add hci connection handling for detecting real timeout or out of range
 
 class UploadAdapter(Adapter):
@@ -68,11 +68,11 @@ class UploadAdapter(Adapter):
 	    
 	    if retcode==0 or retcode==255: # bug in my patch, it gives negative ret code
 		manager.tellListeners(signal=FILE_UPLOADED, dongle=self.bt_address,
-			address=str(target), port=port, files=dumps(files))
+			address=str(target), port=port, files=byValWrapper(files))
 	    else:
 		manager.tellListeners(signal=FILE_FAILED, address=str(target), 
 			dongle=self.bt_address, port=port, ret=retcode,
-			files=dumps(files), stdout=stdout, stderr=stderr)
+			files=byValWrapper(files), stdout=stdout, stderr=stderr)
 	    logger.debug("Uploader dowork finished")
 
 	def __init__(self, max_uploads = 7, *args, **kwargs):
@@ -168,7 +168,6 @@ class UploadManager:
 		logger.debug('UploadManager dongle rotated, dongle: %s' % self.__sequence[self.__index])
 		
 	def exposed_upload(self, files, target, id=None, uuid=sdp.OBEX_UUID, service='opp'):
-		files = loads(files)
 		dongle=self.__sequence[self.__index]
 		print type(files), type(target), type(uuid)
 		logger.debug("uploading %s %s %s" % ( files, target, uuid ) )
