@@ -13,83 +13,138 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-import const
-import dbus, dbus.service
+import const, dbus, dbus.service
 import utils
 #from database import manager
-from wrappers import Adapter
-from utils import *
 import net.aircable.openproximity.signals as signals
+import sdp, subprocess, procworker, time, os, rpyc
 from net.aircable.openproximity.signals.uploader import *
-import sdp
-from workqueue import WorkQueue 
-import subprocess
-import time
-import os
-import rpyc
-#from pickle import loads, dumps
+from utils import *
+from threading import Thread
 from rpyc.utils.lib import ByValWrapper
+from wrappers import Adapter
+
+
 # TODO add hci connection handling for detecting real timeout or out of range
+def doWork(dongle_path, bt_address, files, target, service, uuid, out, semaphore): #, manager):
+    logger.debug('UploaderAdapter doWork')
+    bus = dbus.SystemBus(private=True)
+    adapter = dbus.Interface( bus.get_object(const.BLUEZ, dongle_path), const.BLUEZ_ADAPTER )
+
+    semaphore.acquire()
+    logger.debug("Uploader resolving channel for %s, %s" % (target, service))
+    try:
+	port=sdp.resolve(target, uuid, adapter, bus)
+    except Exception, err:
+	print err
+	semaphore.release()
+	logger.debug("Uploader failed to resolve service %s" % (target))
+	out.put({
+	    'signal':SDP_NORECORD,
+	    'dongle':bt_address, 
+	    'address':str(target)
+	    })
+	return
+    semaphore.release()
+    logger.debug("Uploader resolved service %s, %s" % (target, port))
+    out.put(
+	{
+	 'signal':SDP_RESOLVED, 
+	 'dongle':bt_address,
+	 'address':str(target),
+	 'port':port
+	}
+    )
+
+    arguments = list()
+    arguments += ('/usr/bin/obexftp', '-d', bt_address )
+    arguments += ('-r', '1' )
+    if service == 'opp':
+	arguments += ('-U', 'none', '-H', '-S' )
+    arguments += ('-T', str(settings.TIMEOUT) )
+    arguments += ('-b', target )
+    arguments += ('-B', str(port) )
+    for f, fk in files:
+	arguments += ('-p', os.path.join(settings.MEDIA_ROOT, f) )
+    proc = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    logger.debug("Uploader calling obexftp for %s on channel %s" % (target, port))
+    (stdout, stderr) = proc.communicate()
+    print stdout
+    print stderr
+    retcode = proc.returncode
+    logger.debug("Uploader obexftp completed for %s, result %s" % (target, retcode))
+
+    if retcode==0 or retcode==255: # bug in my patch, it gives negative ret code
+	out.put({
+	    'signal': FILE_UPLOADED, 
+	    'dongle': bt_address,
+	    'address': str(target), 
+	    'port': port,
+	    'files': ByValWrapper(files)
+	    })
+    else:
+	out.put({
+	    'signal': FILE_FAILED,
+	    'address': str(target),
+	    'dongle': bt_address,
+	    'port': port,
+	    'ret': retcode,
+	    'files': ByValWrapper(files), 
+	    'stdout': stdout, 
+	    'stderr': stderr
+	})
+    logger.debug("Uploader dowork finished")
+
+def proxy_messages(manager, queue):
+    logger.debug("message proxy started")
+    while [ 1 ]:
+	kwargs = queue.get(True)
+	logger.debug('got a message from queue, sending over rpyc')
+	manager.tellListeners(**kwargs)
 
 class UploadAdapter(Adapter):
 	queue = None
-	
-	def doWork(self, files, target, uuid, service, manager):
-	    logger.debug('UploaderAdapter doWork')
-	    
-	    logger.debug("Uploader resolving channel for %s, %s" % (target, service))	
-	    try:
-		port=sdp.resolve(target, uuid, self.dbus_interface, self.bus)		
-	    except:
-		logger.debug("Uploader failed to resolve service %s" % (target))
-		manager.tellListeners(signal=SDP_NORECORD, dongle=self.bt_address, address=str(target))
-		return
-	    logger.debug("Uploader resolved service %s, %s" % (target, port))
-	    manager.tellListeners(signal=SDP_RESOLVED, dongle=self.bt_address, address=str(target), port=port)
-	    	    
-	    arguments = list()
-	    arguments += ('/usr/bin/obexftp', '-d', self.bt_address )
-	    arguments += ('-r', '1' )
-	    if service == 'opp':
-		arguments += ('-U', 'none', '-H', '-S' )
-	    arguments += ('-T', str(settings.TIMEOUT) )
-	    arguments += ('-b', target )
-	    arguments += ('-B', str(port) )
-	    for f, fk in files:
-		arguments += ('-p', os.path.join(settings.MEDIA_ROOT, f) )
-	    proc = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	    
-	    logger.debug("Uploader calling obexftp for %s on channel %s" % (target, port))
-	    (stdout, stderr) = proc.communicate()
-	    print stdout
-	    print stderr
-	    retcode = proc.returncode
-	    logger.debug("Uploader obexftp completed for %s, result %s" % (target, retcode))
-	    
-	    if retcode==0 or retcode==255: # bug in my patch, it gives negative ret code
-		manager.tellListeners(signal=FILE_UPLOADED, dongle=self.bt_address,
-			address=str(target), port=port, files=byValWrapper(files))
-	    else:
-		manager.tellListeners(signal=FILE_FAILED, address=str(target), 
-			dongle=self.bt_address, port=port, ret=retcode,
-			files=byValWrapper(files), stdout=stdout, stderr=stderr)
-	    logger.debug("Uploader dowork finished")
 
-	def __init__(self, max_uploads = 7, *args, **kwargs):
-    	    Adapter.__init__(self, *args, **kwargs)	
-	
+	def __init__(self, manager, max_uploads = 7, *args, **kwargs):
+    	    Adapter.__init__(self, *args, **kwargs)
+
 	    if not self.is_aircable:
 		# Ok you got me, this is the second piece you need to remove
 		# MN but don't tell anyone.
 	        raise Exception("Can't use non AIRcable dongle as uploaders")
-		
+
 	    self.max_uploads = max_uploads
 	    self.current_connections = 0
-	    	    
-	    self.queue = WorkQueue( [ self.doWork for b in range(0, max_uploads)] )
-	    
+
+	    self.worker = procworker.Manager(max_uploads)
+	    self.worker.start()
+#	    self.semaphore = procworker.Lock()
+	    self.manager = manager
+	    self.proxy=Thread(target=proxy_messages, 
+		kwargs={
+		    'manager': manager, 
+		    'queue': self.worker.out})
+	    self.proxy.daemon=True
+	    self.proxy.start()
+
 	    logger.debug("Initializated UploaderDongle")
-		
+	    
+	def upload(self, files, target, uuid, service):
+	    logger.debug("Adding to upload queue %s" % target)
+
+	    self.worker.put ( doWork,
+		dongle_path=self.dbus_path,
+		bt_address=self.bt_address,
+		files=files,
+		target=target,
+		uuid=uuid,
+#		port=port,
+		service=service,
+#		manager=self.manager
+#		semaphore=self.semaphore
+	    )
+
 class UploadManager:
 	__dongles = dict()
 	bus = None
@@ -119,6 +174,7 @@ class UploadManager:
 
 		for i in self.uploaders.keys():
 			adapter = UploadAdapter(
+				self,
 				self.uploaders[i][0],
 				name=self.uploaders[i][1],
 				bus=self.bus, 
@@ -167,7 +223,8 @@ class UploadManager:
 		self.tellListeners(CYCLE_UPLOAD_DONGLE, address=str(self.__sequence[self.__index].bt_address))
 		logger.debug('UploadManager dongle rotated, dongle: %s' % self.__sequence[self.__index])
 		
-	def exposed_upload(self, files, target, id=None, uuid=sdp.OBEX_UUID, service='opp'):
+	def exposed_upload(self, files, target, uuid=sdp.OBEX_UUID, service='opp'):
+	    try:
 		dongle=self.__sequence[self.__index]
 		print type(files), type(target), type(uuid)
 		logger.debug("uploading %s %s %s" % ( files, target, uuid ) )
@@ -182,14 +239,27 @@ class UploadManager:
 			A=file(f, 'w')
 			A.write(self.rpc.root.getFile(file_))
 			A.close()
-				
-		dongle.queue.enqueue( id, files, target, uuid, service, self )
+		
+		logger.debug('adding to queue')
+		dongle.upload( files, target, uuid, service )
 		self.__rotate_dongle()
 		logger.debug("upload in queue")
+	    except Exception, err:
+		print err
+		raise err
 		
 	def exposed_add_dongle(self, address, conns, name):
 	    self.uploaders[address]=(conns, name)
-	
+	    
+	def exposed_stop(self):
+	    logger.info("stop called")
+	    for k in self.__sequence:
+		try:
+		    k.worker.stop()
+		    k.proxy.stop()
+		except:
+		    pass
+
 	# signal callbacks		
 
 if __name__=='__main__':

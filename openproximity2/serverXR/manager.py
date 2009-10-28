@@ -38,8 +38,15 @@ def ping():
 	return True
     except Exception, err:
 	logger.info("ping lost connection, cause: %s" % err)
-	loop.quit()
+	stop()
 	
+def stop():
+    global manager
+    from uploader import UploadManager
+    if getattr(manager, 'exposed_stop', None):
+        manager.exposed_stop()
+    loop.quit()
+
 def exposed_ping():
     return "hi"
     
@@ -49,11 +56,11 @@ def handle_name_owner_changed(own, old, new):
 	    logger.info( "bluez has gone down, time to get out")
 	else:
 	    logger.info( "bluez started, time to restart")
-	loop.quit()
+	stop()
 
 def handle_adapter_added_or_removed(path, signal):
     logger.info("bluez.%s: %s" % (signal, path))
-    loop.quit()
+    stop()
 
 #def handle_adapter_removed(path):
 #    logger.info("blue.AdapterRemoved: %s" % (path))
@@ -74,10 +81,10 @@ def init():
     logger.info("Connected dongles: %s" % a)
 
     if type == 'scanner':
-	server.root.scanner_register(loop.quit, manager, a, exposed_ping)
+	server.root.scanner_register(stop, manager, a, exposed_ping)
 	
     elif type == 'uploader':
-	server.root.uploader_register(loop.quit, manager, a, exposed_ping)
+	server.root.uploader_register(stop, manager, a, exposed_ping)
     
     logger.info("exiting init")
     
@@ -93,7 +100,7 @@ def run(server_, port, type_):
 	server = rpyc.connect(server_, int(port))
     except:
 	import time
-	logger.info("servcer is not running")
+	logger.info("server is not running")
 	time.sleep(10)
 	autoreload.RELOAD = True
 	sys.exit(3)

@@ -51,6 +51,9 @@ def resolve(address, uuid, adapter=None, bus=dbus.SystemBus()):
 		if len(res)>0:
 		    return int(res[0], 16)
 	
+	# lets check if the service is there now
+	#adapter.RemoveDevice(path)
+	
 	raise Exception("UUID not found")
 		
 if __name__ == '__main__':
