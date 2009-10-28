@@ -22,7 +22,7 @@ from django.template import Context
 from django.template.loader import get_template
 from django.utils import simplejson
 from django.views.generic import list_detail
-from django.contrib.admin.view import decorators
+from django.contrib.admin.views import decorators
 
 from django.conf import settings
 

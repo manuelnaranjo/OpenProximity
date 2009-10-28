@@ -141,7 +141,7 @@ def do_action(services, address, record, pending):
 	return True
     
     files=list()
-			
+
     for camp in camps:
 	rec = RemoteBluetoothDeviceFilesSuccess.objects.filter( campaign=camp, 
 		remote=record.remote)
@@ -156,16 +156,20 @@ def do_action(services, address, record, pending):
 	    print "Allready rejected, try again", try_
 	    if not try_ :
 		continue
-	    	    
-	for f in camp.campaignfile_set.all():
-	    if f.chance is None or random() <= f.chance:
-		print 'going to upload', f.file
-		files.append( (str(f.file.name), camp.pk) ,)
-    			    
+	
+	files__ = camp.campaignfile_set
+	files__ = files__.filter(chance__isnull=True) | files__.filter(chance__gte=str(random()))
+	for f in files__:
+    	    print 'going to upload', f.file
+	    files.append( (str(f.file.name), camp.pk) ,)
+
+    print len(files), "files"
     if len(files) > 0:
 	uploaded.add(record.remote.address)
     	pending.add(record.remote.address)
     	do_upload(uploader, files, record.remote.address)
+    else:
+	print "no files"
 
 def handle_addrecord(services, remote_, dongle, pending):
     address = remote_['address']

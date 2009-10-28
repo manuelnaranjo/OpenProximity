@@ -171,7 +171,7 @@ class RemoteBluetoothDeviceRecord(DeviceRecord):
     
     def setRemoteDevice(self, address):
         qs = RemoteDevice.objects.filter(address=address)
-        if qs.length > 1:
+        if qs.count() > 1:
     	    for i in qs[:1]:
     		i.delete()
 	self.remote=qs[0]
