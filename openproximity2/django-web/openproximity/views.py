@@ -22,6 +22,7 @@ from django.template import Context
 from django.template.loader import get_template
 from django.utils import simplejson
 from django.views.generic import list_detail
+from django.contrib.admin.view import decorators
 
 from django.conf import settings
 
@@ -113,7 +114,8 @@ def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7):
 	rec.enabled = uploader == True
 	rec.save()
 	print rec
-	
+
+@decorators.staff_member_required
 def configure_campaign(request, name=None):
     print "configure_campaign", name
     form = CampaignForm()
@@ -124,7 +126,8 @@ def configure_campaign(request, name=None):
 	    'form':  form,
 	    'settings': SET
 	})
-        
+
+@decorators.staff_member_required
 def configure_dongle(request, address=None):
     print "configure_dongle", address
     
@@ -186,7 +189,8 @@ def configure_dongle(request, address=None):
 	    'messages': messages,
 	    'settings': SET
 	})
-	
+
+@decorators.staff_member_required
 def server_rpc_command(request, command):
     server=rpyc.connect('localhost', 8010)
     func=getattr(server.root, command, None)
@@ -202,6 +206,7 @@ def grab_file(request, file):
     print mime
     return HttpResponse(file.read(), mimetype=mime[0] )
 
+@decorators.staff_member_required
 def stats_restart(request):
     '''
 	Delete statistics, we do drop table, not the recommended way but damn

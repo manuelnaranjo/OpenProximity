@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 from lxml import etree
 from re import compile
+from exceptions import IOError
 
 VALID_ADDRESS=compile("([0-9a-f]{2}\:){5}([0-9a-f]{2})")
+
+DEFAULT='''<xml>
+<dongle>
+</dongle>
+</xml>'''
 
 class XMLTool:
     """
@@ -36,13 +42,17 @@ class XMLTool:
         """ Open an xml file and return an etree xml instance or None
         """
         self.tree = etree.parse(self.__file)
+    	if self.tree is None:
+    	    raise Exception("no config file")
         
     def __sanitize(self):
 	try:
 	    if self.tree is None:
 		self.__getXmlTree()
-	except:
-	    pass
+	except IOError, err:
+	    print err
+	    print "trying to simulate we have a config file"
+	    self.tree=etree.fromstring(DEFAULT)
 
     def __getValueOrDefault(self, key, default):
 	self.__sanitize()
@@ -146,14 +156,14 @@ class XMLTool:
     def getAllDonglesSettings(self):
 	try:
 	    self.__sanitize()
-	    blocks = self.tree.findall('/dongle/block')
+	    blocks = self.tree.findall('dongle/block')
 	    out = dict()
 	    for block in blocks:
 		addr = block.find('address').text
 	        out[addr]=self.__todict(block)
 
 	    # back to default
-	    default = self.tree.findall('/dongle/default')
+	    default = self.tree.findall('dongle/default')
 	    if len(default) > 0:
 		out['default'] = self.__todict(default[0])
 	    return out

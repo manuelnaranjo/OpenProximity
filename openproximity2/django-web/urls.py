@@ -30,7 +30,7 @@ urlpatterns = patterns ('',
     (r'accounts/logout', logout),
 
     # include needed interfaces    
-    (r'^bluez/', include('bluez.urls')),
+#    (r'^bluez/', include('bluez.urls')),
     (r'^openproximity/', include('openproximity.urls')),
     
     #include translation site
@@ -38,7 +38,7 @@ urlpatterns = patterns ('',
     
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
     # to INSTALLED_APPS to enable admin documentation:
-    (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+#    (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
     (r'^admin/', include(admin.site.urls)),

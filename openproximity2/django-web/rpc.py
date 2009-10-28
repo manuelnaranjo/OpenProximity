@@ -78,7 +78,7 @@ class OpenProximityService(Service):
 		    rpc.uploader.handle(services, signal, self, *args, **kwargs)
 	    except:
 		print "ERROR on rpc listener while doing scanner or uploader"
-		traceback.print_exc(file=sys.stdout)    
+		traceback.print_exc(file=sys.stdout)
 
 	def exposed_scanner_register(self, remote_quit, scanner, dongles, ping):
 	    global enabled

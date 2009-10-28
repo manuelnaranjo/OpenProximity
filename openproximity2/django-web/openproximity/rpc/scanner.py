@@ -137,6 +137,7 @@ def do_action(services, address, record, pending):
     camps = getMatchingCampaigns(record.remote, enabled=True)
 		    
     if len(camps)==0:
+	print "no campaigns"
 	return True
     
     files=list()

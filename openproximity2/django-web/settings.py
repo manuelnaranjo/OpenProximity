@@ -126,15 +126,15 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
+#    'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.databrowse',
     'django_cpserver',
     'rosetta',
-    'microblog', 
-    'bluez',
-    'openproximity',    
+    'microblog',
+#    'bluez',
+    'openproximity',
 )
 
 SERIALIZATION_MODULES = {

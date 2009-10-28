@@ -170,10 +170,11 @@ class RemoteBluetoothDeviceRecord(DeviceRecord):
     remote = models.ForeignKey(RemoteDevice, verbose_name=_("remote address"), serialize = True)
     
     def setRemoteDevice(self, address):
-	try:
-	    self.remote=RemoteDevice.objects.get(address=address)
-	except Exception, err:
-	    print err
+        qs = RemoteDevice.objects.filter(address=address)
+        if qs.length > 1:
+    	    for i in qs[:1]:
+    		i.delete()
+	self.remote=qs[0]
     
     def __unicode__(self):
 	return "%s, %s" % (
