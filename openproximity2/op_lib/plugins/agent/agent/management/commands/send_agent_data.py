@@ -160,6 +160,7 @@ def reply_process_device_records(records):
 def __set_fields(obj, fields, ignore=[]):
     for field, value in fields.iteritems():
 	if field not in ignore:
+	    print field, value
 	    setattr(obj, field, value)
 
 def do_campaing_sync(data, SERVER):
@@ -170,8 +171,8 @@ def do_campaing_sync(data, SERVER):
 	if camp['model'] != 'op_www.sitemarketingcampaign':
 	    print "model not supported yet", camp['model']
 	    continue
-	ncamp = AgentMarketingCampaign()
 	fields = camp['fields']
+	ncamp,created = AgentMarketingCampaign.objects.get_or_create(hash_id=fields['hash_id'])
 	__set_fields(ncamp, fields)
 	ncamp.save()
 	camps[camp['pk']]=ncamp
@@ -180,8 +181,12 @@ def do_campaing_sync(data, SERVER):
 	if file['model'] != "openproximity.campaignfile":
 	    print "file type not supported yet", file['model']
 	# create file objects from server request
-	nfile = CampaignFile()
 	fields = file['fields']
+	qs=CampaignFile.objects.filter(file=fields['file'])
+	if qs.count() > 0:
+	    nfile = qs.all()[0]
+	else:
+	    nfile = CampaignFile()
 	__set_fields(nfile, fields, ['campaign',])
 	nfile.campaign = camps[fields['campaign']]
 	nfile.save()
@@ -191,9 +196,7 @@ def do_campaing_sync(data, SERVER):
     
     # don't commit changes until we got the full campaign
     transaction.commit()
-
-
-
+    
 @transaction.commit_manually
 def do_data_upload(*args, **kwargs):
     for x in args:
@@ -254,6 +257,7 @@ def do_data_upload(*args, **kwargs):
 	
     if 'available-campaigns' in reply:
 	new_camps = list()
+	date = AgentMarketingCampaign._meta.get_field('last_modification')
 	for hash_, last_mod in reply['available-campaigns']:
 	    if AgentMarketingCampaign.objects.filter(hash_id=hash_, last_modification=last_mod).count() == 0:
 		new_camps.append(hash_)
