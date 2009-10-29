@@ -156,7 +156,12 @@ def reply_process_device_records(records):
     for sub in slice(records):
 	AgentDeviceRecord.objects.filter(record__id__in=sub).update(commited=True)
     return True
-    
+
+def __set_fields(obj, fields, ignore=[]):
+    for field, value in fields.iteritems():
+	if field not in ignore:
+	    setattr(obj, field, value)
+
 def do_campaing_sync(data, SERVER):
     camps = dict()
     
@@ -167,17 +172,7 @@ def do_campaing_sync(data, SERVER):
 	    continue
 	ncamp = AgentMarketingCampaign()
 	fields = camp['fields']
-	ncamp.name = fields['name']
-	ncamp.service = fields['service']
-	ncamp.name_filter = fields['name_filter']
-	ncamp.devclass_filter = fields['devclass_filter']
-	ncamp.enabled = fields['enabled']
-	ncamp.start = fields['start']
-	ncamp.end = fields['end']
-	ncamp.rejected_count = fields['rejected_count']
-	ncamp.addr_filter = fields['addr_filter']
-	ncamp.tries_count = fields['tries_count']
-	ncamp.hash_id = fields['hash_id']
+	__set_fields(ncamp, fields)
 	ncamp.save()
 	camps[camp['pk']]=ncamp
     
@@ -187,9 +182,8 @@ def do_campaing_sync(data, SERVER):
 	# create file objects from server request
 	nfile = CampaignFile()
 	fields = file['fields']
-	nfile.chance = fields['chance']
+	__set_fields(nfile, fields, ['campaign',])
 	nfile.campaign = camps[fields['campaign']]
-	nfile.file = fields['file']
 	nfile.save()
 
 	#grab file it self
@@ -260,8 +254,8 @@ def do_data_upload(*args, **kwargs):
 	
     if 'available-campaigns' in reply:
 	new_camps = list()
-	for hash_ in reply['available-campaigns']:
-	    if AgentMarketingCampaign.objects.filter(hash_id=hash_).count() == 0:
+	for hash_, last_mod in reply['available-campaigns']:
+	    if AgentMarketingCampaign.objects.filter(hash_id=hash_, last_modification=last_mod).count() == 0:
 		new_camps.append(hash_)
     
 	print "new camps available, I need to get %s camps" % len(new_camps)

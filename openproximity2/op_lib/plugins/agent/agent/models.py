@@ -91,3 +91,4 @@ except Exception, err:
 
 class AgentMarketingCampaign(MarketingCampaign):
     hash_id = models.CharField(max_length=100, unique=True)
+    last_modification = models.DateField(blank=True, null=True)
