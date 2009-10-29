@@ -167,17 +167,9 @@ def do_campaing_sync(data, SERVER):
 	    continue
 	ncamp = AgentMarketingCampaign()
 	fields = camp['fields']
-	ncamp.name = fields['name']
-	ncamp.service = fields['service']
-	ncamp.name_filter = fields['name_filter']
-	ncamp.devclass_filter = fields['devclass_filter']
-	ncamp.enabled = fields['enabled']
-	ncamp.start = fields['start']
-	ncamp.end = fields['end']
-	ncamp.rejected_count = fields['rejected_count']
-	ncamp.addr_filter = fields['addr_filter']
-	ncamp.tries_count = fields['tries_count']
-	ncamp.hash_id = fields['hash_id']
+	for field, val in fields.iteritems():
+	    print field
+	    setattr(ncamp, field, val)
 	ncamp.save()
 	camps[camp['pk']]=ncamp
     
@@ -187,9 +179,11 @@ def do_campaing_sync(data, SERVER):
 	# create file objects from server request
 	nfile = CampaignFile()
 	fields = file['fields']
-	nfile.chance = fields['chance']
+	for field, val in fields.iteritems():
+	    if field not in ['campaign',]:
+		print field
+		setattr(nfile, field, val)
 	nfile.campaign = camps[fields['campaign']]
-	nfile.file = fields['file']
 	nfile.save()
 
 	#grab file it self
@@ -260,8 +254,10 @@ def do_data_upload(*args, **kwargs):
 	
     if 'available-campaigns' in reply:
 	new_camps = list()
-	for hash_ in reply['available-campaigns']:
-	    if AgentMarketingCampaign.objects.filter(hash_id=hash_).count() == 0:
+	for camp in reply['available-campaigns']:
+	    if AgentMarketingCampaign.objects.filter(
+		    hash_id=camp['hash_id'],
+		    last_modification=camp['last_modification']).count() == 0:
 		new_camps.append(hash_)
     
 	print "new camps available, I need to get %s camps" % len(new_camps)
