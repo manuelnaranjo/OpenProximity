@@ -91,6 +91,10 @@ class Campaign(models.Model):
 	help_text=_("starting date, or null to run for ever until end"))
     end = models.DateTimeField(null=True, blank=True,
 	help_text=_("ending date, or null to run for ever since start"))
+    dongle_name=models.CharField(null=True, blank=True, max_length=100,
+	verbose_name=_("dongles names"),
+	help_text=_("if you want your campaign to change the bluetooth dongles names when running then set this variable")
+    )
 
     def __unicode__(self):
 	return self.name
@@ -103,30 +107,32 @@ class Campaign(models.Model):
 class MarketingCampaign(Campaign):
     service = models.IntegerField(default=0, choices=SERVICE_TYPES)
     rejected_count = models.IntegerField(default=2,
-	help_text=_("how many times it should try again when rejected, -1 infinte"))
+	help_text=_("how many times it should try again when rejected, -1 infinite"))
+    rejected_timeout = models.IntegerField(default=-1,
+	help_text=_("how much time to wait after a certain device has rejected a file before we try again"))
     tries_count = models.IntegerField(default=-1,
 	help_text=_("how many times it should try to send when timing out, -1 infinite"))
-	
+    tries_timeout = models.IntegerField(default=0,
+	help_text=_("how much time to wait after a certain device has made a timeout before we try again"))
+    accepted_count = models.IntegerField(default=-1,
+	help_text=_("how many times will this campaign be accepted before disabling, -1 means infinite"))
+
     def __unicode__(self):
 	return "MarketingCampaign: %s" % self.name
-	
+
     def tryAgain(self, record):
+	delta = time.time()-time.mktime(record.time.timetuple())
+
 	if record.isTimeout():
 	    print "Timeout"
-	    if self.tries_count == -1:
-		print "No timeout filter"
-		return True
-	    return RemoteBluetoothDeviceFileTry.\
-		objects.filter(remote=record.remote).\
-		count() < self.tries_count
+	    return delta >= self.tries_timeout and (self.tries_count==-1 or \
+		    self.tries_count > RemoteBluetoothDeviceFileTry.\
+		    objects.filter(remote=record.remote, campaign=record.campaign).count())
 	else:
 	    print "Rejected"
-	    if self.rejected_count == -1:
-		print "No rejection filter"
-		return True
-	    return RemoteBluetoothDeviceFilesRejected. \
-		objects.filter(remote=record.remote). \
-		count() < self.rejected_count
+	    return delta >= self.rejected_timeout and (self.rejected_count==-1 or \
+		self.rejected_count > RemoteBluetoothDeviceFilesRejected.\
+		objects.filter(remote=record.remote).count())
 
 class CampaignFile(models.Model):
     chance = models.DecimalField(null=True, blank=True, default=1.0, decimal_places=2, max_digits=3,
@@ -236,37 +242,40 @@ class RemoteBluetoothDeviceFilesRejected(RemoteBluetoothDeviceFileTry):
 	return "%s %s" % (RemoteBluetoothDeviceFileTry.__unicode__(self), self.ret_value)
 
 class RemoteBluetoothDeviceFilesSuccess(RemoteBluetoothDeviceFileTry):
-    pass
+
+    def save(self, force_insert=False, force_update=False):
+	super(RemoteBluetoothDeviceFilesSuccess, self).save(force_insert, force_update)
+	if self.campaign.accepted_count > -1:
+	    print "accepted filter", self.campaign.accepted_count
+	    qs = RemoteBluetoothDeviceFilesSuccess.objects.filter(campaign=self.campaign)
+	    print qs.count()
+	    if qs.count() >= self.campaign.accepted_count:
+		self.campaign.enabled = False
+		self.campaign.no_restart = True
+		self.campaign.save()
 
 def getMatchingCampaigns(remote=None, 
 	    time_=datetime(*time.localtime()[:-2]),
 	    enabled=None):
     out  = list()
-    
+
     rules = MarketingCampaign.objects
-    
+
     if enabled is not None:
 	rules = rules.filter(enabled=enabled)
-    
-    rules=rules.all()
-    
+
+    rules = rules.all()
+    rules = rules.filter(start__isnull=True) | rules.filter(start__lte=time_)
+    rules = rules.filter(end__isnull=True) | rules.filter(end__gte=time_)
+
+    if remote is None:
+	return list(rules)
+
     for rule in rules:
-	if rule.start is None or time_ >= rule.start: 
-	    # if it's not none then rule.start holds a value we can compare
-	    #print 'start matches'
-	    if rule.end is None or time_ <= rule.end:
-		#print 'end matches'
-		if remote is None:
+	if rule.name_filter is None or remote.name is None or remote.name.startswith(rule.name_filter):
+	    if rule.addr_filter is None or remote.address.startswith(rule.addr_filter):
+		if rule.devclass_filter is None or (remote.devclass & rule.devclass_filter)>0:
 		    out.append(rule)
-		else:
-		    if rule.name_filter is None or remote.name is None or remote.name.startswith(rule.name_filter):
-			#print "name filter matches"
-			if rule.addr_filter is None or remote.address.startswith(rule.addr_filter):
-			    #print "address filter matches"
-		    	    #print remote.devclass, rule.devclass_filter
-			    if rule.devclass_filter is None or (remote.devclass & rule.devclass_filter)>0:
-				#print "devclass filter matches"
-				out.append(rule)
     return out
 
 def get_campaign_rule(files):
@@ -306,7 +315,7 @@ def bluetooth_dongle_signal(instance, **kwargs):
 
 def campaign_signal(instance, **kwargs):
     ''' gets called when ever there is a change in marketing campaigns '''
-    if type(instance) in [ CampaignFile, MarketingCampaign ]:
+    if type(instance) in [ CampaignFile, MarketingCampaign ] and not hasattr(instance, 'no_restart'):
 	print 'campaing_signal'
 	__restart_server()
 

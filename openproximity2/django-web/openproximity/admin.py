@@ -50,7 +50,15 @@ class CampaignFileAdmin(admin.StackedInline):
 class MarketingCampaignAdmin(admin.ModelAdmin):
     fieldsets = (
 	(None, {
-	    'fields': ('name', 'enabled', 'service', 'rejected_count','tries_count'),
+	    'fields': ('name', 'enabled', 'service'),
+	}),
+	('Times filter',{
+	    'fields': ('rejected_count', 'rejected_timeout', 
+			'tries_count', 'tries_timeout',
+			'accepted_count')
+	}),
+	('Dongles settings',{
+	    'fields': ('dongle_name',),
 	}),
 	('Timing Filters', {
 	    'classes': ('collapse', ),
