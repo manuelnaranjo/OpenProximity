@@ -129,7 +129,7 @@ def run(server_, port, type_):
 	if type_ == 'scanner':
 	    from scanner import ScanManager
 	    logger.info("init scanner")
-	    manager = ScanManager(bus)
+	    manager = ScanManager(bus, rpc=server)
 	elif type_ == 'uploader':
 	    logger.info("init uploader")
 	    from uploader import UploadManager

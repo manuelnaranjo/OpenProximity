@@ -35,7 +35,7 @@ def get_uploader(services):
 	    return i
     return None
 
-def do_upload(uploader, files, remote):
+def do_upload(uploader, files, remote, service='opp', dongle_name=None):
     print "About to call upload"
-    uploader.upload(ByValWrapper(files), remote)
+    uploader.upload(ByValWrapper(files), remote, service, dongle_name=dongle_name)
     print "upload called async"

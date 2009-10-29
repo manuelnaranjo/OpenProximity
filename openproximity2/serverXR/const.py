@@ -15,9 +15,14 @@
 #   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
 
 BLUEZ='org.bluez'
-#BLUEZ_PATH='/org/bluez'
 BLUEZ_PATH='/'
 BLUEZ_ADAPTER='org.bluez.Adapter'
 BLUEZ_MANAGER='org.bluez.Manager'
 
 AIRCABLE_MAC=['00:50:C2', '00:25:BF']
+
+UUID={
+    'ftp': '00001106-0000-1000-8000-00805f9b34fb' ,
+    'opp': '00001105-0000-1000-8000-00805f9b34fb'
+}
+

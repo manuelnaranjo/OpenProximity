@@ -155,15 +155,13 @@ class UploadManager:
 	__index = None
 	uploaders = dict()
 
-	def __init__(self, bus, listener=None, rpc=None):
+	def __init__(self, bus, rpc=None):
 		logger.debug("UploadManager created")
 		self.bus = bus
 		self.manager = dbus.Interface(bus.get_object(const.BLUEZ, const.BLUEZ_PATH), const.BLUEZ_MANAGER)
-
-		if listener is not None:
-		    for x in listener:
-			self.addListener(x)
 		self.rpc = rpc
+		if self.rpc:
+		    self.remote_listener=rpyc.async(self.rpc.root.listener)
 
 	def exposed_refreshUploaders(self):
 		logger.debug("UploadManager refresh uploaders %s" % self.uploaders)
@@ -195,24 +193,18 @@ class UploadManager:
 			    
 		self.__sequence=__sequence
 		self.__index = 0
-	    
-	def exposed_addListener(self, func):
-		logger.debug("UploadManager adding listener")
-		self.__listener_sync.append(func)
-		self.__listener_async.append(rpyc.async(func))
-		
+
         def exposed_getDongles(self):
             out = set()
             for d in self.manager.ListAdapters():
                 out.append(str(d.GetProperties()['Address']))
-	    return out						    
+	    return out
 		
 	def tellListeners(self, *args, **kwargs):
 		logger.debug("UploadManager telling listener: %s, %s" % (str(args), str(kwargs)))
-		for func in self.__listener_async:
-			func(*args, **kwargs)
+		self.remote_listener(*args, **kwargs)
 		logger.debug("UploadManager signal dispatched")
-			
+
 	def __rotate_dongle(self):
 		if len(self.__sequence) == 1:
 		    return
@@ -222,11 +214,17 @@ class UploadManager:
 			self.__index = 0
 		self.tellListeners(CYCLE_UPLOAD_DONGLE, address=str(self.__sequence[self.__index].bt_address))
 		logger.debug('UploadManager dongle rotated, dongle: %s' % self.__sequence[self.__index])
-		
-	def exposed_upload(self, files, target, uuid=sdp.OBEX_UUID, service='opp'):
+
+	def exposed_upload(self, files, target, service='opp', dongle_name=None):
 	    try:
 		dongle=self.__sequence[self.__index]
-		print type(files), type(target), type(uuid)
+		uuid = const.UUID[service]
+		
+		print files
+		print "about to set name"
+		if dongle_name:
+		    dongle.dbus_interface.SetProperty('Name', dongle_name)
+		
 		logger.debug("uploading %s %s %s" % ( files, target, uuid ) )
 		
 		for file_, fk in files:
@@ -260,7 +258,7 @@ class UploadManager:
 		except:
 		    pass
 
-	# signal callbacks		
+	# signal callback
 
 if __name__=='__main__':
 	def listen(signal, **kwargs):
@@ -275,10 +273,13 @@ if __name__=='__main__':
 	
 	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 	
-	manager=UploadManager(dbus.SystemBus(), [ listen, ] )
-	manager.uploaders['00:50:C2:7F:EF:FE']=7
+	manager=UploadManager(dbus.SystemBus())
+	manager.remote_listener=listen
+	manager.exposed_add_dongle('00:25:BF:01:00:9E',7, 'test')
+	manager.exposed_refreshUploaders()
+	
 	gobject.threads_init()
 	dbus.glib.init_threads()
 	loop=gobject.MainLoop()
-	manager.upload(sys.argv[2:], sys.argv[1], id=1)
+	manager.exposed_upload(((sys.argv[2], 1),), sys.argv[1], dongle_name='AIRcable')
 	loop.run()

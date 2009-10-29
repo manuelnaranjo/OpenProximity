@@ -38,6 +38,7 @@ pluginsystem.post_environ()
 
 services = set()
 pending = set()
+server = None
 
 enabled = True # useful when tables are been drop
 
@@ -46,6 +47,8 @@ class OpenProximityService(Service):
 	remote_quit = None
 	
 	def on_connect(self):
+	    global server
+	    print server.clients
 	    services.add(self)
 	    
 	def on_disconnect(self):
@@ -61,7 +64,7 @@ class OpenProximityService(Service):
 	    if exit:
 		sys.exit(3) # restart me please
 	    
-	def listener(self, signal, *args, **kwargs):
+	def exposed_listener(self, signal, *args, **kwargs):
 	    print signal, args, kwargs
 	    kwargs['pending']=pending
 	    try:
@@ -89,7 +92,6 @@ class OpenProximityService(Service):
 	    self.scanner = scanner
 	    self.setConcurrent = async(scanner.setConcurrent)
 	    self.refreshScanners = async(scanner.refreshScanners)
-	    self.addListener = async(scanner.addListener)
 	    self.doScan = async(scanner.doScan)
 	    self.startScanningCycle = async(scanner.startScanningCycle)
 	    self.remote_quit = async(remote_quit)
@@ -97,8 +99,6 @@ class OpenProximityService(Service):
 
 	    if not enabled:
 		return
-
-	    self.addListener(self.listener)
 
 	    for dongle in dongles:
 		self.dongles.add( str(dongle), )
@@ -120,7 +120,6 @@ class OpenProximityService(Service):
 
 	    self.dongles = set()
 	    self.add_dongle = async(uploader.add_dongle)
-	    self.addListener = async(uploader.addListener)
 	    self.upload = async(uploader.upload)
 	    self.ping = ping
 	    self.remote_quit = async(remote_quit)
@@ -130,8 +129,6 @@ class OpenProximityService(Service):
 
 	    if not enabled:
 		return
-
-	    self.addListener(self.listener)
 
 	    for dongle in dongles:
 		self.dongles.add( str(dongle), )
@@ -190,7 +187,9 @@ class OpenProximityService(Service):
 	    self.exit(False)
 
 def run():
+    global server
     server=ThreadedServer(OpenProximityService, '0.0.0.0', 
+#    server=ForkingServer(OpenProximityService, '0.0.0.0', 
 		port=8010, auto_register=False)
     server.start()
     	    

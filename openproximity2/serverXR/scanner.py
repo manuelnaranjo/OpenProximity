@@ -105,7 +105,7 @@ class ScanManager:
 	concurrent = False
 	concurrent_pending = list()
 	    
-	def __init__(self, bus, listener=None):
+	def __init__(self, bus, listener=None, rpc=None):
 		logger.debug("ScanManager created")
 		self.bus = bus
 		self.manager = dbus.Interface(bus.get_object(const.BLUEZ, const.BLUEZ_PATH), const.BLUEZ_MANAGER)
@@ -139,6 +139,9 @@ class ScanManager:
 			dbus_interface=remotescanner_url, # interface name
 			path_keyword='path'
 			)
+		self.rpc = rpc
+		if self.rpc:
+		    self.remote_listener=rpyc.async(self.rpc.root.listener)
 	
 	def exposed_refreshScanners(self):
 		logger.debug("ScanManager refresh scanners %s" % self.scanners)
@@ -210,21 +213,11 @@ class ScanManager:
 	
 	def exposed_getConcurrent(self):
 	    return self.concurrent
-	    
-	def exposed_addListener(self, func):
-		logger.debug("ScanManager adding listener")
-		self.__listener_sync.append(func)
-		self.__listener_async.append(rpyc.async(func))
-
-	def tellListenersSync(self, *args, **kwargs):
-	    logger.debug("ScanManager telling listener - sync: %s" % POST[args[0]])
-	    for func in self.__listener_sync:
-	    	func(*args,**kwargs)
 
 	def tellListenersAsync(self, *args, **kwargs):
 	    logger.debug("ScanManager telling listener - async: %s" % POST[args[0]])
-	    for func in self.__listener_async:
-		func(*args, **kwargs)
+	    self.remote_listener(*args, **kwargs)
+	    logger.debug("ScanManager message dispatched")
 
 	def exposed_startScanningCycle(self, repeat=False):
 	    self.tellListenersAsync(CYCLE_START)
@@ -375,7 +368,8 @@ if __name__=='__main__':
 	
 	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 	
-	manager=ScanManager(dbus.SystemBus(), [ listen, ])
+	manager=ScanManager(dbus.SystemBus())
+	manager.remote_listener=listen
 	manager.scanners['00:50:C2:7F:EF:FE']=1
 	
 	gobject.threads_init()
