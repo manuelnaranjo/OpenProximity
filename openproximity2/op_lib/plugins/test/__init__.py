@@ -38,9 +38,7 @@ provides = {
     
     'TEMPLATE_DIRS': 'templates',	# static media I give to django
     'LOCALE_PATHS': 'locale',
-    'INSTALLED_APPS': 'test',		# we provide an application so we can
-					# define models
-    
+    'django_app': True,                 # tell we provide models and maybe admin
     'urls': ( 'test', 'urls' )		# urls I give to django
 }
 
