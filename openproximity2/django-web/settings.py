@@ -153,8 +153,8 @@ for plugin in pluginsystem.get_plugins():
 	TEMPLATE_DIRS += ( os.path.join(plugin.__path__[0], plugin.provides['TEMPLATE_DIRS']), )
     if plugin.provides.get('LOCALE_PATHS', None) is not None:
 	LOCALE_PATHS += ( os.path.join(plugin.__path__[0], plugin.provides['LOCALE_PATHS']), )
-    if plugin.provides.get('INSTALLED_APPS', None) is not None:
-	INSTALLED_APPS += ( '%s.%s.%s' % ('plugins', plugin.name, plugin.provides['INSTALLED_APPS']), )
+    if plugin.provides.get('django_app', False):
+	INSTALLED_APPS += ( '%s.%s' % ('plugins', plugin.name), )
 
 print "plugin system initializated"
 
