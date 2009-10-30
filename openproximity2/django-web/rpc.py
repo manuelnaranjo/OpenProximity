@@ -32,28 +32,24 @@ from openproximity.models import CampaignFile, Setting
 import net.aircable.openproximity.signals as signals
 import openproximity.rpc as rpc
 import openproximity.rpc.scanner, openproximity.rpc.uploader
-from pluginsystem import pluginsystem	
+from pluginsystem import pluginsystem
 
 pluginsystem.post_environ()
 
 services = set()
 pending = set()
-server = None
-
 enabled = True # useful when tables are been drop
 
 class OpenProximityService(Service):
 	dongles = None
 	remote_quit = None
-	
+
 	def on_connect(self):
-	    global server
-	    print server.clients
 	    services.add(self)
-	    
+
 	def on_disconnect(self):
 	    services.remove(self)
-	    
+
 	def exit(self, exit):
 	    for ser in services:
 		if ser.remote_quit is not None:
@@ -63,7 +59,7 @@ class OpenProximityService(Service):
 			pass
 	    if exit:
 		sys.exit(3) # restart me please
-	    
+
 	def exposed_listener(self, signal, *args, **kwargs):
 	    print signal, args, kwargs
 	    kwargs['pending']=pending
@@ -137,59 +133,57 @@ class OpenProximityService(Service):
 		print dongle, max_conn, name
 		self.add_dongle(dongle, max_conn, name)
 	    self.refreshUploaders()
-	    
+
 	def exposed_getFile(self, path):
 	    print "getFile", path
 	    return CampaignFile.objects.get(file=path).file.read()
-	
+
 	def exposed_getUploadersCount(self):
 	    count = 0
 	    for ser in services:
 		if getattr(ser,'uploader',None) is not None:
 		    count += 1
 	    return count
-	    
+
 	def exposed_getScannersCount(self):
 	    count = 0
 	    for ser in services:
 		if getattr(ser,'scanner',None) is not None:
 		    count += 1
 	    return count
-	
+
 	def exposed_getDongles(self):
 	    print "getDongles"
 	    out=set()
-	    
+
 	    for ser in services:
 		if ser.dongles is not None:
 		    for d in ser.dongles:
 			out.add(d,)
 	    print "return", out
 	    return list(out)
-	    
+
 	def __str__(self):
 	    return str(dir(self))
-	
+
 	def exposed_exit(self):
 	    return self.exit(True)
-	
+
 	def exposed_restart(self):
 	    return self.exit(False)
-	    
+
 	def exposed_Lock(self):
 	    global enabled
 	    enabled = False
 	    self.exit(False)
-	    
+
 	def exposed_Unlock(self):
 	    global enabled
 	    enabled = True
 	    self.exit(False)
 
 def run():
-    global server
     server=ThreadedServer(OpenProximityService, '0.0.0.0', 
-#    server=ForkingServer(OpenProximityService, '0.0.0.0', 
 		port=8010, auto_register=False)
     server.start()
     	    
