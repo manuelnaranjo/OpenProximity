@@ -79,6 +79,20 @@ class OpenProximityService(Service):
 		print "ERROR on rpc listener while doing scanner or uploader"
 		traceback.print_exc(file=sys.stdout)
 
+	def exposed_generic_register(self, remote_quit, dongles, ping, client):
+	    try:
+		for plugin in pluginsystem.get_plugins():
+		    if plugin.provides.get('rpc_register', None):
+			# wrap all calls as async, to avoid collitions
+			self.remote_quit = async(remote_quit)
+			self.ping = ping
+
+			if plugin.provides['rpc_register'](dongles, ping, client):
+			    return
+	    except:
+		print "ERROR on rpc generic register"
+		traceback.print_exc(file=sys.stdout)
+
 	def exposed_scanner_register(self, remote_quit, scanner, dongles, ping):
 	    global enabled
 
