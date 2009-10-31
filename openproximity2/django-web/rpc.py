@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
 #    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
@@ -64,9 +65,8 @@ class OpenProximityService(Service):
 	    print signal, args, kwargs
 	    kwargs['pending']=pending
 	    try:
-		for plugin in pluginsystem.get_plugins():
-		    if plugin.provides.get('rpc', None) is not None:
-			plugin.provides['rpc'](signal=signal, services=services, manager=self, *args, **kwargs)
+		for plugin in pluginsystem.get_plugins('rpc'):
+		    plugin.provides['rpc'](signal=signal, services=services, manager=self, *args, **kwargs)
 	    except:
 		print "ERROR on rpc listener while doing plugins"
 		traceback.print_exc(file=sys.stdout)
@@ -81,8 +81,7 @@ class OpenProximityService(Service):
 
 	def exposed_generic_register(self, remote_quit, dongles, ping, client):
 	    try:
-		for plugin in pluginsystem.get_plugins():
-		    if plugin.provides.get('rpc_register', None):
+		for plugin in pluginsystem.get_plugins('rpc_register'):
 			# wrap all calls as async, to avoid collitions
 			self.remote_quit = async(remote_quit)
 			self.ping = ping

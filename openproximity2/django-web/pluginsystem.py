@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
 #    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
@@ -52,8 +53,12 @@ class PluginSystem(object):
         def __init__(self):
                 self.plugin_infos = list()
 
-        def get_plugins(self):
-                return self.plugin_infos
+        def get_plugins(self, provides=None):
+		if not provides:
+		    return self.plugin_infos
+		for i in self.plugin_infos:
+		    if getattr(i.provides, provides, None):
+			yiled i
 
         def find_plugins(self):
                 for path in plugins.__path__:

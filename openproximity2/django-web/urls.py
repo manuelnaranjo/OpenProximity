@@ -48,12 +48,11 @@ urlpatterns = patterns ('',
     )
 )
 
-for plugin in pluginsystem.get_plugins():
-    if plugin.provides.get('urls', None) is not None:
-	print plugin.provides.get('name', plugin.name), "provides urls"
-	url = plugin.provides.get('urls')
-	urlpatterns += patterns( '', 
-	    (r'^%s/' % url[0], include('%s.%s' % ( plugin.__name__, url[1])))
-	)
+for plugin in pluginsystem.get_plugins('urls'):
+    print plugin.provides.get('name', plugin.name), "provides urls"
+    url = plugin.provides.get('urls')
+    urlpatterns += patterns( '', 
+        (r'^%s/' % url[0], include('%s.%s' % ( plugin.__name__, url[1])))
+    )
 
 urlpatterns += patterns('', (r'', include('openproximity.urls') ))

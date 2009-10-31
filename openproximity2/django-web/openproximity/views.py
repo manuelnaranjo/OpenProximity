@@ -259,13 +259,12 @@ def stats_restart(request):
 
     print "allowing plugins to drop statistic it's tables"
 
-    for plugin in pluginsystem.get_plugins():
-	if plugin.provides.get('statistics_reset', None):
-	    try:
-		plugin.provides['statistics_reset'](connection)
-	    except Exception, err:
-		print "plugin failed to reset statistics", plugin
-		print err
+    for plugin in pluginsystem.get_plugins('statistics_reset'):
+        try:
+	    plugin.provides['statistics_reset'](connection)
+	except Exception, err:
+	    print "plugin failed to reset statistics", plugin
+	    print err
 
     print "calling syncdb"
     management.call_command('syncdb')

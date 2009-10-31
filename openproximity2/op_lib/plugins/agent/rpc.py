@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
 #    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #                                                                          
@@ -14,7 +15,7 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
 
-from agent.models import *
+from models import *
 from django.utils import simplejson as json
 from net.aircable.openproximity.signals import scanner, uploader
 

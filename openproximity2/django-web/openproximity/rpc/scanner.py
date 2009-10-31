@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
 #    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
@@ -17,11 +18,8 @@ from django.conf import settings
 from django.utils.translation import ugettext as _
 from net.aircable.openproximity.signals import scanner as signals
 from openproximity.models import *
-
-
 from rpyc import async
-
-from common import get_uploader, do_upload, is_known_dongle
+from common import found_action, is_known_dongle
 
 import time
 
@@ -125,57 +123,6 @@ def cycle_completed(scanner):
 
 uploaded = set()
 
-from random import random
-
-def do_action(services, address, record, pending):
-    uploader = get_uploader(services)
-
-    if uploader is None:
-	return True
-
-    print "found uploader"
-    camps = getMatchingCampaigns(record.remote, enabled=True)
-
-    if len(camps)==0:
-	print "no campaigns"
-	return True
-
-    files=list()
-    name=None
-    service='opp'
-
-    for camp in camps:
-	rec = RemoteBluetoothDeviceFilesSuccess.objects.filter( campaign=camp, 
-		remote=record.remote)
-        if rec.count() > 0:
-	    print "Allready accepted"
-	    continue
-
-	rec = RemoteBluetoothDeviceFilesRejected.objects.filter(campaign=camp, 
-	    remote=record.remote).order_by('time')
-	if rec.count() > 0:
-	    try_ = camp.tryAgain(rec.latest(field_name='time'))
-	    print "Allready rejected, try again", try_
-	    if not try_ :
-		continue
-
-	files__ = camp.campaignfile_set
-	files__ = files__.filter(chance__isnull=True) | files__.filter(chance__gte=str(random()))
-	for f in files__:
-    	    print 'going to upload', f.file
-	    files.append( (str(f.file.name), camp.pk) ,)
-	if camp.dongle_name:
-	    name = camp.dongle_name
-	service = camp.get_service_display()
-
-    print len(files), "files"
-    if len(files) > 0:
-	uploaded.add(record.remote.address)
-    	pending.add(record.remote.address)
-    	do_upload(uploader, files, record.remote.address, service, name)
-    else:
-	print "no files"
-
 def handle_addrecord(services, remote_, dongle, pending):
     address = remote_['address']
 
@@ -204,7 +151,7 @@ def handle_addrecord(services, remote_, dongle, pending):
     record.save()
     
     if address not in pending:
-	return do_action(services, address, record, pending)
+	return found_action(services, address, record, pending)
 
     return True
     
