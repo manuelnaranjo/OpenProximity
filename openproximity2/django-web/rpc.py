@@ -33,7 +33,7 @@ from openproximity.models import CampaignFile, Setting
 import net.aircable.openproximity.signals as signals
 import openproximity.rpc as rpc
 import openproximity.rpc.scanner, openproximity.rpc.uploader
-from pluginsystem import pluginsystem
+from net.aircable.openproximity.pluginsystem import pluginsystem
 
 pluginsystem.post_environ()
 

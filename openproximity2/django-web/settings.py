@@ -15,7 +15,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 # Django settings for openproximity2.0
 import os
-from pluginsystem import pluginsystem
+from net.aircable.openproximity.pluginsystem import pluginsystem
 from lxmltool import XMLTool
 
 DEBUG = True

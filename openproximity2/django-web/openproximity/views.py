@@ -26,7 +26,7 @@ from django.contrib.admin.views import decorators
 
 from django.conf import settings
 
-from pluginsystem import pluginsystem
+from net.aircable.openproximity.pluginsystem import pluginsystem
 
 from re import compile
 from mimetypes import guess_type as guess_mime

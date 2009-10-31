@@ -21,7 +21,7 @@ from django.contrib import admin
 
 import os
 
-from pluginsystem import pluginsystem
+from net.aircable.openproximity.pluginsystem import pluginsystem
 
 admin.autodiscover()
 
