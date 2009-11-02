@@ -13,17 +13,18 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-import const, dbus, dbus.service
-import utils
-#from database import manager
+import dbus, dbus.service, time, os, rpyc
+import net.aircable.const as const
+import net.aircable.utils as utils
 import net.aircable.openproximity.signals as signals
-import sdp, subprocess, procworker, time, os, rpyc
+import net.aircable.sdp as sdp
+import subprocess
+import net.aircable.procworker as procworker
 from net.aircable.openproximity.signals.uploader import *
-from utils import *
+from net.aircable.utils import *
+from net.aircable.wrappers import Adapter
 from threading import Thread
 from rpyc.utils.lib import ByValWrapper
-from wrappers import Adapter
-
 
 # TODO add hci connection handling for detecting real timeout or out of range
 def doWork(dongle_path, bt_address, files, target, service, uuid, out, semaphore): #, manager):

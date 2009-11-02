@@ -22,15 +22,14 @@ import os, sys
 import rpyc
 
 from rpyc import async
-
 from net.aircable import autoreload
+from net.aircable.openproximity.pluginsystem import pluginsystem
+from net.aircable.utils import settings, logger
 
 server = None
 manager = None
 bus = None
 loop = None
-
-from utils import settings, logger
 
 def ping():
     try:
@@ -82,15 +81,16 @@ def init():
 
     if type == 'scanner':
 	server.root.scanner_register(stop, manager, a, exposed_ping)
-	
     elif type == 'uploader':
 	server.root.uploader_register(stop, manager, a, exposed_ping)
-    
+    else:
+	server.root.generic_register(remote_quit=stop, client=manager, 
+		dongles=a, ping=exposed_ping)
     logger.info("exiting init")
-    
+
     # stupid way to make rpyc do something
-#    str(server.root)
-	
+    str(server.root)
+
     return False
 
 def run(server_, port, type_):
@@ -134,6 +134,14 @@ def run(server_, port, type_):
 	    logger.info("init uploader")
 	    from uploader import UploadManager
 	    manager = UploadManager(bus, rpc=server)
+	else:
+	    for i in pluginsystem.get_plugins('serverxr'):
+		if type_==i.provides['serverxr_type']:
+		    logger.info("init %s" % i.provides['serverxr_type'])
+		    manager = i.provides['serverxr_manager'](bus, rpc=server)
+		    break
+	if manager is None:
+	    raise Exception ("Not valid type")
 	gobject.timeout_add(100, init) # delay initialization 'til loop is running
     except dbus.DBusException, err:
 	logger.info("bluez isn't ready, delaying init")
@@ -150,9 +158,14 @@ if __name__ == '__main__':
     if autoreload.isParent() and len(sys.argv) < 4:
         print "usage: %s server-ip port type" % sys.argv[0]
         sys.exit(0)
+    valid_modes=['scanner', 'uploader']
 
-    if sys.argv[3] not in ['scanner', 'uploader']:
-        print "not valid type use either scanner or uploader by now"
+    pluginsystem.find_plugins()
+    for i in pluginsystem.get_plugins('serverxr'):
+	valid_modes.append(i.provides['serverxr_type'])
+
+    if sys.argv[3] not in valid_modes:
+        print "not valid type, you can use any of", valid_modes
         sys.exit(0)
 
     autoreload.main(run, tuple(sys.argv[1:4]),{})

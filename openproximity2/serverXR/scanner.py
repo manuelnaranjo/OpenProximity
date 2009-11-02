@@ -13,16 +13,15 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-import const, dbus, utils, rpyc, time, traceback
-
-#from database import manager
-from wrappers import Adapter
-from utils import logger
-from utils import settings
+import dbus, rpyc, time, traceback
+from net.aircable.utils import logger
+from net.aircable.utils import settings
 from net.aircable.openproximity.signals.scanner import *
-#from pickle import dumps
+from net.aircable.wrappers import Adapter
 from rpyc.utils.lib import ByValWrapper
 
+import net.aircable.const as const
+import net.aircable.utils as utils
 import net.aircable.openproximity.signals as signals
 
 remotescanner_url = "net.aircable.RemoteScanner"
