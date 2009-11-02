@@ -145,10 +145,7 @@ SERIALIZATION_MODULES = {
 OPENPROXIMITY = XMLTool('/etc/openproximity2/settings.xml')
 
 pluginsystem.find_plugins()
-for plugin in pluginsystem.get_plugins():
-    if plugin.provides.get('django', False) is False:
-	continue
-    
+for plugin in pluginsystem.get_plugins('django'):
     if plugin.provides.get('TEMPLATE_DIRS', None) is not None :
 	TEMPLATE_DIRS += ( os.path.join(plugin.__path__[0], plugin.provides['TEMPLATE_DIRS']), )
     if plugin.provides.get('LOCALE_PATHS', None) is not None:

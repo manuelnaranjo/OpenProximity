@@ -54,11 +54,9 @@ class PluginSystem(object):
                 self.plugin_infos = list()
 
         def get_plugins(self, provides=None):
-		if not provides:
-		    return self.plugin_infos
 		for i in self.plugin_infos:
-		    if getattr(i.provides, provides, None):
-			yiled i
+		    if not provides or i.provides.get(provides, None):
+			yield i
 
         def find_plugins(self):
                 for path in plugins.__path__:
