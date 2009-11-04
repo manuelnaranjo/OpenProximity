@@ -23,6 +23,8 @@ import dbus
 from errors import *
 from sppBase import *
 from xml.dom.minidom import parseString
+import net.aircable.sdp as sdp
+import net.aircable.const as const
 
 class sppClient(sppBase):
 	target = None
@@ -56,19 +58,9 @@ class sppClient(sppBase):
 	    adapter = dbus.Interface( self.getAdapterObjectPath(), 
 						    'org.bluez.Adapter' )
 	    
-	    aservices = adapter.GetRemoteServiceHandles( target, service )
-	    
-	    for x in aservices:
-		self.logDebug("Trying with rec Handle 0x%X" % x)
-		
-		xml=adapter.GetRemoteServiceRecordAsXML( target, x )
-		self.logDebug(xml)
-		
-		doc=parseString(xml)
-		
-		return self.__browsexml(doc)
-		
-	    raise SPPException, "Service not available"
+	    return sdp.resolve(target, 
+		uuid=const.UUID.get('spp', '00001101-0000-1000-8000-00805f9b34fb'),
+		adapter=adapter, bus=self.bus)
 
 	def connect(self):
 	    '''
@@ -82,9 +74,9 @@ class sppClient(sppBase):
 		    
 	    if (self.socket == None):
 		print 'creating socket'    
-		self.socket = socket.socket( socket.AF_BLUETOOTH, 
+		self.socket = socket.socket( getattr(socket, 'AF_BLUETOOTH', 31),
 						socket.SOCK_STREAM, 
-						socket.BTPROTO_RFCOMM );
+						getattr(socket, 'BTPROTO_RFCOMM', 3) );
 	    #Let BlueZ decide outgoing port
 	    print 'binding to %s, %i' % ( self.device , 0 )
 	    self.socket.bind( (self.device,0) );

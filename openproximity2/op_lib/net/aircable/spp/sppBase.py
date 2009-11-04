@@ -58,12 +58,12 @@ class sppBase:
 	    self.__logger = logging.getLogger('sppAIRcableBase');
 # If you don't want to configure the logging settings from a file
 # then uncomment this		
-#	    console = logging.StreamHandler()
-#	    console.setLevel(logging.DEBUG)
-#	    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-#	    console.setFormatter(formatter)
-#	    self.__logger.addHandler(console)
-#	    self.__logger.setLevel(logging.DEBUG)
+	    console = logging.StreamHandler()
+	    console.setLevel(logging.DEBUG)
+	    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+	    console.setFormatter(formatter)
+	    self.__logger.addHandler(console)
+	    self.__logger.setLevel(logging.DEBUG)
 	    
 	def getDefaultDeviceAddress(self):
 	    obj     = self.bus.get_object( 'org.bluez', '/' )
@@ -245,12 +245,10 @@ class sppBase:
 			if (line != None and line.find("DONE") >- 1):
 				self.logDebug("EOF")
 				break;
-			
-			if line.startswith(">") or len(line)>1:        
+			elif line.startswith(">") or len(line)>1 or line.find("GO")==-1:
 				out += line
 				out += "\n"
-			    
-			self.sendLine("GO")
+			#self.sendLine("GO")
 		
 		out=out.replace('>','')
 		self.logDebug("Got:\n%s" % out);
@@ -259,12 +257,14 @@ class sppBase:
 	def shellAskLine(self, number):
 		'''Function wrapper for a shell operation'''
 		self.logDebug('shellAskLine %s' % number)
-		self.makeShellReady()
+		#self.makeShellReady()
 		self.sendLine("p%04i" % number)
 		while [ 1 ]:
 			line = self.readLine()
 			if line.find("error")==-1:
 				return line.replace('>', '').strip()
+			else:
+			    return ""
 
 	def shellSetLine(self, number, content):
 		'''Function wrapper for a shell operation'''
@@ -272,7 +272,7 @@ class sppBase:
     
 	def __sendCommand(self, command):
 		self.logDebug('__sendCommand %s' % command)
-		self.makeShellReady()
+		#self.makeShellReady()
 		self.sendLine(command)
 		while [ 1 ]:
 			line=self.readLine()

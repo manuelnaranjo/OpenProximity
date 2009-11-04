@@ -81,7 +81,7 @@ SERVICE_TYPES = (
 class Campaign(models.Model):
     #name is going to change
     name = models.CharField(max_length=100)    
-    enabled = models.BooleanField()
+    enabled = models.BooleanField(default=True)
     name_filter = models.CharField(null=True, max_length=10, blank=True,
 	verbose_name=_("name filter"))
     addr_filter = models.CharField(null=True, max_length=10, blank=True,
@@ -95,6 +95,9 @@ class Campaign(models.Model):
 	verbose_name=_("dongles names"),
 	help_text=_("if you want your campaign to change the bluetooth dongles names when running then set this variable")
     )
+    
+    def matches(self, remote):
+	return False
 
     def __unicode__(self):
 	return self.name
@@ -133,6 +136,14 @@ class MarketingCampaign(Campaign):
 	    return delta >= self.rejected_timeout and (self.rejected_count==-1 or \
 		self.rejected_count > RemoteBluetoothDeviceFilesRejected.\
 		objects.filter(remote=record.remote).count())
+	
+    def matches(self, remote):
+	if self.name_filter is None or remote.name is None or remote.name.startswith(self.name_filter):
+	    if self.addr_filter is None or remote.address.startswith(self.addr_filter):
+		if self.devclass_filter is None or (remote.devclass & self.devclass_filter)>0:
+		    return True
+	return False
+
 
 class CampaignFile(models.Model):
     chance = models.DecimalField(null=True, blank=True, default=1.0, decimal_places=2, max_digits=3,
@@ -256,26 +267,30 @@ class RemoteBluetoothDeviceFilesSuccess(RemoteBluetoothDeviceFileTry):
 
 def getMatchingCampaigns(remote=None, 
 	    time_=datetime(*time.localtime()[:-2]),
-	    enabled=None):
+	    enabled=None, classes=None):
     out  = list()
 
-    rules = MarketingCampaign.objects
+    if classes is None:
+	classes = Campaign.__subclasses__()
+    for model in classes:
+	print model
+        rules = model.objects
 
-    if enabled is not None:
-	rules = rules.filter(enabled=enabled)
+	if enabled is not None:
+	    rules = rules.filter(enabled=enabled)
 
-    rules = rules.all()
-    rules = rules.filter(start__isnull=True) | rules.filter(start__lte=time_)
-    rules = rules.filter(end__isnull=True) | rules.filter(end__gte=time_)
+	rules = rules.all()
+	rules = rules.filter(start__isnull=True) | rules.filter(start__lte=time_)
+	rules = rules.filter(end__isnull=True) | rules.filter(end__gte=time_)
 
-    if remote is None:
-	return list(rules)
+	if remote is None:
+	    out.append(rules)
+	    continue
 
-    for rule in rules:
-	if rule.name_filter is None or remote.name is None or remote.name.startswith(rule.name_filter):
-	    if rule.addr_filter is None or remote.address.startswith(rule.addr_filter):
-		if rule.devclass_filter is None or (remote.devclass & rule.devclass_filter)>0:
-		    out.append(rule)
+	for rule in rules:
+	    if rule.matches(remote):
+		out.append(rule)
+
     return out
 
 def get_campaign_rule(files):

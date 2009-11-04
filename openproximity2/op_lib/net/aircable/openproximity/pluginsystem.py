@@ -51,10 +51,10 @@ class Plugin(object):
 
 class PluginSystem(object):
         def __init__(self):
-                self.plugin_infos = list()
+                self.plugin_infos = dict()
 
         def get_plugins(self, provides=None):
-		for i in self.plugin_infos:
+		for i in self.plugin_infos.itervalues():
 		    if not provides or i.provides.get(provides, None):
 			yield i
 
@@ -78,7 +78,7 @@ class PluginSystem(object):
                 plugin = Plugin(path, name,
                                 lambda:self.import_plugin(name))
 		if plugin.enabled:
-    		    self.plugin_infos.append(plugin)
+    		    self.plugin_infos[name]=plugin
 
         def import_plugin(self, name):
                 __import__('plugins.%s' % name, {}, {}, [], 0)

@@ -20,6 +20,8 @@ from random import random
 from re import compile
 from rpyc import async
 from rpyc.utils.lib import ByValWrapper
+from net.aircable.openproximity.pluginsystem import pluginsystem
+import traceback, sys
 
 def is_known_dongle(address, klass):
     return klass.objects.filter(address=address).count() > 0
@@ -45,7 +47,7 @@ def found_action(services, address, record, pending):
     try:
 	
 	for plugin in pluginsystem.get_plugins('found_action'):
-	    if plugin.provides['found_action'](services, adress, record):
+	    if plugin.provides['found_action'](services=services, record=record):
 		    pending.add(record.remote.address)
 		    return True
     except:

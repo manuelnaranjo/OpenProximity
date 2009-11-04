@@ -80,13 +80,15 @@ class OpenProximityService(Service):
 		traceback.print_exc(file=sys.stdout)
 
 	def exposed_generic_register(self, remote_quit, dongles, ping, client):
+	    print "print generic register"
 	    try:
 		for plugin in pluginsystem.get_plugins('rpc_register'):
-			# wrap all calls as async, to avoid collitions
-			self.remote_quit = async(remote_quit)
-			self.ping = ping
-
-			if plugin.provides['rpc_register'](dongles, ping, client):
+			print "plugin", plugin.name, "provides rpc register"
+			if plugin.provides['rpc_register'](dongles=dongles, client=client):
+			    # wrap all calls as async, to avoid collitions
+			    self.remote_quit = async(remote_quit)
+			    self.ping = ping
+		    	    print "plugin handled rpc_register"
 			    return
 	    except:
 		print "ERROR on rpc generic register"
