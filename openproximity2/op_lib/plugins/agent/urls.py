@@ -18,7 +18,7 @@ from django.conf.urls.defaults import *
 
 from django.http import HttpResponse
 
-from agent.admin import myadmin
+from admin import myadmin
 
 import views
 
