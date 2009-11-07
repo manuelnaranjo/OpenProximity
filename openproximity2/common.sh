@@ -4,6 +4,10 @@
 # alone server
 
 PYTHONPATH=$(pwd)/libs
+for i in $(pwd)/libs/*.egg; do
+    PYTHONPATH=$PYTHONPATH:$i
+done
+
 LOG_DIR=/var/log/aircable
 
 export PYTHONPATH

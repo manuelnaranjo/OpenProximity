@@ -26,6 +26,16 @@ from re import compile
 from errors import *
 from select import select
 
+logger = logging.getLogger('sppAIRcableBase');
+# If you don't want to configure the logging settings from a file
+# then uncomment this
+console = logging.StreamHandler()
+console.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+console.setFormatter(formatter)
+logger.addHandler(console)
+logger.setLevel(logging.DEBUG)
+
 class sppBase:
 	'''
 	    Base class for rfcomm wrappers regardless of it\'s master or slave
@@ -55,16 +65,8 @@ class sppBase:
 	    self.__logger.debug(text);
 	    
 	def __init_logger(self):
-	    self.__logger = logging.getLogger('sppAIRcableBase');
-# If you don't want to configure the logging settings from a file
-# then uncomment this		
-	    console = logging.StreamHandler()
-	    console.setLevel(logging.DEBUG)
-	    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-	    console.setFormatter(formatter)
-	    self.__logger.addHandler(console)
-	    self.__logger.setLevel(logging.DEBUG)
-	    
+	    self.__logger = logger
+	
 	def getDefaultDeviceAddress(self):
 	    obj     = self.bus.get_object( 'org.bluez', '/' )
 	    manager = dbus.Interface( obj, 'org.bluez.Manager' )

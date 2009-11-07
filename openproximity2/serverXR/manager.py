@@ -33,7 +33,7 @@ loop = None
 
 def ping():
     try:
-	server.ping()
+	server.ping(timeout=10000)
 	return True
     except Exception, err:
 	logger.info("ping lost connection, cause: %s" % err)

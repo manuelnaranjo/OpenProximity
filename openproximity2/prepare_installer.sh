@@ -18,6 +18,23 @@ function download_and_uncompress(){
     (cd $PACKAGE-$VERSION; cp -r $FOLDER $LIB_TARGET)
 }
 
+function download_egg(){
+    PACKAGE=$1
+    VERSION=$2
+    URL=$3
+
+    echo "processing $PACKAGE"
+    
+    if [ ! -f $CWD/libs/$PACKAGE-$VERSION.egg ]; then
+	echo "Downloading"
+	wget -O $CWD/libs/$PACKAGE-$VERSION.egg $URL/$PACKAGE-$VERSION.egg
+    fi
+    cp $CWD/libs/$PACKAGE-$VERSION.egg $LIB_TARGET
+}
+
+
+
+
 echo "Creating installer for version" $(cat latest-version)
 
 OP2=$(pwd)/distrib/
@@ -64,7 +81,8 @@ download_and_uncompress lincolnloop-django-cpserver 19739be django_cpserver http
 download_and_uncompress django-rosetta 0.4.7 rosetta http://django-rosetta.googlecode.com/files
 download_and_uncompress wadofstuff-django-serializers 1.0.0 wadofstuff http://wadofstuff.googlecode.com/files
 download_and_uncompress poster 0.4 poster http://pypi.python.org/packages/source/p/poster/
-#download_and_uncompress pytz 2009n pytz http://pypi.python.org/packages/source/p/pytz/
+download_egg PyOFC2 0.1dev-py2.5 http://pypi.python.org/packages/2.5/P/PyOFC2/
+
 cd $OP2
 
 for i in $(ls $CWD/patches/*.patch); do

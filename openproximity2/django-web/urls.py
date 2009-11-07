@@ -55,4 +55,4 @@ for plugin in pluginsystem.get_plugins('urls'):
         (r'^%s/' % url[0], include('%s.%s' % ( plugin.__name__, url[1])))
     )
 
-urlpatterns += patterns('', (r'', include('openproximity.urls') ))
+urlpatterns += patterns('^$', (r'', include('openproximity.urls') ))
