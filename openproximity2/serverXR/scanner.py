@@ -19,6 +19,7 @@ from net.aircable.utils import settings
 from net.aircable.openproximity.signals.scanner import *
 from net.aircable.wrappers import Adapter
 from rpyc.utils.lib import ByValWrapper
+from django.utils.encoding import smart_str
 
 import net.aircable.const as const
 import net.aircable.utils as utils
@@ -294,7 +295,7 @@ class ScanManager:
 		    dongle.found[address]['time'] = list()
 		    
 	    if 'name' not in dongle.found[address] and 'Name' in values:
-		dongle.found[address]['name']=str(values['Name'])
+		dongle.found[address]['name']=smart_str(values['Name'])
 	    if  'devclass' not in dongle.found[address] and 'Class' in values:
 		dongle.found[address]['devclass'] = int(values['Class'])
 		
@@ -329,7 +330,7 @@ class ScanManager:
 			founds.append(
 			    { 
 				'address': str(found), 
-				'name': str(data.get('name', None)),
+				'name': smart_str(data.get('name', None)),
 				'rssi': data['rssi'],
 				'time': data['time'],
 				'devclass': int(data.get('devclass',-1))
