@@ -4,7 +4,7 @@
 # alone server
 
 PYTHONPATH=$(pwd)/libs
-for i in $(pwd)/libs/*.egg; do
+for i in $( find $(pwd)/libs | grep egg ); do
     PYTHONPATH=$PYTHONPATH:$i
 done
 

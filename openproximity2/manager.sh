@@ -3,7 +3,8 @@
 # you can use this script to run any django manage thing
 # the script will setup the needed paths
 
-PYTHONPATH=$(pwd)/libs
+source common.sh
+
 LOG_DIR=/var/log/aircable
 
 export PYTHONPATH

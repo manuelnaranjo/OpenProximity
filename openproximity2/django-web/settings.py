@@ -93,7 +93,7 @@ SECRET_KEY = 'c%-hx%#@jh4)_zlbqco+v9lm6s0xgi%)vzs-qrbkn)_#ef@7!h'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.load_template_source',
     'django.template.loaders.app_directories.load_template_source',
-#     'django.template.loaders.eggs.load_template_source',
+    'django.template.loaders.eggs.load_template_source',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -151,7 +151,10 @@ for plugin in pluginsystem.get_plugins('django'):
     if plugin.provides.get('LOCALE_PATHS', None) is not None:
 	LOCALE_PATHS += ( os.path.join(plugin.__path__[0], plugin.provides['LOCALE_PATHS']), )
     if plugin.provides.get('django_app', False):
-	INSTALLED_APPS += ( '%s.%s' % ('plugins', plugin.name), )
+	INSTALLED_APPS += (plugin.module_name,)#( '%s.%s' % ('plugins', plugin.name), )
+
+for plugin in pluginsystem.get_plugins('plugin_provider'):
+    for plug in plugin.provides['find_plugins']():
+	INSTALLED_APPS += (plug.module_name, )
 
 print "plugin system initializated"
-

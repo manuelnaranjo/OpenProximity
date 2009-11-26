@@ -2,7 +2,7 @@
 
 # this script will start django shell for OpenProximity 2.0
 
-PYTHONPATH=$(pwd)/libs
+source common.sh
 LOG_DIR=/var/log/aircable
 
 export PYTHONPATH

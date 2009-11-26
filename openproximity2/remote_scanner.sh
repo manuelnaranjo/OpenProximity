@@ -3,7 +3,7 @@
 # this script will launch all the needed parts for an OpenProximity2.0 stand
 # alone server
 
-PYTHONPATH=$(pwd)/libs
+source common.sh
 LOG_DIR=/var/log/aircable
 
 PID=$$
