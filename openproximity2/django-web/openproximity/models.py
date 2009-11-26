@@ -170,7 +170,7 @@ class RemoteDevice(models.Model):
 	return "%s, %s" % (self.address, self.name)
 
 class DeviceRecord(models.Model):
-    time = models.DateTimeField(auto_now=True, blank=False, serialize = True,
+    time = models.DateTimeField(blank=False, serialize = True,
 	verbose_name=_("time"))
     dongle = models.ForeignKey(BluetoothDongle, blank=True, null=True, serialize = True,
 	verbose_name=_("dongle address"))
@@ -182,6 +182,13 @@ class DeviceRecord(models.Model):
 	# don't create a table for me please
 #	abstract = True
 	ordering = ['time']
+
+    def save(self, force_insert=False, force_update=False):
+	if self.time is None:
+	    self.time = datetime.now()
+	
+	super(DeviceRecord, self).save(force_insert, force_update)
+
 
 class RemoteBluetoothDeviceRecord(DeviceRecord):
     remote = models.ForeignKey(RemoteDevice, verbose_name=_("remote address"), serialize = True)
