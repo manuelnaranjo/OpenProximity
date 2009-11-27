@@ -97,7 +97,6 @@ def found_action(services, address, record, pending):
 
     print len(files), "files"
     if len(files) > 0:
-	uploaded.add(record.remote.address)
     	pending.add(record.remote.address)
     	do_upload(uploader, files, record.remote.address, service, name)
     else:
