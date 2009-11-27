@@ -119,9 +119,9 @@ class MarketingCampaign(Campaign):
 	help_text=_("how much time to wait after a certain device has made a timeout before we try again"))
     accepted_count = models.IntegerField(default=-1,
 	help_text=_("how many times will this campaign be accepted before disabling, -1 means infinite"))
-    rssi_min = models.IntegerField(null=True,
+    rssi_min = models.IntegerField(null=True, blank=True,
 	help_text=_("if the meassured rssi is over or equal than this value then campaign will match, take into account rssi is negative, range -255 0"))
-    rssi_max = models.IntegerField(null=True,
+    rssi_max = models.IntegerField(null=True, blank=True,
 	help_text=_("if the meassured rssi is less or equal than this value then campaign will match, take into account rssi is negative, range -255 0"))
 
     def __unicode__(self):
