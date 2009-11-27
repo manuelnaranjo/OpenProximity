@@ -16,24 +16,26 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import threading, time, traceback, sys
-
-from django.core.management import setup_environ
-from rpyc import Service, async
-from rpyc.utils.server import ThreadedServer, ForkingServer
-
+# setup Django ORM
 try:
     import settings # Assumed to be in the same directory.
 except ImportError:
     sys.stderr.write("Error: Can't find the file 'settings.py' in the directory containing %r. It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n(If the file settings.py does indeed exist, it's causing an ImportError somehow.)\n" % __file__)
     sys.exit(1)
-
+from django.core.management import setup_environ
 setup_environ(settings)
-from openproximity.models import CampaignFile, Setting
+
+# now we can safely import the rest
 import net.aircable.openproximity.signals as signals
 import openproximity.rpc as rpc
 import openproximity.rpc.scanner, openproximity.rpc.uploader
+import threading, time, traceback, sys
+
+from django.db import transaction
 from net.aircable.openproximity.pluginsystem import pluginsystem
+from openproximity.models import CampaignFile, Setting
+from rpyc import Service, async
+from rpyc.utils.server import ThreadedServer, ForkingServer
 
 pluginsystem.post_environ()
 
@@ -61,23 +63,30 @@ class OpenProximityService(Service):
 	    if exit:
 		sys.exit(3) # restart me please
 
+	@transaction.commit_manually
 	def exposed_listener(self, signal, *args, **kwargs):
 	    print signal, args, kwargs
 	    kwargs['pending']=pending
+	    
 	    try:
 		for plugin in pluginsystem.get_plugins('rpc'):
 		    plugin.provides['rpc'](signal=signal, services=services, manager=self, *args, **kwargs)
+		transaction.commit() # commit only after all the plugins have handled
 	    except:
 		print "ERROR on rpc listener while doing plugins"
 		traceback.print_exc(file=sys.stdout)
+		transaction.rollback() # oops rollback
+
 	    try:	
 		if signals.isScannerSignal(signal):
 		    rpc.scanner.handle(services, signal, self, *args, **kwargs)
 		elif signals.isUploaderSignal(signal):
 		    rpc.uploader.handle(services, signal, self, *args, **kwargs)
+		transaction.commit() # commit only after scanner and upload has done it's work
 	    except:
 		print "ERROR on rpc listener while doing scanner or uploader"
 		traceback.print_exc(file=sys.stdout)
+		transaction.rollback() # oops rollback
 
 	def exposed_generic_register(self, remote_quit, dongles, ping, client):
 	    print "print generic register"
