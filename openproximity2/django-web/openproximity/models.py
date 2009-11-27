@@ -96,7 +96,7 @@ class Campaign(models.Model):
 	help_text=_("if you want your campaign to change the bluetooth dongles names when running then set this variable")
     )
     
-    def matches(self, remote):
+    def matches(self, remote, *args, **kwargs):
 	return False
 
     def __unicode__(self):
@@ -119,6 +119,10 @@ class MarketingCampaign(Campaign):
 	help_text=_("how much time to wait after a certain device has made a timeout before we try again"))
     accepted_count = models.IntegerField(default=-1,
 	help_text=_("how many times will this campaign be accepted before disabling, -1 means infinite"))
+    rssi_min = models.IntegerField(null=True,
+	help_text=_("if the meassured rssi is over or equal than this value then campaign will match, take into account rssi is negative, range -255 0"))
+    rssi_max = models.IntegerField(null=True,
+	help_text=_("if the meassured rssi is less or equal than this value then campaign will match, take into account rssi is negative, range -255 0"))
 
     def __unicode__(self):
 	return "MarketingCampaign: %s" % self.name
@@ -137,11 +141,18 @@ class MarketingCampaign(Campaign):
 		self.rejected_count > RemoteBluetoothDeviceFilesRejected.\
 		objects.filter(remote=record.remote).count())
 	
-    def matches(self, remote):
+    def matches(self, remote, record=None, *args, **kwargs):
 	if self.name_filter is None or remote.name is None or remote.name.startswith(self.name_filter):
 	    if self.addr_filter is None or remote.address.startswith(self.addr_filter):
 		if self.devclass_filter is None or (remote.devclass & self.devclass_filter)>0:
-		    return True
+		    # do RSSI check
+		    if record is None or not hasattr(record, getAverageRSSI):
+			return True
+		    
+		    rssi = record.getAverageRSSI()
+		    if self.rssi_min is None or rssi > self.rssi_min:
+			if self.rssi_max is None or rssi < self.rssi_max:
+			    return True
 	return False
 
 
@@ -220,6 +231,10 @@ class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
     def getRSSI(self):
 	return [ int(a) for a in self.__rssi.split(",") ]
 
+    def getAverageRSSI(self):
+	rssi=self.getRSSI()
+	return sum(rssi)/float(len(rssi))
+
     def __unicode__(self):
 	return "%s, %s, %s" % (
 	    self.dongle.address, 
@@ -274,7 +289,7 @@ class RemoteBluetoothDeviceFilesSuccess(RemoteBluetoothDeviceFileTry):
 
 def getMatchingCampaigns(remote=None, 
 	    time_=datetime(*time.localtime()[:-2]),
-	    enabled=None, classes=None):
+	    enabled=None, classes=None, record=None):
     out  = list()
 
     if classes is None:
@@ -295,7 +310,7 @@ def getMatchingCampaigns(remote=None,
 	    continue
 
 	for rule in rules:
-	    if rule.matches(remote):
+	    if rule.matches(remote, record):
 		out.append(rule)
 
     return out

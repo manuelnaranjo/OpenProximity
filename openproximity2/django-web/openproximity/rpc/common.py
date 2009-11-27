@@ -45,7 +45,6 @@ def do_upload(uploader, files, remote, service='opp', dongle_name=None):
 
 def found_action(services, address, record, pending):
     try:
-	
 	for plugin in pluginsystem.get_plugins('found_action'):
 	    if plugin.provides['found_action'](services=services, record=record):
 		    pending.add(record.remote.address)
@@ -61,7 +60,7 @@ def found_action(services, address, record, pending):
 	return True
 
     print "found uploader"
-    camps = getMatchingCampaigns(record.remote, enabled=True)
+    camps = getMatchingCampaigns(record.remote, enabled=True, record=record)
 
     if len(camps)==0:
 	print "no campaigns"
