@@ -146,7 +146,7 @@ class MarketingCampaign(Campaign):
 	    if self.addr_filter is None or remote.address.startswith(self.addr_filter):
 		if self.devclass_filter is None or (remote.devclass & self.devclass_filter)>0:
 		    # do RSSI check
-		    if record is None or not hasattr(record, getAverageRSSI):
+		    if record is None or not hasattr(record, 'getAverageRSSI'):
 			return True
 		    
 		    rssi = record.getAverageRSSI()

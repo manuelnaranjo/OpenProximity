@@ -60,7 +60,8 @@ def found_action(services, address, record, pending):
 	return True
 
     print "found uploader"
-    camps = getMatchingCampaigns(record.remote, enabled=True, record=record)
+    camps = getMatchingCampaigns(record.remote, enabled=True, 
+	record=record, classes=[MarketingCampaign,])
 
     if len(camps)==0:
 	print "no campaigns"
