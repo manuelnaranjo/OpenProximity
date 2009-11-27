@@ -271,7 +271,9 @@ def stats_restart(request):
     
     try:
 	server=rpyc.connect('localhost', 8010)
+	server.root.Unlock()
 	server.root.restart()
+	print "database unlocked"
     except:
 	pass
 

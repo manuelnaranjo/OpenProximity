@@ -65,6 +65,12 @@ class OpenProximityService(Service):
 
 	@transaction.commit_manually
 	def exposed_listener(self, signal, *args, **kwargs):
+	    global enabled
+	    
+	    if not enabled:
+		print "rpc is locked, dropping signal", signal
+		return
+	    
 	    print signal, args, kwargs
 	    kwargs['pending']=pending
 	    
@@ -197,11 +203,13 @@ class OpenProximityService(Service):
 	    return self.exit(False)
 
 	def exposed_Lock(self):
+	    print "lock requested"
 	    global enabled
 	    enabled = False
 	    self.exit(False)
 
 	def exposed_Unlock(self):
+	    print "lock released"
 	    global enabled
 	    enabled = True
 	    self.exit(False)
