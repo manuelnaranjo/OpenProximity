@@ -287,13 +287,15 @@ class RemoteBluetoothDeviceFilesSuccess(RemoteBluetoothDeviceFileTry):
 		self.campaign.no_restart = True
 		self.campaign.save()
 
-def getMatchingCampaigns(remote=None, 
-	    time_=datetime(*time.localtime()[:-2]),
+def getMatchingCampaigns(remote=None, time_=None,
 	    enabled=None, classes=None, record=None):
     out  = list()
 
     if classes is None:
 	classes = Campaign.__subclasses__()
+    if time_ is None:
+	time_=datetime(*time.localtime()[:-2])
+
     for model in classes:
 	print model
         rules = model.objects
