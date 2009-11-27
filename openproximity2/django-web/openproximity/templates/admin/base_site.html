@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans 'OpenProximity site admin' %}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="/">{% trans 'OpenProximity administration' %}</a></h1> 
+{% endblock %}
+
+{% block nav-global %}
+<a href="/" style="margin: 0 12px">{% trans 'OpenProximity Index' %}</a>
+{% endblock %}
