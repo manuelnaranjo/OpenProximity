@@ -57,6 +57,9 @@ class MarketingCampaignAdmin(admin.ModelAdmin):
 			'tries_count', 'tries_timeout',
 			'accepted_count')
 	}),
+        ('RSSI filter', {
+	    'fields': ('rssi_min', 'rssi_max'),
+	}), 
 	('Dongles settings',{
 	    'fields': ('dongle_name',),
 	}),
@@ -75,7 +78,9 @@ class MarketingCampaignAdmin(admin.ModelAdmin):
     list_display = ( 'name', 
 			'service', 
 			'start',
-			'end', 
+			'end',
+			'rssi_min',
+			'rssi_max',
 			'name_filter', 
 			'addr_filter', 
 			'devclass_filter',
@@ -84,13 +89,15 @@ class MarketingCampaignAdmin(admin.ModelAdmin):
     list_filter = ( 'service', 
 			'start', 
 			'end', 
+			'rssi_min',
+			'rssi_max',
 			'name_filter', 
 			'addr_filter',
 			'devclass_filter',
 			'enabled'
 		)
 			
-    ordering = [ 'name', 'service', 'start', 'end' ]
+    ordering = [ 'name', 'service', 'start', 'end', 'rssi_min', 'rssi_max' ]
 
 
 admin.site.register(MarketingCampaign, MarketingCampaignAdmin)
