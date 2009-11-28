@@ -21,11 +21,13 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import Context
 from django.template.loader import get_template
 from django.utils import simplejson
+from django.utils.encoding import smart_str
 from django.views.generic import list_detail
 from django.contrib.admin.views import decorators
 
 from django.conf import settings
 
+from datetime import datetime
 from net.aircable.openproximity.pluginsystem import pluginsystem
 
 from re import compile
@@ -33,7 +35,7 @@ from mimetypes import guess_type as guess_mime
 
 from models import *
 from forms import *
-import rpyc, os
+import rpyc, os, time
 
 SET = settings.OPENPROXIMITY.getAllSettings()
 
@@ -378,14 +380,77 @@ def rpc_info(request):
 	simplejson.dumps(info), 
 	content_type="application/json")
 
-def rpc_command(request, command):
-    if command=='stats':
-	return rpc_stats(request)
-    if command=='info':
-	return rpc_info(request)
-    return HttpResponse("Non Valid Command")
+def smart_group(group):
+    for g in group:
+	line=dict()
+	for key,val in g.iteritems():
+	    line[key]=str(val)
+	yield line
 
-import time
+def rpc_last_seen(request):
+    #get a json list of the devices seen in the last 30 minutes
+    secs=time.time()-15*60
+    start=datetime.fromtimestamp(secs)
+    print start
+    objs=RemoteDevice.objects.filter(
+	last_seen__gte=start).order_by('address')
+
+    if objs.count() > 0:
+	return HttpResponse(
+	    simplejson.dumps(
+		list(smart_group(
+		    objs.values(
+			'address', 
+			'name', 
+			'last_seen', 
+			'devclass')
+		    )
+		)),
+	    content_type="application/json")
+
+    return HttpResponse(
+	simplejson.dumps({}),
+	content_type="application/json")
+	
+def rpc_device_info(request):
+    addr=request.GET.get('address')
+    
+    out=dict()
+    out['accepted'] = RemoteBluetoothDeviceFilesSuccess.objects.filter(remote__address=addr).count()
+
+    non_accepted = RemoteBluetoothDeviceFilesRejected.objects.filter(remote__address=addr).count()
+    a=RemoteBluetoothDeviceFilesRejected.objects.filter(remote__address=addr)
+    for ret in TIMEOUT_RET:
+        a=a.exclude(ret_value=ret)
+	    
+    out['rejected'] = a.count()
+    out['timeout'] = non_accepted-out['rejected']
+    out['tries'] = out['accepted']+non_accepted
+    if out['tries'] > 0:
+	out['valid'] = RemoteBluetoothDeviceSDP.objects.filter(remote__address=addr).count()>0
+    else:
+	out['valid'] = 'N/D'
+
+    return HttpResponse(
+	simplejson.dumps(out),
+        content_type="application/json")
+
+RPC_COMMANDS={
+    'stats':		rpc_stats,
+    'info':		rpc_info,
+    'last-seen':	rpc_last_seen,
+    'device-info': 	rpc_device_info, 
+}
+
+def rpc_command(request, command):
+    f = RPC_COMMANDS.get(command, None)
+    print command, f!=None
+    if f is None:
+	return HttpResponse("Non Valid Command")
+    return f(request)
+
+def last_seen(request):
+    return render_to_response("op/last_seen.html")
 
 TOTAL = 30000
 

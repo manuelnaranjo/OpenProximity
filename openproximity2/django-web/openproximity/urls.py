@@ -65,5 +65,6 @@ urlpatterns = patterns('',
     (r'^stats/restart.*', views.stats_restart),
     (r'^file/grab/(?P<file>.+)', views.grab_file),
     (r'^microblog/', include(blog.urlpatterns)),
+    (r'^last-seen/$', views.last_seen),
     (r'^$', views.index),
 )

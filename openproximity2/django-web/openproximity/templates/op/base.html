@@ -7,6 +7,20 @@
 {% include "op/base.css" %}
 </style>
 {% endblock %}
+
+<script type="text/javascript">
+    function popitup(url, format){
+	if (format == null){
+	    format='height=200,width=800'
+	}
+	newwindow=window.open(url,'name', format)
+	if (window.focus){ 
+	    newwindow.focus() 
+	}
+	return False;
+    }
+</script>
+
 {% block extrahead %}{% endblock %}
 </head>
 <body id="{% block bodyid %}page{% endblock %}">
@@ -16,6 +30,7 @@
 <div id="navwrapper" class="up">
     {% block navbar %}
 	<a href="/" id="nav_index">{% trans "Index" %}</a>
+	<a href="javascript: popitup('/last-seen/')" id="nav_index">{% trans "Last Seen" %}</a>
 	{% if settings.debug %}
 	    <a href="/data/" id="nav_data">{% trans "Data Browse" %}</a>
 	{% endif %}

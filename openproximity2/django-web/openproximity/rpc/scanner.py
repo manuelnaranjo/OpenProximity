@@ -139,6 +139,7 @@ def handle_addrecord(services, remote_, dongle, pending):
     record.action = signals.FOUND_DEVICE
     record.dongle = dongle
     record.setRemoteDevice(address)
+    record.remote.save() # update last seen
     record.setRSSI(remote_['rssi'])
 
     if record.remote.name is None and remote_['name'] is not None:

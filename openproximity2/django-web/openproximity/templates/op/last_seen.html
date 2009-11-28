@@ -1,0 +1,94 @@
+{% extends "op/base_popup.html" %}
+{% load i18n %}
+
+{% block extrahead %}
+<script type="text/javascript" src="/site_media/MochiKit.js"></script>
+
+<script type="text/javascript">
+
+function create_tr_seen(content){
+    tr=TR();
+    tr.id='seen_' + content.address
+    var fields=['address', 'name', 'last_seen'];//, 'devclass'];
+    
+    for (i in fields){
+	var td=TD();
+	td.innerHTML=content[fields[i]];
+	tr.appendChild(td);
+    }
+    update_info(content.address)
+    return tr
+}
+
+function update_info(address){
+    var defer;
+    defer=loadJSONDoc('/rpc/device-info?address='+address);
+
+    var gotDeviceInfo = function(stats){
+	var i;
+	var fields=['valid', 
+	//'tries', 
+	'timeout', 'rejected', 'accepted']
+	
+	t=getElement('seen_' + address)
+	
+	for ( i in fields){
+	    td = TD()
+	    td.innerHTML=stats[fields[i]]
+	    t.appendChild(td)
+	}
+    }
+    
+    var deviceInfoFailed = function(err){
+    }
+
+    defer.addCallbacks(gotDeviceInfo, deviceInfoFailed);
+}
+
+function update_table(){
+    var defer;
+    defer=loadJSONDoc('/rpc/last-seen');
+
+    var gotLastSeen = function(stats){
+	var i;
+	
+	t=getElement('last_seen_body')
+	replaceChildNodes(t)
+	for ( i in stats){
+	    tr=create_tr_seen(stats[i]);
+	    t.appendChild(tr)
+	}
+    }
+    
+    var lastSeenFailed = function(err){
+    }
+
+    defer.addCallbacks(gotLastSeen, lastSeenFailed);
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<b>{% trans "Devices seen during the last 15 minutes" %}</b>
+<table id="last_seen">
+    <thead>
+	<tr>
+	    <td>{% trans "Address" %}</td>
+	    <td>{% trans "Name" %}</td>
+	    <td>{% trans "Last Seen" %}</td>
+	    {% comment %}<td>{% trans "Devclass" %}</td>{% endcomment %}
+	    <td>{% trans "Obex Valid" %}</td>
+	    {% comment %}<td>{% trans "Tried" %}</td>{% endcomment %}
+	    <td>{% trans "Timeout" %}</td>
+	    <td>{% trans "Rejected" %}</td>
+	    <td>{% trans "Accepted" %}</td>
+	</tr>
+    </thread>
+    <tbody id="last_seen_body"></tbody>
+</table>
+
+<script type="text/javascript">
+    update_table();
+    setInterval("update_table()", 30*1000); //update each 30 secs
+</script>
+{% endblock %}
