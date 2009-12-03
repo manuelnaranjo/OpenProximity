@@ -44,9 +44,13 @@ def do_upload(uploader, files, remote, service='opp', dongle_name=None):
     print "upload called async"
 
 def found_action(services, address, record, pending):
+    line = LogLine()
+    line.content="Found action for: %s" % address
     try:
 	for plugin in pluginsystem.get_plugins('found_action'):
 	    if plugin.provides['found_action'](services=services, record=record):
+		    line.content+=" %s is handling" % getattr(plugin, 'name', 'plugin')
+		    line.save()
 		    pending.add(record.remote.address)
 		    return True
     except:
@@ -57,6 +61,8 @@ def found_action(services, address, record, pending):
     uploader = get_uploader(services)
 
     if uploader is None:
+	line.content+=" no uploaders, can't handle"
+	line.save()
 	return True
 
     print "found uploader"
@@ -64,6 +70,8 @@ def found_action(services, address, record, pending):
 	record=record, classes=[MarketingCampaign,])
 
     if len(camps)==0:
+	line.content+=" no matching campaings, not handling"
+	line.save()
 	print "no campaigns"
 	return True
 
@@ -99,6 +107,9 @@ def found_action(services, address, record, pending):
     if len(files) > 0:
     	pending.add(record.remote.address)
     	do_upload(uploader, files, record.remote.address, service, name)
+    	line.content+=" uploading files"
     else:
 	print "no files"
-
+	line.content+=" no files to upload"
+	
+    line.save()

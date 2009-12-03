@@ -148,8 +148,15 @@ def handle_addrecord(services, remote_, dongle, pending):
     if record.remote.devclass == -1 and remote_['devclass'] != -1:
         record.remote.devclass = remote_['devclass']
         record.remote.save()
-	
+
     record.save()
+    
+    logl = LogLine()
+    logl.content="Found: %s %s %s" % (
+	record.remote.address, 
+	record.remote.name,
+	record.__rssi)
+    logl.save()
     
     if address not in pending:
 	return found_action(services, address, record, pending)
