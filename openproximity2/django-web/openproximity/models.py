@@ -308,7 +308,7 @@ def getMatchingCampaigns(remote=None, time_=None,
 	rules = rules.filter(end__isnull=True) | rules.filter(end__gte=time_)
 
 	if remote is None:
-	    out.append(rules)
+	    out.extend(rules)
 	    continue
 
 	for rule in rules:
