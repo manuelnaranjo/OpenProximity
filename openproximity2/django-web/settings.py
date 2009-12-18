@@ -27,14 +27,12 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-if os.path.isfile('/etc/openproximity2.conf'):
-    inp = file('/etc/openproximity2.conf')
-    for line in inp.readlines():
-	if line.startswith('AIRCABLE_PATH'):
-	    AIRCABLE_PATH=line.split('=', 1)[1].strip()
-	    break
+if os.environ.get('AIRCABLE_PATH', None):
+    AIRCABLE_PATH=os.environ.get('AIRCABLE_PATH', None)
 else:
     AIRCABLE_PATH='/tmp'
+
+print AIRCABLE_PATH
 
 DATABASE_ENGINE = 'sqlite3'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
 DATABASE_NAME = "%s/aircable.db" % AIRCABLE_PATH   # Or path to database file if using sqlite3.
@@ -126,11 +124,12 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-#    'django.contrib.sites',
+    'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.databrowse',
     'django_cpserver',
+    'notification',
     'rosetta',
     'microblog',
 #    'bluez',
@@ -157,4 +156,4 @@ for plugin in pluginsystem.get_plugins('plugin_provider'):
     for plug in plugin.provides['find_plugins']():
 	INSTALLED_APPS += (plug.module_name, )
 
-print "plugin system initializated"
+print "plugin system initied"

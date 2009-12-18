@@ -4,6 +4,5 @@
 
 source common.sh
 
-cd django-web
-python manage.py syncdb
+syncdb
 

@@ -8,6 +8,23 @@ for i in $( find $(pwd)/libs | grep egg ); do
     PYTHONPATH=$PYTHONPATH:$i
 done
 
+function syncdb(){
+    cd django-web
+    set -e
+    echo "Initializating DB"
+    python manage.py syncdb --noinput
+    set +e
+    cd ..
+}
+
+function createadmin(){
+    cd django-web
+    set -e
+    python createadmin.py
+    set +e
+    cd ..
+}
+
 LOG_DIR=/var/log/aircable
 
 export PYTHONPATH
@@ -25,14 +42,10 @@ if [ -f /etc/openproximity2.conf ]; then
     source /etc/openproximity2.conf
 fi
 
+export AIRCABLE_PATH
 mkdir -p $AIRCABLE_PATH
 
 if [ ! -f $AIRCABLE_PATH/aircable.db ]; then
-    cd django-web
-    set -e
-    echo "Initializating DB"
-    python manage.py syncdb --noinput
-    python createadmin.py
-    set +e
-    cd ..
+    syncdb
+    createadmin
 fi

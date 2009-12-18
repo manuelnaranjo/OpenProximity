@@ -45,7 +45,9 @@ urlpatterns = patterns ('',
     
     (r'^site_media/(?P<path>.*)$', 'django.views.static.serve',
 	{	'document_root': os.path.join(os.path.dirname(__file__), 'media')}
-    )
+    ),
+    
+    (r'^notification/', include('notification.urls')),
 )
 
 for plugin in pluginsystem.get_plugins('urls'):

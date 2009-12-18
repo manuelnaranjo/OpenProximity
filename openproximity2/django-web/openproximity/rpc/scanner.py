@@ -155,7 +155,7 @@ def handle_addrecord(services, remote_, dongle, pending):
     logl.content="Found: %s %s %s" % (
 	record.remote.address, 
 	record.remote.name,
-	record.__rssi)
+	record.getRSSI())
     logl.save()
     
     if address not in pending:

@@ -32,7 +32,24 @@ function download_egg(){
     cp $CWD/libs/$PACKAGE-$VERSION.egg $LIB_TARGET
 }
 
-
+function git_egg(){
+    PACKAGE=$1
+    VERSION=$2
+    GIT=$3
+    
+    echo "processing $PACKAGE"
+    
+    if [ ! -f $CWD/libs/$PACKAGE-$VERSION.egg ]; then
+	echo "Downloading"
+	git clone $GIT $PACKAGE
+	cd $PACKAGE
+	python setup.py bdist_egg
+	mv dist/$PACKAGE-$VERSION.egg $CWD/libs/$PACKAGE-$VERSION.egg
+	cd ..
+	rm -rf $PACKAGE.temp
+    fi
+    cp $CWD/libs/$PACKAGE-$VERSION.egg $LIB_TARGET
+}
 
 
 echo "Creating installer for version" $(cat latest-version)
@@ -82,6 +99,7 @@ download_and_uncompress django-rosetta 0.4.7 rosetta http://django-rosetta.googl
 download_and_uncompress wadofstuff-django-serializers 1.0.0 wadofstuff http://wadofstuff.googlecode.com/files
 download_and_uncompress poster 0.4 poster http://pypi.python.org/packages/source/p/poster/
 download_egg PyOFC2 0.1dev-py2.5 http://pypi.python.org/packages/2.5/P/PyOFC2/
+git_egg django_notification 0.1.4-py2.6 git://github.com/jtauber/django-notification.git
 
 cd $OP2
 

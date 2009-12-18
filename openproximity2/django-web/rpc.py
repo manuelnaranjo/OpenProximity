@@ -19,11 +19,14 @@
 # setup Django ORM
 try:
     import settings # Assumed to be in the same directory.
+    from django.core.management import setup_environ
+    setup_environ(settings)
 except ImportError:
     sys.stderr.write("Error: Can't find the file 'settings.py' in the directory containing %r. It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n(If the file settings.py does indeed exist, it's causing an ImportError somehow.)\n" % __file__)
     sys.exit(1)
-from django.core.management import setup_environ
-setup_environ(settings)
+
+from net.aircable.openproximity.pluginsystem import pluginsystem
+pluginsystem.post_environ()
 
 # now we can safely import the rest
 import net.aircable.openproximity.signals as signals
@@ -31,13 +34,10 @@ import openproximity.rpc as rpc
 import openproximity.rpc.scanner, openproximity.rpc.uploader
 import threading, time, traceback, sys
 
-from django.db import transaction
-from net.aircable.openproximity.pluginsystem import pluginsystem
+from django.db import transaction, models
 from openproximity.models import CampaignFile, Setting
 from rpyc import Service, async
 from rpyc.utils.server import ThreadedServer, ForkingServer
-
-pluginsystem.post_environ()
 
 services = set()
 pending = set()
