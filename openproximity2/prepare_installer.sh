@@ -99,7 +99,8 @@ download_and_uncompress django-rosetta 0.4.7 rosetta http://django-rosetta.googl
 download_and_uncompress wadofstuff-django-serializers 1.0.0 wadofstuff http://wadofstuff.googlecode.com/files
 download_and_uncompress poster 0.4 poster http://pypi.python.org/packages/source/p/poster/
 download_egg PyOFC2 0.1dev-py2.5 http://pypi.python.org/packages/2.5/P/PyOFC2/
-git_egg django_notification 0.1.4-py2.6 git://github.com/jtauber/django-notification.git
+download_and_uncompress django-notification 0.1.5 notification http://pypi.python.org/packages/source/d/django-notification/
+download_and_uncompress django-mailer 0.1.0 mailer http://pypi.python.org/packages/source/d/django-mailer/
 
 cd $OP2
 

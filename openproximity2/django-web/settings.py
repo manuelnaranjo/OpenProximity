@@ -27,12 +27,27 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-if os.environ.get('AIRCABLE_PATH', None):
-    AIRCABLE_PATH=os.environ.get('AIRCABLE_PATH', None)
-else:
-    AIRCABLE_PATH='/tmp'
+# load settings from config file, do it the right way!
+OPENPROXIMITY_CONFIG_FILE=os.environ.get('OPENPROXIMITY_CONFIG_FILE', "/etc/openproximity2.conf")
 
-print AIRCABLE_PATH
+for line in file(OPENPROXIMITY_CONFIG_FILE).readlines():
+    line=line.strip()
+    if len(line) == 0 or line.startswith("#"):
+	continue
+    key, val = line.split("=", 1)
+    try:
+	val = eval(val.strip())
+	
+	# hack it a bit!
+	if val=="yes":
+	    val=True
+	elif val=="no":
+	    val=False
+    except:
+	pass
+    locals()[key]=val
+
+AIRCABLE_PATH=os.environ.get('AIRCABLE_PATH', '/tmp')
 
 DATABASE_ENGINE = 'sqlite3'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
 DATABASE_NAME = "%s/aircable.db" % AIRCABLE_PATH   # Or path to database file if using sqlite3.
@@ -124,15 +139,14 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.databrowse',
     'django_cpserver',
+    'mailer',
     'notification',
     'rosetta',
     'microblog',
-#    'bluez',
     'openproximity',
 )
 
@@ -157,3 +171,4 @@ for plugin in pluginsystem.get_plugins('plugin_provider'):
 	INSTALLED_APPS += (plug.module_name, )
 
 print "plugin system initied"
+

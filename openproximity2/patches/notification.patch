@@ -1,0 +1,404 @@
+Binary files notification.orig/._atomformat.py and notification/._atomformat.py differ
+diff -uprN notification.orig/engine.py notification/engine.py
+--- notification.orig/engine.py	2009-10-21 17:55:29.000000000 -0300
++++ notification/engine.py	2009-12-19 13:49:49.000000000 -0300
+@@ -9,26 +9,27 @@ try:
+ except ImportError:
+     import pickle
+ 
+-from django.conf import settings
+ from django.core.mail import mail_admins
+ from django.contrib.auth.models import User
+-from django.contrib.sites.models import Site
++
++from notification import NOTIFICATION_USE_SITE, NOTIFICATION_DEFAULT_SITE_NAME, NOTIFICATION_LOCK_TIMEOUT
++
++if NOTIFICATION_USE_SITE:
++    from django.contrib.sites.models import Site
++else:
++    Site = Null
+ 
+ from lockfile import FileLock, AlreadyLocked, LockTimeout
+ 
+ from notification.models import NoticeQueueBatch
+ from notification import models as notification
+ 
+-# lock timeout value. how long to wait for the lock to become available.
+-# default behavior is to never wait for the lock to be available.
+-LOCK_WAIT_TIMEOUT = getattr(settings, "NOTIFICATION_LOCK_WAIT_TIMEOUT", -1)
+-
+ def send_all():
+     lock = FileLock("send_notices")
+ 
+     logging.debug("acquiring lock...")
+     try:
+-        lock.acquire(LOCK_WAIT_TIMEOUT)
++        lock.acquire(NOTIFICATION_LOCK_WAIT_TIMEOUT)
+     except AlreadyLocked:
+         logging.debug("lock already in place. quitting.")
+         return
+@@ -58,8 +59,17 @@ def send_all():
+             # get the exception
+             exc_class, e, t = sys.exc_info()
+             # email people
+-            current_site = Site.objects.get_current()
+-            subject = "[%s emit_notices] %r" % (current_site.name, e)
++            
++            if NOTIFICATION_USE_SITE:
++		name = Site.objects.get_current().name
++	    elif NOTIFICATION_DEFAULT_SITE_NAME:
++		name = NOTIFICATION_DEFAULT_SITE_NAME
++	    else:
++		# don't display None, display just a space
++		name = ""
++
++	    subject = "[%s emit_notices] %r" % (name, e)
++		
+             message = "%s" % ("\n".join(traceback.format_exception(*sys.exc_info())),)
+             mail_admins(subject, message, fail_silently=True)
+             # log it as critical
+Binary files notification.orig/._feeds.py and notification/._feeds.py differ
+diff -uprN notification.orig/feeds.py notification/feeds.py
+--- notification.orig/feeds.py	2009-10-21 20:12:09.000000000 -0300
++++ notification/feeds.py	2009-12-19 13:51:36.000000000 -0300
+@@ -1,21 +1,17 @@
+ from datetime import datetime
+ 
+ from django.core.urlresolvers import reverse
+-from django.conf import settings
+ from django.contrib.sites.models import Site
+ from django.contrib.auth.models import User
+ from django.shortcuts import get_object_or_404
+ from django.template.defaultfilters import linebreaks, escape, striptags
+ from django.utils.translation import ugettext_lazy as _
+ 
++from notification import NOTIFICATION_ITEMS_PER_FEED, DEFAULT_HTTP_PROTOCOL
+ from notification.models import Notice
+ from notification.atomformat import Feed
+ 
+ 
+-ITEMS_PER_FEED = getattr(settings, 'ITEMS_PER_FEED', 20)
+-DEFAULT_HTTP_PROTOCOL = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
+-
+-
+ class BaseNoticeFeed(Feed):
+     def item_id(self, notification):
+         return "%s://%s%s" % (
+@@ -75,4 +71,4 @@ class NoticeUserFeed(BaseNoticeFeed):
+         return ({'href': complete_url},)
+ 
+     def items(self, user):
+-        return Notice.objects.notices_for(user).order_by("-added")[:ITEMS_PER_FEED]
++        return Notice.objects.notices_for(user).order_by("-added")[:NOTIFICATION_ITEMS_PER_FEED]
+diff -uprN notification.orig/__init__.py notification/__init__.py
+--- notification.orig/__init__.py	2009-10-21 20:12:50.000000000 -0300
++++ notification/__init__.py	2009-12-21 11:00:14.000000000 -0300
+@@ -6,4 +6,19 @@ def get_version():
+     else:
+         return "%s.%s.%s" % (VERSION[0], VERSION[1], VERSION[2])
+ 
+-__version__ = get_version()
+\ No newline at end of file
++__version__ = get_version()
++
++from django.conf import settings
++
++# default configuration
++NOTIFICATION_DEFAULT_SITE_NAME = getattr(settings, 'NOTIFICATION_DEFAULT_SITE_NAME', 'Django Notifications')
++NOTIFICATION_USE_SITE = getattr(settings, 'NOTIFICATION_USE_SITE', False)
++NOTIFICATION_QUEUE_ALL = getattr(settings, "NOTIFICATION_QUEUE_ALL", False)
++NOTIFICATION_LANGUAGE_MODULE = getattr(settings, 'NOTIFICATION_LANGUAGE_MODULE', False)
++NOTIFICATION_FEEDS = getattr(settings, "NOTIFICATION_FEEDS", False)
++NOTIFICATION_LOCK_WAIT_TIMEOUT = getattr(settings, "NOTIFICATION_LOCK_WAIT_TIMEOUT", -1)
++NOTIFICATION_ITEMS_PER_FEED = getattr(settings, 'NOTIFICATION_ITEMS_PER_FEED', 20)
++DEFAULT_HTTP_PROTOCOL = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
++
++
++
+Binary files notification.orig/.___init__.py and notification/.___init__.py differ
+Binary files notification.orig/._models.py and notification/._models.py differ
+diff -uprN notification.orig/models.py notification/models.py
+--- notification.orig/models.py	2009-10-21 18:00:15.000000000 -0300
++++ notification/models.py	2009-12-21 12:19:37.000000000 -0300
+@@ -4,7 +4,7 @@ try:
+     import cPickle as pickle
+ except ImportError:
+     import pickle
+-
++    
+ from django.db import models
+ from django.db.models.query import QuerySet
+ from django.conf import settings
+@@ -13,8 +13,12 @@ from django.template import Context
+ from django.template.loader import render_to_string
+ 
+ from django.core.exceptions import ImproperlyConfigured
++from notification import NOTIFICATION_USE_SITE, NOTIFICATION_QUEUE_ALL, \
++	NOTIFICATION_LANGUAGE_MODULE, DEFAULT_HTTP_PROTOCOL, NOTIFICATION_DEFAULT_SITE_NAME
++
++if NOTIFICATION_USE_SITE:
++    from django.contrib.sites.models import Site
+ 
+-from django.contrib.sites.models import Site
+ from django.contrib.auth.models import User
+ from django.contrib.auth.models import AnonymousUser
+ 
+@@ -30,8 +34,6 @@ if 'mailer' in settings.INSTALLED_APPS:
+ else:
+     from django.core.mail import send_mail
+ 
+-QUEUE_ALL = getattr(settings, "NOTIFICATION_QUEUE_ALL", False)
+-
+ class LanguageStoreNotAvailable(Exception):
+     pass
+ 
+@@ -202,9 +204,9 @@ def get_notification_language(user):
+     LanguageStoreNotAvailable if this site does not use translated
+     notifications.
+     """
+-    if getattr(settings, 'NOTIFICATION_LANGUAGE_MODULE', False):
++    if NOTIFICATION_LANGUAGE_MODULE:
+         try:
+-            app_label, model_name = settings.NOTIFICATION_LANGUAGE_MODULE.split('.')
++            app_label, model_name = NOTIFICATION_LANGUAGE_MODULE.split('.')
+             model = models.get_model(app_label, model_name)
+             language_model = model._default_manager.get(user__id__exact=user.id)
+             if hasattr(language_model, 'language'):
+@@ -230,7 +232,7 @@ def get_formatted_messages(formats, labe
+             'notification/%s' % format), context_instance=context)
+     return format_templates
+ 
+-def send_now(users, label, extra_context=None, on_site=True):
++def send_now(users, label, extra_context=None, on_site=True, current_site=None, notices_url = None):
+     """
+     Creates a new notice.
+ 
+@@ -249,14 +251,22 @@ def send_now(users, label, extra_context
+ 
+     notice_type = NoticeType.objects.get(label=label)
+ 
+-    protocol = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
+-    current_site = Site.objects.get_current()
+-
+-    notices_url = u"%s://%s%s" % (
+-        protocol,
+-        unicode(current_site),
+-        reverse("notification_notices"),
+-    )
++    protocol = DEFAULT_HTTP_PROTOCOL
++    if current_site is None:
++	if NOTIFICATION_USE_SITE:
++	    current_site = Site.objects.get_current()
++	else:
++	    current_site = NOTIFICATION_DEFAULT_SITE_NAME
++
++    if notices_url is None:
++	if NOTIFICATION_USE_SITE:
++	    notices_url = u"%s://%s%s" % (
++		protocol,
++		unicode(current_site),
++		reverse("notification_notices"),
++	    )
++	else:
++	    notices_url = ""
+ 
+     current_language = get_language()
+ 
+@@ -281,12 +291,13 @@ def send_now(users, label, extra_context
+             activate(language)
+ 
+         # update context with user specific translations
++
+         context = Context({
+             "user": user,
+             "notice": ugettext(notice_type.display),
+-            "notices_url": notices_url,
+-            "current_site": current_site,
+-        })
++	    "notices_url": notices_url,
++	    "current_site": current_site,
++	})
+         context.update(extra_context)
+ 
+         # get prerendered format messages
+@@ -325,7 +336,7 @@ def send(*args, **kwargs):
+     elif now_flag:
+         return send_now(*args, **kwargs)
+     else:
+-        if QUEUE_ALL:
++        if NOTIFICATION_QUEUE_ALL:
+             return queue(*args, **kwargs)
+         else:
+             return send_now(*args, **kwargs)
+diff -uprN notification.orig/templates/notification/notices.html notification/templates/notification/notices.html
+--- notification.orig/templates/notification/notices.html	1969-12-31 21:00:00.000000000 -0300
++++ notification/templates/notification/notices.html	2009-12-19 10:55:24.000000000 -0300
+@@ -0,0 +1,54 @@
++{% load i18n %}
++<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
++<html xmlns="http://www.w3.org/1999/xhtml" lang="{{ LANGUAGE_CODE }}" xml:lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}><head>
++<title>Notifications {% block title %}{% endblock %}</title>
++{% block style %}
++<style type="text/css">
++.notice {
++    border: solid #CCC;
++    border-width :0 1px 1px 0;
++    background-color: #EDF3FE;
++    margin: 10px 0px 10px 0px;
++    padding: 10px;
++    width: 250px;
++}
++
++.first-notice {
++    font-weight: bold;
++}
++
++.notice-delete {
++    
++}
++
++</style>
++{% endblock %}
++
++<body>
++<div class="notice">
++    <a href="{{ archive_all_url }}/">{% trans "Archive All" %}</a>&nbsp;&nbsp;
++    <a href="{{ delete_all_url }}/"
++        onClick="if(!confirm('{% trans "Are you sure you want to delete ALL notifications?" %}')) return false">
++	{% trans "Delete All" %}
++    </a>
++
++</div>
++{% for notice in notices %}
++<div class="notice">
++    <p {% if forloop.first %}class="first-notice"{% endif %}>
++	{{ notice }}
++    </p>
++    <p>
++	{% trans "Date" %}: {{ notice.added }}
++    </p>
++    <div class="notice-right">
++	<a href="{{ archive_url }}/{{ notice.id }}/">{% trans "Archive" %}</a>&nbsp;&nbsp;
++	    <a class="notice-delete" href="{{ delete_url }}/{{ notice.id }}/"
++	    onClick="if(!confirm('{% trans "Are you sure you want to delete this notification?" %}')) return false">
++		{% trans "Delete" %}
++	    </a>
++    </div>
++</div>
++{% endfor %}
++</body>
++</html>
+diff -uprN notification.orig/urls.py notification/urls.py
+--- notification.orig/urls.py	2009-10-21 17:55:29.000000000 -0300
++++ notification/urls.py	2009-12-19 13:55:25.000000000 -0300
+@@ -1,10 +1,17 @@
+ from django.conf.urls.defaults import *
++from notification import NOTIFICATION_FEEDS
+ 
+-from notification.views import notices, mark_all_seen, feed_for_user, single
++from notification.views import notices, mark_all_seen, single, archive, delete, delete_all
+ 
+ urlpatterns = patterns('',
+     url(r'^$', notices, name="notification_notices"),
+-    url(r'^(\d+)/$', single, name="notification_notice"),
+-    url(r'^feed/$', feed_for_user, name="notification_feed_for_user"),
++    url(r'^(?P<id>\d+)/$', single, name="notification_notice"),
+     url(r'^mark_all_seen/$', mark_all_seen, name="notification_mark_all_seen"),
++    url(r'^delete_all/$', delete_all, name="notification_delete_all"),
++    url(r'^archive/(?P<noticeid>\d+)/$', archive, name="notification_archive"),
++    url(r'^delete/(?P<noticeid>\d+)/$', delete, name="notification_delete"),
+ )
++
++if NOTIFICATION_FEEDS:
++    from notification.views import feed_for_user
++    urlpatterns.append(url(r'^feed/$', feed_for_user, name="notification_feed_for_user"))
+Binary files notification.orig/._views.py and notification/._views.py differ
+diff -uprN notification.orig/views.py notification/views.py
+--- notification.orig/views.py	2009-04-19 16:13:23.000000000 -0300
++++ notification/views.py	2009-12-19 13:53:38.000000000 -0300
+@@ -5,16 +5,19 @@ from django.template import RequestConte
+ from django.contrib.auth.decorators import login_required
+ from django.contrib.syndication.views import feed
+ 
++from notification import NOTIFICATION_FEEDS
+ from notification.models import *
+ from notification.decorators import basic_auth_required, simple_basic_auth_callback
+-from notification.feeds import NoticeUserFeed
+ 
+-@basic_auth_required(realm='Notices Feed', callback_func=simple_basic_auth_callback)
+-def feed_for_user(request):
+-    url = "feed/%s" % request.user.username
+-    return feed(request, url, {
+-        "feed": NoticeUserFeed,
+-    })
++if NOTIFICATION_FEEDS:
++    from notification.feeds import NoticeUserFeed
++
++    @basic_auth_required(realm='Notices Feed', callback_func=simple_basic_auth_callback)
++    def feed_for_user(request):
++	url = "feed/%s" % request.user.username
++	return feed(request, url, {
++	    "feed": NoticeUserFeed,
++	})
+ 
+ @login_required
+ def notices(request):
+@@ -40,10 +43,19 @@ def notices(request):
+         "rows": settings_table,
+     }
+     
++    archive_url = "%sarchive" % reverse("notification_notices")
++    delete_url = "%sdelete" % reverse("notification_notices")
++    archive_all_url = "%smark_all_seen" % reverse("notification_notices")
++    delete_all_url = "%sdelete_all" % reverse("notification_notices")
++    
+     return render_to_response("notification/notices.html", {
+         "notices": notices,
+         "notice_types": notice_types,
+         "notice_settings": notice_settings,
++        "archive_url": archive_url,
++        "delete_url": delete_url,
++        "archive_all_url": archive_all_url,
++        "delete_all_url": delete_all_url,
+     }, context_instance=RequestContext(request))
+ 
+ @login_required
+@@ -57,6 +69,8 @@ def single(request, id):
+ 
+ @login_required
+ def archive(request, noticeid=None, next_page=None):
++    if next_page:
++	reverse("notification_notices")
+     if noticeid:
+         try:
+             notice = Notice.objects.get(id=noticeid)
+@@ -71,6 +85,8 @@ def archive(request, noticeid=None, next
+ 
+ @login_required
+ def delete(request, noticeid=None, next_page=None):
++    if not next_page:
++	next_page = reverse("notification_notices")
+     if noticeid:
+         try:
+             notice = Notice.objects.get(id=noticeid)
+@@ -84,9 +100,18 @@ def delete(request, noticeid=None, next_
+     return HttpResponseRedirect(next_page)
+ 
+ @login_required
++def delete_all(request, next_page=None):
++    if not next_page:
++	next_page = reverse("notification_notices")
++    
++    notices = Notice.objects.notices_for(request.user, on_site=True).filter(archived=False)
++    if request.user.is_superuser:
++        notices.delete()
++    return HttpResponseRedirect(next_page)
++
++@login_required
+ def mark_all_seen(request):
+     for notice in Notice.objects.notices_for(request.user, unseen=True):
+         notice.unseen = False
+         notice.save()
+     return HttpResponseRedirect(reverse("notification_notices"))
+-    
+\ No newline at end of file
