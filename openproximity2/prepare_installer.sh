@@ -86,7 +86,18 @@ function git_egg(){
     cp "$CWD"/libs/$PACKAGE-$VERSION.egg "$LIB_TARGET"
 }
 
-
+function tinymce(){
+    # we need this function because tinymce has been badly packaged
+    if [ ! -f "$CWD"/libs/tinymce_3_2_7.zip ]; then
+	wget -P "$CWD"/libs http://ufpr.dl.sourceforge.net/project/tinymce/TinyMCE/3.2.7/tinymce_3_2_7.zip
+    fi
+    
+    echo "extracting tinymce"
+    unzip "$CWD"/libs/tinymce_3_2_7.zip
+    mkdir -p $OP2/openproximity2/django-web/media/js
+    cp -r tinymce/jscripts/tiny_mce/* $OP2/openproximity2/django-web/media/js/
+    rm -rf tinymce
+}
 echo "Creating installer for version" `cat latest-version`
 
 OP2=`pwd`/distrib/
@@ -98,29 +109,27 @@ mkdir -p "$OP2"/openproximity2
 mkdir -p "$LIB_TARGET"
 
 cd "$OP2"/openproximity2
-ln -s "$CWD"/client.sh
-ln -s "$CWD"/common.sh
-ln -s "$CWD"/django-web
-ln -s "$CWD"/latest-version
-ln -s "$CWD"/LICENSE
-ln -s "$CWD"/manager.sh
-#ln -s "$CWD"/op_lib/rosetta $LIB_TARGET/rosetta
-#ln -s "$CWD"/op_lib/django_cpserver $LIB_TARGET/django_cpserver
-ln -s "$CWD"/op_lib/net "$LIB_TARGET"/net
-ln -s "$CWD"/op_lib/plugins "$LIB_TARGET"/plugins
-ln -s "$CWD"/pair.py
-ln -s "$CWD"/pair.sh
-ln -s "$CWD"/remoteScanner
-ln -s "$CWD"/remote_scanner.sh
-ln -s "$CWD"/rpc_scanner.sh
-ln -s "$CWD"/rpc.sh
-ln -s "$CWD"/rpc_uploader.sh
-ln -s "$CWD"/run.sh
-ln -s "$CWD"/server.sh
-ln -s "$CWD"/serverXR
-ln -s "$CWD"/shell.sh
-ln -s "$CWD"/syncdb.sh
-ln -s "$CWD"/syncagent.sh
+cp "$CWD"/client.sh .
+cp "$CWD"/common.sh .
+cp -r "$CWD"/django-web .
+cp "$CWD"/latest-version .
+cp "$CWD"/LICENSE .
+cp "$CWD"/manager.sh .
+cp -r "$CWD"/op_lib/net "$LIB_TARGET"
+cp -r "$CWD"/op_lib/plugins "$LIB_TARGET"
+cp "$CWD"/pair.py .
+cp "$CWD"/pair.sh .
+cp -r "$CWD"/remoteScanner .
+cp "$CWD"/remote_scanner.sh .
+cp "$CWD"/rpc_scanner.sh .
+cp "$CWD"/rpc.sh .
+cp "$CWD"/rpc_uploader.sh .
+cp "$CWD"/run.sh .
+cp "$CWD"/server.sh .
+cp -r "$CWD"/serverXR .
+cp "$CWD"/shell.sh .
+cp "$CWD"/syncdb.sh .
+cp "$CWD"/syncagent.sh .
 
 
 cd "$OP2"
@@ -136,6 +145,10 @@ download_and_uncompress poster 0.4 poster http://pypi.python.org/packages/source
 download_and_uncompress PyOFC2 0.1.1dev pyofc2 http://pypi.python.org/packages/source/P/PyOFC2
 download_and_uncompress django-notification 0.1.5 notification http://pypi.python.org/packages/source/d/django-notification/
 download_and_uncompress django-mailer 0.1.0 mailer http://pypi.python.org/packages/source/d/django-mailer/
+
+#some ideas on a WYSIWYG template editor
+#download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/
+#tinymce
 
 cd $OP2
 
