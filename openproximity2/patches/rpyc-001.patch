@@ -1,0 +1,17 @@
+diff -uprN rpyc/core/async.py rpyc.old/core/async.py
+--- rpyc.old/core/async.py	2010-01-06 09:29:17.000000000 -0300
++++ rpyc/core/async.py	2010-01-06 09:30:08.000000000 -0300
+@@ -29,10 +29,13 @@ class AsyncResult(object):
+         return "<AsyncResult object (%s) at 0x%08x>" % (state, id(self))
+     def __call__(self, is_exc, obj):
+         if self.expired:
++    	    if is_exc: raise obj
+             return
+         self._is_ready = True
+         self._is_exc = is_exc
+         self._obj = obj
++        if len(self._callbacks) == 0:
++    	    raise obj
+         for cb in self._callbacks:
+             cb(self)
+         del self._callbacks[:]

@@ -1,0 +1,21 @@
+diff -uprN rpyc.old/core/vinegar.py rpyc/core/vinegar.py
+--- rpyc.old/core/vinegar.py	2010-01-06 09:29:17.000000000 -0300
++++ rpyc/core/vinegar.py	2010-01-06 09:32:06.000000000 -0300
+@@ -12,6 +12,8 @@ from rpyc.core import brine
+ from rpyc.core import consts
+ 
+ 
++PY26 = sys.version_info[:3] > (2,6,0)
++
+ class GenericException(Exception):
+     pass
+ 
+@@ -38,6 +40,8 @@ def dump(typ, val, tb, include_local_tra
+                     args.append(a)
+                 else:
+                     args.append(repr(a))
++        elif name=="message" and PY26:
++    	    pass
+         elif not name.startswith("_") or name == "_remote_tb":
+             attrval = getattr(val, name)
+             if not brine.dumpable(attrval):
