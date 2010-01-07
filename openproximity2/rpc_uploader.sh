@@ -13,7 +13,7 @@ export LOG_FILE
 cd serverXR
 echo "Starting RPC Uploader Client"
 if [ -z "$DEBUG" ]; then
-    exec python manager.py localhost 8010 uploader &
+    work manager.py localhost 8010 uploader &
 else
     exec python manager.py localhost 8010 uploader
 fi

@@ -2,6 +2,7 @@
 
 # this script will launch all the needed parts for an OpenProximity2.0 stand
 # alone server
+LOG_FILE=/dev/null
 
 PYTHONPATH=$(pwd)/libs
 for i in $( find $(pwd)/libs | grep egg ); do
@@ -23,6 +24,12 @@ function createadmin(){
     python createadmin.py
     set +e
     cd ..
+}
+
+function work(){
+    while [ 1 ]; do
+	python "$@" &>$LOG_FILE
+    done
 }
 
 LOG_DIR=/var/log/aircable

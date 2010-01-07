@@ -7,7 +7,7 @@ source common.sh
 LOG_DIR=/var/log/aircable
 
 export PYTHONPATH
+LOG_FILE=$LOG_DIR/pair.py
 
 echo "Starting Pairing manager"
-exec python pair.py 1>&2 2>$LOG_DIR/pair.log &
-
+work pair.py &

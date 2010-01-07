@@ -5,6 +5,7 @@
 
 source common.sh
 LOG_DIR=/var/log/aircable
+LOG_FILE=$LOG_DIR/rpc.log
 
 export PYTHONPATH
 
@@ -12,7 +13,7 @@ set -e
 cd django-web
 echo "Starting RPC server"
 if [ -z "$DEBUG" ]; then
-    exec python rpc.py 2>&1 1>$LOG_DIR/rpc.log &
+    work rpc.py &
 else
     python rpc.py
 fi
