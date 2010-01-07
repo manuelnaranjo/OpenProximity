@@ -37,7 +37,7 @@ def reset_stats(connection):
 provides = { 
     'name': 'agent plugin', 		# friendly name
     
-    'enabled': True,			# disable me please
+    'enabled': False,			# disable me please
     
     'django': True,			# expose me as a django enabled plugin
     
