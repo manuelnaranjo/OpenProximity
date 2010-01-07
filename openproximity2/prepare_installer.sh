@@ -158,14 +158,12 @@ done
 
 rm -rf "$OP2"/tmp
 
-#clear compiled messages files first
-rm -f `find . | grep "\.mo$"`
-
 #update messages
 cd "$OP2/openproximity2"; bash manager.sh makemessages -a
 
 #copy messages back to original code
 cp -r "$OP2/openproximity2/django-web/locale" "$CWD/django-web/"
+rm -f `find $CWD/django-web/locale | grep "\.mo$"`
 
 #now compile messages
 cd "$OP2/openproximity2"; bash manager.sh compilemessages

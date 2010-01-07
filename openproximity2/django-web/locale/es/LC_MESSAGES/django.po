@@ -2,14 +2,14 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-01-07 17:56-0300\n"
-"PO-Revision-Date: 2009-09-27 08:26\n"
-"Last-Translator: <foo@foo.com>\n"
+"POT-Creation-Date: 2010-01-07 18:28-0300\n"
+"PO-Revision-Date: 2010-01-07 18:39\n"
+"Last-Translator: <info@bluecomunications>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -107,69 +107,44 @@ msgid "ending date, or null to run for ever since start"
 msgstr "fecha de fin, dejar vacio para que corra por siempre desdé el inicio"
 
 #: openproximity/models.py:95
-#, fuzzy
 msgid "dongles names"
-msgstr "dirección de dongle"
+msgstr "nombre de los dongles"
 
 #: openproximity/models.py:96
-msgid ""
-"if you want your campaign to change the bluetooth dongles names when running "
-"then set this variable"
-msgstr ""
+msgid "if you want your campaign to change the bluetooth dongles names when running then set this variable"
+msgstr "Si desea que esta campaña cambie el nombre de sus dongles Bluetooth cuando se ejecuta, complete el siguiente campo"
 
 #: openproximity/models.py:113
-#, fuzzy
 msgid "how many times it should try again when rejected, -1 infinite"
-msgstr ""
-"cuántas veces el sistema vuelve a probar cuando se rechaza, -1 para "
-"infinitas veces"
+msgstr "cuántas veces el sistema vuelve a probar cuando se rechaza, -1 para infinitas veces"
 
 #: openproximity/models.py:115
-msgid ""
-"how much time to wait after a certain device has rejected a file before we "
-"try again"
-msgstr ""
+msgid "how much time to wait after a certain device has rejected a file before we try again"
+msgstr "cuánto tiempo de espera después de  que un determinado dispositivo ha rechazado un archivo antes de intentar de nuevo"
 
 #: openproximity/models.py:117
 msgid "how many times it should try to send when timing out, -1 infinite"
-msgstr ""
-"cuántas veces el sistema vuelve a probar cuando no hay respuesta del "
-"cliente, -1 para infinitas veces"
+msgstr "cuántas veces el sistema vuelve a probar cuando no hay respuesta del cliente, -1 para infinitas veces"
 
 #: openproximity/models.py:119
-msgid ""
-"how much time to wait after a certain device has made a timeout before we "
-"try again"
-msgstr ""
+msgid "how much time to wait after a certain device has made a timeout before we try again"
+msgstr "cuánto tiempo de espera después de un determinado dispositivo no ha respondido al envío antes de intentar de nuevo con el mismo"
 
 #: openproximity/models.py:121
-#, fuzzy
-msgid ""
-"how many times will this campaign be accepted before disabling, -1 means "
-"infinite"
-msgstr ""
-"cuántas veces el sistema vuelve a probar cuando se rechaza, -1 para "
-"infinitas veces"
+msgid "how many times will this campaign be accepted before disabling, -1 means infinite"
+msgstr "cuántas veces esta campaña aceptará antes de inhabilitar, -1 significa nunca desactivar"
 
 #: openproximity/models.py:123
-msgid ""
-"if the meassured rssi is over or equal than this value then campaign will "
-"match, take into account rssi is negative, range -255 0"
-msgstr ""
+msgid "if the meassured rssi is over or equal than this value then campaign will match, take into account rssi is negative, range -255 0"
+msgstr "si el RSSI medido es superior o igual a este valor entonces se enviará a dispositivo encontrado. Tener en cuenta que el RSSI es negativo, el rango es de -255 a 0"
 
 #: openproximity/models.py:125
-msgid ""
-"if the meassured rssi is less or equal than this value then campaign will "
-"match, take into account rssi is negative, range -255 0"
-msgstr ""
+msgid "if the meassured rssi is less or equal than this value then campaign will match, take into account rssi is negative, range -255 0"
+msgstr "si el RSSI medido es menor o igual a este valor entonces se enviará a dispositivo encontrado. Tener en cuenta que el RSSI es negativo, el rango es de -255 a 0"
 
 #: openproximity/models.py:161
-msgid ""
-"if < 1 then a random number generator will check if the user is lucky enough "
-"to get this file"
-msgstr ""
-"si es menor a 1 se genera un número aleatorio y se comprueba si el usuario "
-"tiene la suerte suficiente para conseguir esté archivo."
+msgid "if < 1 then a random number generator will check if the user is lucky enough to get this file"
+msgstr "si es menor a 1 se genera un número aleatorio y se comprueba si el usuario tiene la suerte suficiente para conseguir esté archivo."
 
 #: openproximity/models.py:163
 msgid "campaign file itself"
@@ -193,43 +168,43 @@ msgstr "canal rfcomm que brindo el servicio utilizado."
 
 #: openproximity/rpc/scanner.py:84
 msgid "Auto Discovered Dongle"
-msgstr ""
+msgstr "Dongle Auto Detectado"
 
 #: openproximity/rpc/uploader.py:73
 msgid "Autodiscovered Bluetooth dongle"
-msgstr ""
+msgstr "Dongle Bluetooth Auto Detectado"
 
 #: openproximity/templates/admin/base.html:27
 msgid "Welcome,"
-msgstr ""
+msgstr "Bienvenido"
 
 #: openproximity/templates/admin/base.html:32
 msgid "Documentation"
-msgstr ""
+msgstr "Documentación"
 
 #: openproximity/templates/admin/base.html:40
 msgid "Change password"
-msgstr ""
+msgstr "Cambiar Contraseña"
 
 #: openproximity/templates/admin/base.html:47
 msgid "Log out"
-msgstr ""
+msgstr "Salir"
 
 #: openproximity/templates/admin/base.html:54
 msgid "Home"
-msgstr ""
+msgstr "Inicio"
 
 #: openproximity/templates/admin/base_site.html:4
 msgid "OpenProximity site admin"
-msgstr ""
+msgstr "Sitio de Administración de OpenProximity"
 
 #: openproximity/templates/admin/base_site.html:7
 msgid "OpenProximity administration"
-msgstr ""
+msgstr "Administración de OpenProximity"
 
 #: openproximity/templates/admin/base_site.html:11
 msgid "OpenProximity Home"
-msgstr ""
+msgstr "Inicio de OpenProximity"
 
 #: openproximity/templates/op/base.html:34
 msgid "Index"
@@ -237,9 +212,8 @@ msgstr "Índice"
 
 #: openproximity/templates/op/base.html:35
 #: openproximity/templates/op/last_seen.html:78
-#, fuzzy
 msgid "Last Seen"
-msgstr "Vistos"
+msgstr "Últimos Vistos"
 
 #: openproximity/templates/op/base.html:37
 msgid "Data Browse"
@@ -259,11 +233,11 @@ msgstr "Traducir"
 
 #: openproximity/templates/op/base.html:49
 msgid "PLUGINS"
-msgstr ""
+msgstr "AGREGADOS"
 
 #: openproximity/templates/op/base_popup.html:26
 msgid "Close this Window"
-msgstr ""
+msgstr "Cerrar esta ventana"
 
 #: openproximity/templates/op/campaign_form.html:3
 msgid "Configure Campaign"
@@ -468,20 +442,19 @@ msgstr "Ver Archivo"
 
 #: openproximity/templates/op/last_seen.html:72
 msgid "Devices seen during the last 15 minutes"
-msgstr ""
+msgstr "Dispositivos vistos en los últimos 15 minutos"
 
 #: openproximity/templates/op/last_seen.html:77
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: openproximity/templates/op/last_seen.html:79
-#, fuzzy
 msgid "Devclass"
-msgstr "Filtro de Clase de Dispositivo"
+msgstr "Clase de Dispositivo"
 
 #: openproximity/templates/op/last_seen.html:80
 msgid "Obex Valid"
-msgstr ""
+msgstr "Obex Válido"
 
 #: openproximity/templates/op/remotebluetoothdevicerecord_form.html:25
 msgid "Submit"
