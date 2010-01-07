@@ -126,7 +126,6 @@ def configure_campaign(request, name=None):
     return render_to_response('op/campaign_form.html',
 	{ 
 	    'form':  form,
-	    'settings': SET
 	})
 
 @decorators.staff_member_required
@@ -189,7 +188,6 @@ def configure_dongle(request, address=None):
 	{ 
 	    'form':  form,
 	    'messages': messages,
-	    'settings': SET
 	})
 
 @decorators.staff_member_required
@@ -365,7 +363,6 @@ def index(request):
 	    "camps": getMatchingCampaigns(),
 	    "stats": stats,
 	    "version": version,
-	    "settings": SET,
 	})
 
 def rpc_stats(request):
