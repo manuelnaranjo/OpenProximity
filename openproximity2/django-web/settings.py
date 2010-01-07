@@ -26,6 +26,7 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
+AIRCABLE_PATH = None
 
 # load settings from config file, do it the right way!
 OPENPROXIMITY_CONFIG_FILE=os.environ.get('OPENPROXIMITY_CONFIG_FILE', "/etc/openproximity2.conf")
@@ -47,7 +48,7 @@ for line in file(OPENPROXIMITY_CONFIG_FILE).readlines():
 	pass
     locals()[key]=val
 
-AIRCABLE_PATH=os.environ.get('AIRCABLE_PATH', '/tmp')
+AIRCABLE_PATH=AIRCABLE_PATH or os.environ.get('AIRCABLE_PATH', '/tmp')
 
 DATABASE_ENGINE = 'sqlite3'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
 DATABASE_NAME = "%s/aircable.db" % AIRCABLE_PATH   # Or path to database file if using sqlite3.
