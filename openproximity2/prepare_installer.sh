@@ -157,6 +157,19 @@ for i in `ls "$CWD"/patches/*.patch`; do
 done
 
 rm -rf "$OP2"/tmp
+
+#clear compiled messages files first
+rm -f `find . | grep "\.mo$"`
+
+#update messages
+cd "$OP2/openproximity2"; bash manager.sh makemessages -a
+
+#copy messages back to original code
+cp -r "$OP2/openproximity2/django-web/locale" "$CWD/django-web/"
+
+#now compile messages
 cd "$OP2/openproximity2"; bash manager.sh compilemessages
+
+#clean up compiled python files
 rm -f `find . | grep "\.pyc$"`
 rm -f `find . | grep "\.pyo$"`
