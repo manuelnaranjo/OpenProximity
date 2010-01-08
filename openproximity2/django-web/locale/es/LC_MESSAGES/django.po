@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-01-07 18:28-0300\n"
+"POT-Creation-Date: 2010-01-07 19:15-0300\n"
 "PO-Revision-Date: 2010-01-07 18:39\n"
 "Last-Translator: <info@bluecomunications>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -111,40 +111,74 @@ msgid "dongles names"
 msgstr "nombre de los dongles"
 
 #: openproximity/models.py:96
-msgid "if you want your campaign to change the bluetooth dongles names when running then set this variable"
-msgstr "Si desea que esta campaña cambie el nombre de sus dongles Bluetooth cuando se ejecuta, complete el siguiente campo"
+msgid ""
+"if you want your campaign to change the bluetooth dongles names when running "
+"then set this variable"
+msgstr ""
+"Si desea que esta campaña cambie el nombre de sus dongles Bluetooth cuando "
+"se ejecuta, complete el siguiente campo"
 
 #: openproximity/models.py:113
 msgid "how many times it should try again when rejected, -1 infinite"
-msgstr "cuántas veces el sistema vuelve a probar cuando se rechaza, -1 para infinitas veces"
+msgstr ""
+"cuántas veces el sistema vuelve a probar cuando se rechaza, -1 para "
+"infinitas veces"
 
 #: openproximity/models.py:115
-msgid "how much time to wait after a certain device has rejected a file before we try again"
-msgstr "cuánto tiempo de espera después de  que un determinado dispositivo ha rechazado un archivo antes de intentar de nuevo"
+msgid ""
+"how much time to wait after a certain device has rejected a file before we "
+"try again"
+msgstr ""
+"cuánto tiempo de espera después de  que un determinado dispositivo ha "
+"rechazado un archivo antes de intentar de nuevo"
 
 #: openproximity/models.py:117
 msgid "how many times it should try to send when timing out, -1 infinite"
-msgstr "cuántas veces el sistema vuelve a probar cuando no hay respuesta del cliente, -1 para infinitas veces"
+msgstr ""
+"cuántas veces el sistema vuelve a probar cuando no hay respuesta del "
+"cliente, -1 para infinitas veces"
 
 #: openproximity/models.py:119
-msgid "how much time to wait after a certain device has made a timeout before we try again"
-msgstr "cuánto tiempo de espera después de un determinado dispositivo no ha respondido al envío antes de intentar de nuevo con el mismo"
+msgid ""
+"how much time to wait after a certain device has made a timeout before we "
+"try again"
+msgstr ""
+"cuánto tiempo de espera después de un determinado dispositivo no ha "
+"respondido al envío antes de intentar de nuevo con el mismo"
 
 #: openproximity/models.py:121
-msgid "how many times will this campaign be accepted before disabling, -1 means infinite"
-msgstr "cuántas veces esta campaña aceptará antes de inhabilitar, -1 significa nunca desactivar"
+msgid ""
+"how many times will this campaign be accepted before disabling, -1 means "
+"infinite"
+msgstr ""
+"cuántas veces esta campaña aceptará antes de inhabilitar, -1 significa nunca "
+"desactivar"
 
 #: openproximity/models.py:123
-msgid "if the meassured rssi is over or equal than this value then campaign will match, take into account rssi is negative, range -255 0"
-msgstr "si el RSSI medido es superior o igual a este valor entonces se enviará a dispositivo encontrado. Tener en cuenta que el RSSI es negativo, el rango es de -255 a 0"
+msgid ""
+"if the meassured rssi is over or equal than this value then campaign will "
+"match, take into account rssi is negative, range -255 0"
+msgstr ""
+"si el RSSI medido es superior o igual a este valor entonces se enviará a "
+"dispositivo encontrado. Tener en cuenta que el RSSI es negativo, el rango es "
+"de -255 a 0"
 
 #: openproximity/models.py:125
-msgid "if the meassured rssi is less or equal than this value then campaign will match, take into account rssi is negative, range -255 0"
-msgstr "si el RSSI medido es menor o igual a este valor entonces se enviará a dispositivo encontrado. Tener en cuenta que el RSSI es negativo, el rango es de -255 a 0"
+msgid ""
+"if the meassured rssi is less or equal than this value then campaign will "
+"match, take into account rssi is negative, range -255 0"
+msgstr ""
+"si el RSSI medido es menor o igual a este valor entonces se enviará a "
+"dispositivo encontrado. Tener en cuenta que el RSSI es negativo, el rango es "
+"de -255 a 0"
 
 #: openproximity/models.py:161
-msgid "if < 1 then a random number generator will check if the user is lucky enough to get this file"
-msgstr "si es menor a 1 se genera un número aleatorio y se comprueba si el usuario tiene la suerte suficiente para conseguir esté archivo."
+msgid ""
+"if < 1 then a random number generator will check if the user is lucky enough "
+"to get this file"
+msgstr ""
+"si es menor a 1 se genera un número aleatorio y se comprueba si el usuario "
+"tiene la suerte suficiente para conseguir esté archivo."
 
 #: openproximity/models.py:163
 msgid "campaign file itself"
