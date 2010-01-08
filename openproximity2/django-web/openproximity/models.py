@@ -21,12 +21,12 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.dispatch.dispatcher import Signal
-
 import rpyc
 
 import net.aircable.openproximity.signals.scanner as scanner
 
 from net.aircable.fields import PickledField
+from net.aircable.utils import logger
 
 TIMEOUT_RET = [ 22 ]
 
@@ -131,12 +131,12 @@ class MarketingCampaign(Campaign):
 	delta = time.time()-time.mktime(record.time.timetuple())
 
 	if record.isTimeout():
-	    print "Timeout"
+	    logger.info("record timeout")
 	    return delta >= self.tries_timeout and (self.tries_count==-1 or \
 		    self.tries_count > RemoteBluetoothDeviceFileTry.\
 		    objects.filter(remote=record.remote, campaign=record.campaign).count())
 	else:
-	    print "Rejected"
+	    logger.info("record rejected")
 	    return delta >= self.rejected_timeout and (self.rejected_count==-1 or \
 		self.rejected_count > RemoteBluetoothDeviceFilesRejected.\
 		objects.filter(remote=record.remote).count())
@@ -279,9 +279,10 @@ class RemoteBluetoothDeviceFilesSuccess(RemoteBluetoothDeviceFileTry):
     def save(self, force_insert=False, force_update=False):
 	super(RemoteBluetoothDeviceFilesSuccess, self).save(force_insert, force_update)
 	if self.campaign.accepted_count > -1:
-	    print "accepted filter", self.campaign.accepted_count
+	    
 	    qs = RemoteBluetoothDeviceFilesSuccess.objects.filter(campaign=self.campaign)
-	    print qs.count()
+	    logger.info("accepted filter: %s, count: %s" % 
+		( self.campaign.accepted_count, qs.count() ) )
 	    if qs.count() >= self.campaign.accepted_count:
 		self.campaign.enabled = False
 		self.campaign.no_restart = True
@@ -296,8 +297,10 @@ def getMatchingCampaigns(remote=None, time_=None,
     if time_ is None:
 	time_=datetime(*time.localtime()[:-2])
 
+    logger.info("getMatchingCampaigns %s %s %s %s %s" % 
+	( remote, time_, enabled, classes,record ) )
+
     for model in classes:
-	print model
         rules = model.objects
 
 	if enabled is not None:
@@ -315,29 +318,34 @@ def getMatchingCampaigns(remote=None, time_=None,
 	    if rule.matches(remote, record):
 		out.append(rule)
 
+    if len(out):
+	logger.info("There's a match")
+	logger.debug(out)
     return out
 
 def get_campaign_rule(files):
-    print 'get_campaign_rule', files
+    logger.info('get_campaign_rule %s' % files)
     out = set()
 
     for file, camp_id in files:
-	print file
+	logger.debug(file)
         try:
 	    camp = MarketingCampaign.objects.get(pk=camp_id)
-    	    print camp
+	    logger.debug(camp)
             if len(out) > 0 and camp not in out:
-                print "multiple return values"
+        	logger.error("multiple return values")
             out.add(camp)
         except Exception, err:
-            print err
+	    logger.exception(err)
     if len(out) == 0:
+	logger.info("couldn't find campaing")
         return None
 
+    logger.info("found camp")
     return list(out)[0]
 
 def __restart_server():
-    print "restarting server"
+    logger.info("restarting server")
     try:
 	server = rpyc.connect('localhost', 8010)
 	server.root.restart()
@@ -349,13 +357,13 @@ def bluetooth_dongle_signal(instance, **kwargs):
     ''' gets called when ever there is a change in dongles '''
     if type(instance) in [ BluetoothDongle, ScannerBluetoothDongle, 
 	    UploaderBluetoothDongle, RemoteScannerBluetoothDongle ]:
-        print 'bluetooth_dongle_signal'
+        logger.info('bluetooth_dongle_signal')
 	__restart_server()
 
 def campaign_signal(instance, **kwargs):
     ''' gets called when ever there is a change in marketing campaigns '''
     if type(instance) in [ CampaignFile, MarketingCampaign ] and not hasattr(instance, 'no_restart'):
-	print 'campaing_signal'
+	logger.info('campaing_signal')
 	__restart_server()
 
 models.signals.post_save.connect(bluetooth_dongle_signal)

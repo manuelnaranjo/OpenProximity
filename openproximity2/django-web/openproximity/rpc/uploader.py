@@ -16,6 +16,7 @@
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from net.aircable.openproximity.signals import uploader as signals
+from net.aircable.utils import logger
 from openproximity.models import *
 
 from common import get_uploader, do_upload, is_known_dongle, isAIRcable
@@ -27,7 +28,7 @@ import traceback
 SET = settings.OPENPROXIMITY
 
 def handle(services, signal, uploader, *args, **kwargs):
-    print "uploader signal", signals.TEXT[signal]
+    logger.info("uploader signal: %s" % signals.TEXT[signal])
     logl = LogLine()
     logl.content += signals.TEXT[signal]
     
@@ -52,7 +53,7 @@ def handle(services, signal, uploader, *args, **kwargs):
 	    kwargs['pending'], kwargs['port'], kwargs['files'], kwargs['ret'], 
 	    kwargs['stderr'], services)
     else:
-	print "signal ignored"
+	logger.error("signal ignored")
     
     logl.save()
 
@@ -63,11 +64,11 @@ def get_dongles(dongles):
         print address
         try:
             if not is_known_dongle(address, UploaderBluetoothDongle) and isAIRcable(address):
-        	print 'not known uploader', address
+        	logger.info('not known uploader %s' % address)
                 settings = SET.getSettingsByAddress(address)
                 if 'uploader' in settings:
-            	    print 'got settings for it'
-            	    print settings['uploader']
+            	    logger.info('default settings where found')
+            	    logger.debug(settings['uploader'])
                     max_conn = settings['uploader'].get('max_conn', 1)
                     enabled = settings['uploader'].get('enable', True)
                     name = settings['uploader'].get('name', _("Autodiscovered Bluetooth dongle"))
@@ -83,14 +84,14 @@ def get_dongles(dongles):
     	    dongle = UploaderBluetoothDongle.objects.get(address=address, enabled=True)
             out.append( (address, dongle.max_conn, dongle.name) )
         except Exception, err:
-            print err
+    	    logger.exception(err)
     return out
 
 def handle_sdp_resolved(dongle, remote, channel):
-    print "Valid SDP:", dongle, remote, channel
+    logger.info("Valid SDP: %s %s" % (remote, channel) )
     remote=RemoteDevice.objects.filter(address=remote).get()
     if RemoteBluetoothDeviceSDP.objects.filter(remote=remote).count() == 0:
-	print "New SDP result"
+	logger.info("New SDP result")
 	record = RemoteBluetoothDeviceSDP()
 	record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
 	record.channel = channel
@@ -98,7 +99,7 @@ def handle_sdp_resolved(dongle, remote, channel):
         record.save()
 
 def handle_sdp_norecord(dongle, remote, pending):
-    print "No SDP:", dongle, remote
+    logger.info("No SDP: %s" % remote)
     pending.remove(remote)
     remote=RemoteDevice.objects.filter(address=remote).get()
     if RemoteBluetoothDeviceNoSDP.objects.filter(remote=remote).count() == 0:
@@ -108,7 +109,7 @@ def handle_sdp_norecord(dongle, remote, pending):
         record.save()
     
 def handle_sdp_timeout(dongle, remote, pending):
-    print "SDP timeout:", dongle, remote    
+    logger.info("SDP timeout: %s" % remote )
     pending.remove(remote)
     record = RemoteBluetoothDeviceSDPTimeout()
     record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
@@ -116,7 +117,7 @@ def handle_sdp_timeout(dongle, remote, pending):
     record.save()
 
 def handle_file_uploaded(dongle, remote, pending, channel, files):
-    print "files uploaded:", dongle, remote, channel, files
+    logger.info("files uploaded: %s[%s]: %s" % ( remote, channel, files) )
     pending.remove(remote)
     record = RemoteBluetoothDeviceFilesSuccess()
     record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
@@ -125,9 +126,8 @@ def handle_file_uploaded(dongle, remote, pending, channel, files):
     record.save()
 
 def handle_file_failed(dongle, remote, pending, channel, files, ret, err, services):
-	print "handle file failed", dongle, remote, channel, files	
-	print err
-    	
+	logger.info("handle file failed %s[%s]: %s" % (remote, channel, files))
+	logger.debug(err)
 	try:
 	    record = RemoteBluetoothDeviceFilesRejected()
 	    record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
@@ -143,17 +143,17 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
 	    # smaller than filter
 	    try_again = rule.tryAgain(record)
 		
-	    print "try again: %s" % try_again
+	    logger.info("try again: %s" % try_again)
 	    if try_again:
 		uploader = get_uploader(services)
 		if uploader:
-		    print "trying again"
+		    logger.info("trying again")
 		    do_upload(uploader, files, remote)
     		else:
-    		    print "no uploader registered"
+    		    logger.info("no uploader registered")
 	    else:
 		pending.remove(remote)
 	except Exception, err:
-		print "OOPS!!!!!", err
-		traceback.print_exc()
+		logger.error("OOOPS!!!")
+		logger.exception(err)
 		pending.remove(remote)

@@ -2,6 +2,7 @@
 from lxml import etree
 from re import compile
 from exceptions import IOError
+from net.aircable.utils import logger
 
 VALID_ADDRESS=compile("([0-9a-f]{2}\:){5}([0-9a-f]{2})")
 
@@ -50,8 +51,8 @@ class XMLTool:
 	    if self.tree is None:
 		self.__getXmlTree()
 	except IOError, err:
-	    print err
-	    print "trying to simulate we have a config file"
+	    logger.info("failed while loading file settings, trying to simulate config file")
+	    logger.exception(err)
 	    self.tree=etree.fromstring(DEFAULT)
 
     def __getValueOrDefault(self, key, default):
@@ -211,7 +212,7 @@ class XMLTool:
     	    for block in blocks:
     		addr = block.find('address').text.lower()
         	if address.lower().startswith(addr):
-        	    print "passes filter", addr, address
+        	    logger.info("%s passes filter %s" %( address, addr))
         	    return self.__todict(block)
 
 	    # back to default

@@ -24,7 +24,10 @@ import rpyc
 from rpyc import async
 from net.aircable import autoreload
 from net.aircable.openproximity.pluginsystem import pluginsystem
-from net.aircable.utils import settings, logger
+from net.aircable.utils import logger, logmain
+
+if __name__=='__main__':
+    logmain("serverXR/manager.py")
 
 server = None
 manager = None

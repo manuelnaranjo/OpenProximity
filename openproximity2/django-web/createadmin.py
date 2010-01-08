@@ -14,6 +14,11 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+from net.aircable.utils import logger, logmain
+
+if __name__ == "__main__":
+    logmain("createadmin.py")
+
 from django.core.management import setup_environ
 from django.core.management import call_command
 
@@ -29,5 +34,8 @@ if __name__ == "__main__":
     user = settings.OPENPROXIMITY.getAdminName()
     mail = settings.OPENPROXIMITY.getAdminEmail()
     passw = settings.OPENPROXIMITY.getAdminPasswd()
-    print user, mail, passw
+    
+    logger.info("admin user: %s" % user)
+    logger.info("admin password: %s" % passw)
+    logger.info("admin mail: %s" % mail)
     User.objects.create_superuser(user, mail, passw).save()

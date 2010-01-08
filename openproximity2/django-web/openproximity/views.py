@@ -29,6 +29,7 @@ from django.conf import settings
 
 from datetime import datetime
 from net.aircable.openproximity.pluginsystem import pluginsystem
+from net.aircable.utils import logger
 
 from re import compile
 from mimetypes import guess_type as guess_mime
@@ -45,8 +46,6 @@ def add_record_accepted(request):
 def add_record(request):
     if not request.method == 'POST':
 	raise Http404("I only undertand POST")
-    
-    print request.POST
     
     time = request.POST.get('time', None)
     address_ = request.POST.get('address', None)
@@ -82,7 +81,9 @@ def isAIRcable(address):
     return address[:8].upper() in AIRCABLE_MAC
     
 def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7):
-
+    logger.info("add_dongle %s %s %s %s %s %s" % 
+	(address, name, scanner, uploader, scanner_pri, uploader_max)
+    )
     search=ScannerBluetoothDongle.objects.filter(address=address)
     
     if scanner and search.count()==0:
@@ -92,7 +93,7 @@ def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7):
 	rec.priority = scanner_pri
 	rec.enabled = True
 	rec.save()
-	print rec
+	logger.debug("scanner %s" % rec)
     
     if search.count()>0:
 	rec=search.get()
@@ -109,19 +110,18 @@ def add_dongle(address, name, scanner, uploader, scanner_pri=1, uploader_max=7):
 	rec.max_conn = uploader_max
 	rec.enabled = True
 	rec.save()
-	print rec
+	logger.debug("uploader %s" % rec)
     
     if search.count()>0:
 	rec=search.get()
 	rec.enabled = uploader == True
 	rec.save()
-	print rec
 
 @decorators.staff_member_required
 def configure_campaign(request, name=None):
-    print "configure_campaign", name
+    logger.info("configure_campaign %s" % name)
     form = CampaignForm()
-    print form.as_table()
+    logger.debug(form.as_table())
 
     return render_to_response('op/campaign_form.html',
 	{ 
@@ -130,7 +130,7 @@ def configure_campaign(request, name=None):
 
 @decorators.staff_member_required
 def configure_dongle(request, address=None):
-    print "configure_dongle", address
+    logger.info("configure_dongle %s" % address)
     
     errors = []
     messages = []
@@ -200,10 +200,9 @@ def server_rpc_command(request, command):
     return HttpResponseRedirect('/')
     
 def grab_file(request, file):
-    print "grab_file", file
+    logger.info("grab_file %s" % file)
     file = CampaignFile.objects.get(file=file).file
     mime = guess_mime(file.name)
-    print mime
     return HttpResponse(file.read(), mimetype=mime[0] )
 
 @decorators.staff_member_required
@@ -218,6 +217,7 @@ def stats_restart(request):
     from django.core.management import sql
 
     cursor = connection.cursor()
+    logger.info("stats restart")
 
     # this tables are not going to be deleted
     tables = [ 'openproximity_bluetoothdongle',
@@ -246,36 +246,37 @@ def stats_restart(request):
     try:
 	server=rpyc.connect('localhost', 8010)
 	server.root.Lock()
-	print "database locked"
+	logger.info("database locked")
     except:
 	pass
 
-    print "about to drop"
+    logger.info("about to drop")
     for line in drop.splitlines():
 	try:
     	    connection.cursor().execute(line)	    
-	except:
-	    print line, "failed"
+	except Exception, err:
+	    logger.error("%s failed" %line)
+	    logger.exception(err)
 
-    print "allowing plugins to drop statistic it's tables"
+    logger.info("allowing plugins to drop statistic it's tables")
 
     for plugin in pluginsystem.get_plugins('statistics_reset'):
         try:
 	    plugin.provides['statistics_reset'](connection)
 	except Exception, err:
-	    print "plugin failed to reset statistics", plugin
-	    print err
+	    logger.error("plugin failed to reset statistics %s" % plugin)
+	    logger.exception(err)
 
-    print "calling syncdb"
+    logger.info("calling syncdb")
     management.call_command('syncdb')
     
     try:
 	server=rpyc.connect('localhost', 8010)
 	server.root.Unlock()
 	server.root.restart()
-	print "database unlocked"
     except:
 	pass
+    logger.info("database unlocked")
 
     return HttpResponseRedirect('/')
 
@@ -388,7 +389,6 @@ def rpc_last_seen(request):
     #get a json list of the devices seen in the last 30 minutes
     secs=time.time()-15*60
     start=datetime.fromtimestamp(secs)
-    print start
     objs=RemoteDevice.objects.filter(
 	last_seen__gte=start).order_by('address')
 
@@ -441,7 +441,7 @@ RPC_COMMANDS={
 
 def rpc_command(request, command):
     f = RPC_COMMANDS.get(command, None)
-    print command, f!=None
+    logger.info("rpc_command %s" % command)
     if f is None:
 	return HttpResponse("Non Valid Command")
     return f(request)
@@ -456,7 +456,7 @@ class FakeFile(HttpResponse):
     foot = False
     counter = TOTAL
     def read(self, size):
-	print "fake file read"
+	logger.info("fake file read")
 	
 	out = ""
 	if not self.head:

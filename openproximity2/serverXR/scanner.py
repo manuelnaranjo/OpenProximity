@@ -209,7 +209,7 @@ class ScanManager:
 		
 	def exposed_setConcurrent(self, val):
 	    self.concurrent = val
-	    print "setConcurrent", val
+	    logger.info("setConcurrent %s" % val)
 	
 	def exposed_getConcurrent(self):
 	    return self.concurrent

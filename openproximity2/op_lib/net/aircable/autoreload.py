@@ -37,6 +37,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os, sys, time, signal, threading
+from net.aircable.utils import logger
 
 __all__=['isParent', 'main', 'RESTART']
 
@@ -69,7 +70,7 @@ def handle_child(signum, frame):
     sys.exit(3)
     
 def handle_parent(signum, frame):
-    print "Parent killed"
+    logger.info("Parent killed, doing exit")
     sys.exit(0)
 
 def code_changed():
@@ -133,7 +134,7 @@ def python_reloader(main_func, args, kwargs):
         except KeyboardInterrupt:
             pass
 	except Exception, err:
-	    print err
+	    logger.exception(err)
     else:
 	# this is the parent pid
         try:

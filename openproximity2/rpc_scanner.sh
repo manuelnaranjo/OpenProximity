@@ -15,5 +15,6 @@ echo "Starting RPC Scanner Client"
 if [ -z "$DEBUG" ]; then
     work manager.py localhost 8010 scanner &
 else
+    export DEBUG
     exec python manager.py localhost 8010 scanner
 fi

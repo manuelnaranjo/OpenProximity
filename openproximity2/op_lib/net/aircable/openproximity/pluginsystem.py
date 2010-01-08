@@ -19,12 +19,13 @@
 import os, re, StringIO, zipfile
 import ConfigParser, pkgutil, traceback
 import sys,functools
+from net.aircable.utils import logger
 
 try:
     import plugins
 except Exception, err:
     import new
-    print "no plugins dir found"
+    logger.error("no plugins dir found")
     plugins = new.module('plugins')
     plugins.__path__=[]
 
@@ -54,7 +55,7 @@ class Plugin(object):
 		    self.module_name='plugins.%s' % name
 		else:
 		    self.module_name=name
-		print self.name, 'loaded'
+		logger.info("Plugin: %s loaded" % self.name)
 
 class PluginSystem(object):
         def __init__(self):
@@ -75,14 +76,14 @@ class PluginSystem(object):
                         self.load_info(egg_name, a.split('/')[0], egg=True)
                         return
                     except Exception, err:
-			print "Failed to load info:", 
-			print err
-			traceback.print_exc()
-	    print "no plugin in egg", egg_name
+			logger.error("Failed to load info from egg file: %s" % egg_name)
+			logger.exception(err)
+	    logger.info("no plugin in egg %s" % egg_name)
 
         def find_plugins(self):
     		if self.plugin_infos is not None:
     		    return
+    		logger.info("looking for plugins")
     		self.plugin_infos=dict()
                 for path in plugins.__path__:
                         if not os.path.isdir(path):
@@ -94,10 +95,8 @@ class PluginSystem(object):
                                         try:
                                                 self.load_info(path, entry.split('.')[0])
                                         except Exception, err:
-                                                print "Failed to load info:", 
-                                                print os.path.join(path, entry)
-						print err
-						traceback.print_exc()
+                                                logger.error("Failed to load info %s" % entry)
+                                                logger.exception(err)
 				if entry.endswith('.egg'):
 				    self._find_plugins_for_egg(os.path.join(path, entry))
 
@@ -106,10 +105,12 @@ class PluginSystem(object):
 		    _name='plugins.%s' % name
 		else:
 		    _name=name
+		logger.info("Plugin: load_info %s" % name)
                 plugin = Plugin(path, name,
                                 lambda:self.import_plugin(_name), egg)
 		if plugin.enabled:
 		    self.plugin_infos[name]=plugin
+		logger.info("Plugin: %s ready" % name)
 
         def import_plugin(self, name):
                 plugin=__import__(name, {}, {}, [], 0)

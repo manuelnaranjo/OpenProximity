@@ -3,8 +3,10 @@
 # this script will launch all the needed parts for an OpenProximity2.0 stand
 # alone server
 LOG_FILE=/dev/null
-
 PYTHONPATH=$(pwd)/libs
+LOG_DIR=/var/log/aircable
+export PYTHONPATH
+
 for i in $( find $(pwd)/libs | grep egg ); do
     PYTHONPATH=$PYTHONPATH:$i
 done
@@ -13,7 +15,7 @@ function syncdb(){
     cd django-web
     set -e
     echo "Initializating DB"
-    python manage.py syncdb --noinput
+    LOG_FILE=LOG_DIR/syncdb.log python manage.py syncdb --noinput
     set +e
     cd ..
 }
@@ -21,20 +23,19 @@ function syncdb(){
 function createadmin(){
     cd django-web
     set -e
-    python createadmin.py
+    LOG_FILE=LOG_DIR/syncdb.log python createadmin.py
     set +e
     cd ..
 }
 
 function work(){
     while [ 1 ]; do
-	python "$@" &>$LOG_FILE
+	python "$@" &>/dev/null
+	sleep 5 # 5 seconds out
     done
 }
 
-LOG_DIR=/var/log/aircable
 
-export PYTHONPATH
 if [ -f /etc/timezone ]; then
     export TZ=$(cat /etc/timezone)
 fi

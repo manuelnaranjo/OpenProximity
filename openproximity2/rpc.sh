@@ -15,5 +15,6 @@ echo "Starting RPC server"
 if [ -z "$DEBUG" ]; then
     work rpc.py &
 else
+    export DEBUG
     python rpc.py
 fi

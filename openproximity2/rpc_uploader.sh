@@ -15,5 +15,6 @@ echo "Starting RPC Uploader Client"
 if [ -z "$DEBUG" ]; then
     work manager.py localhost 8010 uploader &
 else
+    export DEBUG
     exec python manager.py localhost 8010 uploader
 fi

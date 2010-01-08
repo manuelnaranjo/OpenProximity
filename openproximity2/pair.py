@@ -3,10 +3,15 @@
 
 import gobject
 
-import sys
-import dbus
-import dbus.service
-import dbus.mainloop.glib
+import sys, os
+import dbus, dbus.service, dbus.mainloop.glib
+from net.aircable.utils import logger, logmain
+
+if __name__ == '__main__':
+    logmain("pair.py")
+
+PIN=os.environ.get("PIN_CODE", "1234")
+logger.info("PIN code defaulting to %s" % PIN)
 
 class Rejected(dbus.DBusException):
 	_dbus_error_name = "org.bluez.Error.Rejected"
@@ -20,60 +25,63 @@ class Agent(dbus.service.Object):
 	@dbus.service.method("org.bluez.Agent",
 					in_signature="", out_signature="")
 	def Release(self):
-		print "Release"
+		logger.info("Agent Release")
 		if self.exit_on_release:
-			mainloop.quit()
+		    logger.info("Exiting from loop")
+		    mainloop.quit()
 
 	@dbus.service.method("org.bluez.Agent",
 					in_signature="os", out_signature="")
 	def Authorize(self, device, uuid):
-		print "Authorize (%s, %s)" % (device, uuid)
+	    logger.info("Authorize (%s, %s)" % (device, uuid))
 
 	@dbus.service.method("org.bluez.Agent",
 					in_signature="o", out_signature="s")
 	def RequestPinCode(self, device):
-		print "RequestPinCode (%s)" % (device)
-		return "1234"
+	    logger.info("RequestPinCode (%s): %s" % (device, PIN) )
+	    return PIN
 
 	@dbus.service.method("org.bluez.Agent",
 					in_signature="o", out_signature="u")
 	def RequestPasskey(self, device):
-		print "RequestPasskey (%s)" % (device)
-		return dbus.UInt32("1234")
+	    logger.info("RequestPasskey (%s): %s" % (device, PIN) )
+	    return dbus.UInt32(PIN)
 
 	@dbus.service.method("org.bluez.Agent",
 					in_signature="ou", out_signature="")
 	def DisplayPasskey(self, device, passkey):
-		print "DisplayPasskey (%s, %d)" % (device, passkey)
+	    logger.info("DisplayPasskey (%s, %d)" % (device, passkey))
 
 	@dbus.service.method("org.bluez.Agent",
 					in_signature="ou", out_signature="")
 	def RequestConfirmation(self, device, passkey):
-		print "RequestConfirmation (%s, %d)" % (device, passkey)
-		confirm = raw_input("Confirm passkey (yes/no): ")
-		if (confirm == "yes"):
-			return
-		raise Rejected("Passkey doesn't match")
+	    logger.info("RequestConfirmation (%s, %d)" % (device, passkey))
+	    if passkey == PIN:
+		logger.info("passkey matches")
+		return
+	    logger.info("passkey doesn't match")
+	    raise Rejected("Passkey doesn't match")
 
 	@dbus.service.method("org.bluez.Agent",
 					in_signature="s", out_signature="")
 	def ConfirmModeChange(self, mode):
-		print "ConfirmModeChange (%s)" % (mode)
+	    logger.info("ConfirmModeChange (%s)" % (mode))
 
 	@dbus.service.method("org.bluez.Agent",
 					in_signature="", out_signature="")
 	def Cancel(self):
-		print "Cancel"
+	    logger.info("Cancel")
 
 def create_device_reply(device):
-	print "New device (%s)" % (device)
+	logger.info("New device (%s)" % (device))
 	mainloop.quit()
 
 def create_device_error(error):
-	print "Creating device failed: %s" % (error)
+	logger.info("Creating device failed: %s" % (error))
 	mainloop.quit()
 
 if __name__ == '__main__':
+    try:
 	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
 	bus = dbus.SystemBus()
@@ -104,10 +112,14 @@ if __name__ == '__main__':
 					error_handler=create_device_error)
 	else:
 		adapter.RegisterAgent(path, "DisplayYesNo")
-		print "Agent registered"
+		logger.info("Agent registered")
 
 	mainloop.run()
-
+	logger.info("Agent is exiting")
 	#adapter.UnregisterAgent(path)
 	#print "Agent unregistered"
+    except Exception, err:
+	logger.error("Something went wrong on the agent application")
+	logger.exception(err)
+
 

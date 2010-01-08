@@ -17,6 +17,7 @@
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from net.aircable.openproximity.signals import scanner as signals
+from net.aircable.utils import logger
 from openproximity.models import *
 from rpyc import async
 from common import found_action, is_known_dongle
@@ -26,21 +27,21 @@ import time
 SET = settings.OPENPROXIMITY
 
 def handle(services, signal, scanner, *args, **kwargs):
-    print "scanner signal:", signals.TEXT[signal]
+    logger.info("scanner signal: %s" % signals.TEXT[signal])
     logl = LogLine()
     logl.content += signals.TEXT[signal]
 
     if signal == signals.DONGLES_ADDED:
-	print "Dongles initializated"
+	logger.info("Dongles initializated")
 	cycle_completed(scanner)
     elif signal == signals.NO_DONGLES:
-	print "NO SCANNER DONGLES!!!" 
+	logger.error("NO SCANNER DONGLES!!!")
     elif signal == signals.DONGLE_NOT_AVAILABLE:
-	print "DONGLE NOT AVAILABLE", kwargs['address']
+	logger.error("DONGLE NOT AVAILABLE %s" % kwargs['address'])
 	logl.content += " " + kwargs['address']
 	do_scan(scanner)
     elif signal == signals.CYCLE_SCAN_DONGLE_COMPLETED:
-	print "DONGLE DONE WITH SCAN", kwargs['address']
+	logger.info("DONGLE DONE WITH SCAN %s" % kwargs['address'])
 	logl.content += " " + kwargs['address']
 	do_scan(scanner)
     elif signal == signals.CYCLE_COMPLETE:
@@ -56,12 +57,13 @@ def handle(services, signal, scanner, *args, **kwargs):
 	    kwargs['records'], 
 	    kwargs['pending'])
     else:
+	logger.error("unknown signal")
 	raise Exception("Not known signal")
     
     logl.save()
 
 def started(scanner, address):
-    print 'scan_started', address
+    logger.info('scan_started %s' % address)
     dongle = ScannerBluetoothDongle.objects.get(address=address)
     record = DeviceRecord()
     record.action = signals.CYCLE_SCAN_DONGLE
@@ -74,11 +76,10 @@ def get_dongles(dongles):
     for address in dongles:
 	try:
 	    if not is_known_dongle(address, ScannerBluetoothDongle):
-		print "dongle not known yet", address
+		logger.info("dongle not known yet %s" % address)
 		settings = SET.getSettingsByAddress(address)
-		print "settings", settings
 		if 'scanner' in settings:
-		    print "found scanner"
+		    logger.info("going to setup as scanner")
 		    priority = settings['scanner'].get('priority', 1)
 		    enabled = settings['scanner'].get('enable', True)
 		    name = settings['scanner'].get('name', _("Auto Discovered Dongle"))
@@ -88,36 +89,36 @@ def get_dongles(dongles):
 			    'enabled': enabled,
 			    'name': name
 			})
-		    print created
+		    logger.debug("%s %s[%s]" % (address, name, priority))
 	
 	    dongle = ScannerBluetoothDongle.objects.get(address=address)
-	    print "%s is a scanner dongle" % address
+	    logger.info("%s is a scanner dongle" % address)
 	    
 	    if dongle.enabled:
 		out.append( (address, dongle.priority, dongle.name) )
 	    	
 	    if dongle.remote_dongles.count() > 0:
-		print "We have remote dongles available"
+		logger.info("We have remote dongles available")
 		for remote in dongle.remote_dongles.all():
 		    if remote.enabled:
 			out.append( (remote.address, remote.priority, dongle.address) )
 
 	except Exception, err:
-	    print err
+	    logger.exception(err)
     return out
 
 def do_scan(scanner):
-    print "start scan"
+    logger.info("start scan")
     scanner.doScan()
 
 def cycle_completed(scanner):
-    print 'scanner_cycle_complete'
+    logger.info("scanner_cycle_complete")
     camps = getMatchingCampaigns(enabled=True)
     if len(camps)==0:
-	print "no campaigns"
+	logger.info("no campaigns, no more scanning")
 	return
     
-    print "starting scan cycle"
+    logger.info("starting scan cycle")
     scanner.startScanningCycle()
     scanner.doScan()
 
@@ -126,8 +127,10 @@ uploaded = set()
 def handle_addrecord(services, remote_, dongle, pending):
     address = remote_['address']
 
+    logger.info("handle_addrecord %s" % address)
+
     if RemoteDevice.objects.filter(address=address).count() == 0:
-        print 'first time found, not yet known in our DB'
+        logger.info("first time found, not yet known in our DB")
         remote = RemoteDevice()
         remote.address = address
 	if remote_['name'] is not None:
@@ -148,6 +151,9 @@ def handle_addrecord(services, remote_, dongle, pending):
     if record.remote.devclass == -1 and remote_['devclass'] != -1:
         record.remote.devclass = remote_['devclass']
         record.remote.save()
+        
+    logger.debug(record)
+    logger.debug(record.remote)
 
     record.save()
     
@@ -164,7 +170,7 @@ def handle_addrecord(services, remote_, dongle, pending):
     return True
     
 def addrecords(services, address, records, pending):
-    print 'addrecords', address
+    logger.info('addrecords for dongle %s' % address)
     dongle = ScannerBluetoothDongle.objects.get(address=address)
 
     for i in records:

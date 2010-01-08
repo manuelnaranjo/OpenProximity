@@ -73,15 +73,15 @@ class sppClient(sppBase):
 		self.channel = self.resolveService( self.target, self.service)
 		    
 	    if (self.socket == None):
-		print 'creating socket'    
+		self.logInfo('creating socket')
 		self.socket = socket.socket( getattr(socket, 'AF_BLUETOOTH', 31),
 						socket.SOCK_STREAM, 
 						getattr(socket, 'BTPROTO_RFCOMM', 3) );
 	    #Let BlueZ decide outgoing port
-	    print 'binding to %s, %i' % ( self.device , 0 )
+	    self.logInfo('binding to %s, %i' % ( self.device , 0 ))
 	    self.socket.bind( (self.device,0) );
 		
-	    print 'connecting to %s, %i' % ( self.target, self.channel )
+	    self.logInfo('connecting to %s, %i' % ( self.target, self.channel ))
 	    self.socket.connect( (self.target, self.channel) );
 
 

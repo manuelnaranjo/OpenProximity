@@ -10,6 +10,7 @@ The enqueue() function is used to queue function calls.
 """
 import multiprocessing, functools
 from multiprocessing import Lock, Semaphore
+from net.aircable.utils import logger
 
 __all__=['Manager', 'Lock', 'Semaphore']
 
@@ -28,7 +29,7 @@ class Worker(multiprocessing.Process):
 	while [ 1 ]:
 	    func, args, kwargs = self.queue.get(True)
 	    self.running = True
-	    print "got func from queue"
+	    logger.debug("got func from queue")
 
 	    # make the call the manager has all ready make sure this
 	    # call is a partial

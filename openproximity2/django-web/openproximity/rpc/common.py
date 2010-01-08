@@ -21,6 +21,7 @@ from re import compile
 from rpyc import async
 from rpyc.utils.lib import ByValWrapper
 from net.aircable.openproximity.pluginsystem import pluginsystem
+from net.aircable.utils import logger
 import traceback, sys
 
 def is_known_dongle(address, klass):
@@ -39,9 +40,10 @@ def get_uploader(services):
     return None
 
 def do_upload(uploader, files, remote, service='opp', dongle_name=None):
-    print "About to call upload"
+    logger.info("do_upload")
+    logger.debug("About to call upload")
     uploader.upload(ByValWrapper(files), remote, service, dongle_name=dongle_name)
-    print "upload called async"
+    logger.debug("upload called async")
 
 def found_action(services, address, record, pending):
     line = LogLine()
@@ -49,13 +51,14 @@ def found_action(services, address, record, pending):
     try:
 	for plugin in pluginsystem.get_plugins('found_action'):
 	    if plugin.provides['found_action'](services=services, record=record):
-		    line.content+=" %s is handling" % getattr(plugin, 'name', 'plugin')
-		    line.save()
-		    pending.add(record.remote.address)
-		    return True
-    except:
-	print "ERROR on plugin do_action"
-	traceback.print_exc(file=sys.stdout)
+		logger.info("plugin has handled")
+		line.content+=" %s is handling" % getattr(plugin, 'name', 'plugin')
+		line.save()
+		pending.add(record.remote.address)
+		return True
+    except Exception, err:
+	logger.error("plugin do_action")
+	logger.exception(err)
 
     #fall back to normal uploader
     uploader = get_uploader(services)
@@ -65,14 +68,14 @@ def found_action(services, address, record, pending):
 	line.save()
 	return True
 
-    print "found uploader"
+    logger.info("found uploader")
     camps = getMatchingCampaigns(record.remote, enabled=True, 
 	record=record, classes=[MarketingCampaign,])
 
     if len(camps)==0:
 	line.content+=" no matching campaings, not handling"
 	line.save()
-	print "no campaigns"
+	logger.info("no campaigns")
 	return True
 
     files=list()
@@ -83,33 +86,32 @@ def found_action(services, address, record, pending):
 	rec = RemoteBluetoothDeviceFilesSuccess.objects.filter( campaign=camp, 
 		remote=record.remote)
         if rec.count() > 0:
-	    print "Allready accepted"
+	    logger.info("Allready accepted")
 	    continue
 
 	rec = RemoteBluetoothDeviceFilesRejected.objects.filter(campaign=camp, 
 	    remote=record.remote).order_by('time')
 	if rec.count() > 0:
 	    try_ = camp.tryAgain(rec.latest(field_name='time'))
-	    print "Allready rejected, try again", try_
+	    logger.info("Allready rejected, try again: %s" % try_)
 	    if not try_ :
 		continue
 
 	files__ = camp.campaignfile_set
 	files__ = files__.filter(chance__isnull=True) | files__.filter(chance__gte=str(random()))
 	for f in files__:
-    	    print 'going to upload', f.file
+	    logger.debug('going to upload %s' % f.file)
 	    files.append( (str(f.file.name), camp.pk) ,)
 	if camp.dongle_name:
 	    name = camp.dongle_name
 	service = camp.get_service_display()
 
-    print len(files), "files"
+    logger.info("going to upload %s files" % len(files))
     if len(files) > 0:
-    	pending.add(record.remote.address)
-    	do_upload(uploader, files, record.remote.address, service, name)
-    	line.content+=" uploading files"
+	pending.add(record.remote.address)
+	do_upload(uploader, files, record.remote.address, service, name)
+	line.content+=" uploading files"
     else:
-	print "no files"
 	line.content+=" no files to upload"
 	
     line.save()

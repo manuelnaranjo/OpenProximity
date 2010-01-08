@@ -15,6 +15,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from django.conf.urls.defaults import *
 from django.contrib.auth.views import login, logout
+from net.aircable.utils import logger
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -34,27 +35,34 @@ urlpatterns = patterns ('',
     (r'^openproximity/', include('openproximity.urls')),
     
     #include translation site
-    (r'^admin/translate/', include('rosetta.urls')),
+    (r'^admin/translate/', include('rosetta.urls'),{},"translate"),
     
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
     # to INSTALLED_APPS to enable admin documentation:
 #    (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    (r'^admin/', include(admin.site.urls)),
+    (r'^admin/', include(admin.site.urls),{},"admin"),
     
     (r'^site_media/(?P<path>.*)$', 'django.views.static.serve',
-	{	'document_root': os.path.join(os.path.dirname(__file__), 'media')}
+	{	'document_root': os.path.join(os.path.dirname(__file__), 'media')},
+	"site-media"
     ),
     
-    (r'^notification/', include('notification.urls')),
+    (r'^notification/', include('notification.urls'),{},"notification"),
 )
 
 for plugin in pluginsystem.get_plugins('urls'):
-    print plugin.provides.get('name', plugin.name), "provides urls"
-    url = plugin.provides.get('urls')
-    urlpatterns += patterns( '', 
-        (r'^%s/' % url[0], include('%s.%s' % ( plugin.__name__, url[1])))
-    )
+    logger.info("%s provides urls" % plugin.provides.get('name', plugin.name))
+    urls = plugin.provides.get('urls')
+    for url_, path in urls:
+	urlpatterns += patterns( '', 
+	    (r'^%s/' % url, 
+		include('%s.%s' % ( plugin.__name__, path)),
+		{},
+		plugin.__name__ # allow url to be reverse resolved
+	))
 
-urlpatterns += patterns('^$', (r'', include('openproximity.urls') ))
+urlpatterns += patterns('', 
+    (r'^$', include('openproximity.urls'),{},"openproximity")
+)

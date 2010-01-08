@@ -19,47 +19,7 @@ import logging.handlers
 import os, sys, time
 
 def isAIRcable(address):
-	return address[:8].upper() in const.AIRCABLE_MAC    
-
-def getDefaultSettings():
-    return {
-	'MEDIA_ROOT': 	'/tmp/aircable',
-	'TIMEOUT':	15
-    }
-
-#settings storing
-def store_settings():
-	keys = getDefaultSettings()
-	
-	try:
-		path = os.path.dirname( os.path.realpath( settings.__file__ ))
-	except:
-		path = os.path.dirname( os.path.realpath( __file__ ))
-	
-	out = file( os.path.join(path, 'settings.py'), 'w' )
-	
-	out.write('''# Automatically saved configuration
-# Saved on %s
-#
-# known keys and default values are:
-''' % time.asctime())
-	
-	for key, default in keys.items():
-		out.write('# %s: %s\n' % (key, default))    
-	
-	out.write('''# SCANNERS is a dict of address: priority, where priority is a number that tells
-# how many times each dongle should do an inquiry cycle per SCANNER cycle
-# UPLOADERS is a list of address that tells which dongles should be usign for inquiry''')
-	out.write('\n')
-	
-	for key, default in keys.items():
-		val=getattr(settings, key, default)
-		if val is not None:
-			if type(val)==str:
-				out.write('%s = "%s"\n' % (key, val))
-			else:
-				out.write('%s = %s\n' % (key, val))
-	out.close()
+	return address[:8].upper() in const.AIRCABLE_MAC
 
 #init logging
 def __initLog():
@@ -68,41 +28,33 @@ def __initLog():
 	
 	formatter=logging.Formatter('%(asctime)-12s %(name)-4s: %(levelno)-2s %(message)s')
 	
+	if os.environ.get('CONSOLE_LOG') == 'yes' or \
+		os.environ.get('DEBUG')=="yes":
+	    console=logging.StreamHandler()
+	    console.setLevel(logging.DEBUG)
+	    console.setFormatter(formatter)
+	    logger.addHandler(console)
+
 	if os.environ.get('LOG_PORT') is not None:
 	    socketHandler=logging.handlers.SocketHandler('localhost',
 		os.environ.get('LOG_PORT'))
 	    #socketHandler.addFormatter(formatter)
 	    logger.addHandler(socketHandler)
-	    logger.info('Socket Handler ready')
-	
-	if os.environ.get('CONSOLE_LOG') == 'yes' or \
-		    os.environ.get('DEBUG')=="yes":
-	    console=logging.StreamHandler()
-    	    console.setLevel(logging.DEBUG)
-	    console.setFormatter(formatter)
-	    logger.addHandler(console)
-	    logger.info('Console Handler Ready')
 	
 	if os.environ.get('LOG_FILE', None) is not None:
-	    log_=logging.FileHandler(os.environ.get('LOG_FILE'))
-    	    log_.setLevel(logging.DEBUG)
+	    log_=logging.handlers.RotatingFileHandler(
+		os.environ.get('LOG_FILE'),
+		maxBytes=1024*512, #512KB,
+		backupCount=5 #2.5MB log
+	    )
+	    formatter=logging.Formatter('%(asctime)-12s %(levelno)-2s %(filename)s:%(lineno)d\t%(message)s')
+	    log_.setLevel(logging.DEBUG)
 	    log_.setFormatter(formatter)
 	    logger.addHandler(log_)
-	    logger.info('File Handler Ready')
-	    
 	return logger
+	
+def logmain(app):
+    logger.info("%s start up, arguments %s" % (app, sys.argv))
 
 # some shared variables
 logger = __initLog()
-
-try:
-	import settings
-	logger.debug('Found settings')
-except:
-	logger.debug('No settings, using default')
-	import new
-	settings=new.module('openproximity.settings')
-	for key, default in getDefaultSettings().items():
-	    setattr(settings, key, default)
-	import os
-	os.system('mkdir -p %s' % settings.MEDIA_ROOT)

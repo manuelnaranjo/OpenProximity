@@ -37,9 +37,9 @@ def doWork(dongle_path, bt_address, files, target, service, uuid, out, semaphore
     try:
 	port=sdp.resolve(target, uuid, adapter, bus)
     except Exception, err:
-	print err
 	semaphore.release()
 	logger.debug("Uploader failed to resolve service %s" % (target))
+	logger.exception(err)
 	out.put({
 	    'signal':SDP_NORECORD,
 	    'dongle':bt_address, 
@@ -71,8 +71,8 @@ def doWork(dongle_path, bt_address, files, target, service, uuid, out, semaphore
 
     logger.debug("Uploader calling obexftp for %s on channel %s" % (target, port))
     (stdout, stderr) = proc.communicate()
-    print stdout
-    print stderr
+    logger.debug(stdout)
+    logger.debug(stderr)
     retcode = proc.returncode
     logger.debug("Uploader obexftp completed for %s, result %s" % (target, retcode))
 
@@ -221,8 +221,7 @@ class UploadManager:
 		dongle=self.__sequence[self.__index]
 		uuid = const.UUID[service]
 		
-		print files
-		print "about to set name"
+		logger.debug("about to set dongle name to %s" % dongle_name)
 		if dongle_name:
 		    dongle.dbus_interface.SetProperty('Name', dongle_name)
 		
@@ -231,9 +230,8 @@ class UploadManager:
 		for file_, fk in files:
 		    f = os.path.join(settings.MEDIA_ROOT, file_)
 		    d = os.path.dirname(f)
-		    print f, d
 		    if not os.path.isdir(d) or os.path.basename(f) not in os.listdir( d ):
-			print "grabing file"
+			logger.debug("grabbing file %s" % d)
 			os.system('mkdir -p %s' % d )
 			A=file(f, 'w')
 			A.write(self.rpc.root.getFile(file_))
@@ -244,7 +242,8 @@ class UploadManager:
 		self.__rotate_dongle()
 		logger.debug("upload in queue")
 	    except Exception, err:
-		print err
+		logger.error("Failed on upload")
+		logger.exception(err)
 		raise err
 		
 	def exposed_add_dongle(self, address, conns, name):

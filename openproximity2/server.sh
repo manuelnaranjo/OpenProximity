@@ -26,6 +26,7 @@ if [ -z "$DEBUG" ]; then
 	--traceback \
 	-v 2 2>&1 1>$LOG_DIR/server.log &
 else
+    export DEBUG
     #exec python manage.py runserver $@ 0.0.0.0:80 
     exec python manage.py runcpserver \
 	port=80 \

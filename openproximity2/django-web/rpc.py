@@ -16,13 +16,18 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from net.aircable.utils import logger, logmain
+
+if __name__ == '__main__':
+    logmain('rpc.py')
+
 # setup Django ORM
 try:
     import settings # Assumed to be in the same directory.
     from django.core.management import setup_environ
     setup_environ(settings)
 except ImportError:
-    sys.stderr.write("Error: Can't find the file 'settings.py' in the directory containing %r. It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n(If the file settings.py does indeed exist, it's causing an ImportError somehow.)\n" % __file__)
+    logger.error("Error: Can't find the file 'settings.py' in the directory containing %r. It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n(If the file settings.py does indeed exist, it's causing an ImportError somehow.)\n" % __file__)
     sys.exit(1)
 
 from net.aircable.openproximity.pluginsystem import pluginsystem
@@ -68,19 +73,19 @@ class OpenProximityService(Service):
 	    global enabled
 	    
 	    if not enabled:
-		print "rpc is locked, dropping signal", signal
+		logger.debug("rpc is locked, dropping signal", signal)
 		return
 	    
-	    print signal, args, kwargs
+	    logger.debug("exposed_listener %s %s %s" % ( signal, args, kwargs) )
 	    kwargs['pending']=pending
 	    
 	    try:
 		for plugin in pluginsystem.get_plugins('rpc'):
 		    plugin.provides['rpc'](signal=signal, services=services, manager=self, *args, **kwargs)
 		transaction.commit() # commit only after all the plugins have handled
-	    except:
-		print "ERROR on rpc listener while doing plugins"
-		traceback.print_exc(file=sys.stdout)
+	    except Exception, err:
+		logger.error("rpc listener while doing plugins")
+		logger.exception(err)
 		transaction.rollback() # oops rollback
 
 	    try:	
@@ -89,25 +94,24 @@ class OpenProximityService(Service):
 		elif signals.isUploaderSignal(signal):
 		    rpc.uploader.handle(services, signal, self, *args, **kwargs)
 		transaction.commit() # commit only after scanner and upload has done it's work
-	    except:
-		print "ERROR on rpc listener while doing scanner or uploader"
-		traceback.print_exc(file=sys.stdout)
+	    except Exception, err:
+		logger.error("rpc listener while doing scanner or uploader")
+		logger.exception(err)
 		transaction.rollback() # oops rollback
 
 	def exposed_generic_register(self, remote_quit, dongles, ping, client):
-	    print "print generic register"
+	    logger.info("generic register")
 	    try:
 		for plugin in pluginsystem.get_plugins('rpc_register'):
-			print "plugin", plugin.name, "provides rpc register"
+			logger.debug("plugin %s provides rpc register" % plugin.name )
 			if plugin.provides['rpc_register'](dongles=dongles, client=client):
 			    # wrap all calls as async, to avoid collitions
 			    self.remote_quit = async(remote_quit)
 			    self.ping = ping
-		    	    print "plugin handled rpc_register"
+			    logger.info("plugin %s handled rpc_register" % plugin.name)
 			    return
-	    except:
-		print "ERROR on rpc generic register"
-		traceback.print_exc(file=sys.stdout)
+	    except Exception, err:
+		logger.exception(err)
 
 	def exposed_scanner_register(self, remote_quit, scanner, dongles, ping):
 	    global enabled
@@ -126,18 +130,19 @@ class OpenProximityService(Service):
 	    if not enabled:
 		return
 
+	    logger.info("scanner register %s" % dongles)
 	    for dongle in dongles:
 		self.dongles.add( str(dongle), )
 
 	    for dongle, priority, name in rpc.scanner.get_dongles(dongles): # local
-		print dongle, priority, name
+		logger.info("%s: %s [%s]" % (dongle, name, priority) )
 		self.add_dongle(dongle, priority, name)
 
 	    (setting, created) = Setting.objects.get_or_create(name="scanner-concurrent") # local
 
 	    concurrent = (created == False and setting.value)
 
-	    print "Concurrent setting:", concurrent
+	    logger.info("Concurrent setting", concurrent)
 	    self.scanner.setConcurrent(concurrent)
 	    self.refreshScanners()
 
@@ -156,16 +161,17 @@ class OpenProximityService(Service):
 	    if not enabled:
 		return
 
+	    logger.info("uploader register")
 	    for dongle in dongles:
 		self.dongles.add( str(dongle), )
 
 	    for dongle, max_conn, name in rpc.uploader.get_dongles(dongles):
-		print dongle, max_conn, name
+		logger.info("%s: %s[%s]" % (dongle, name, max_conn))
 		self.add_dongle(dongle, max_conn, name)
 	    self.refreshUploaders()
 
 	def exposed_getFile(self, path):
-	    print "getFile", path
+	    logger.info("getFile %s" % path)
 	    return CampaignFile.objects.get(file=path).file.read()
 
 	def exposed_getUploadersCount(self):
@@ -173,6 +179,7 @@ class OpenProximityService(Service):
 	    for ser in services:
 		if getattr(ser,'uploader',None) is not None:
 		    count += 1
+	    logger.info("getUploadersCount %s" % count)
 	    return count
 
 	def exposed_getScannersCount(self):
@@ -180,36 +187,38 @@ class OpenProximityService(Service):
 	    for ser in services:
 		if getattr(ser,'scanner',None) is not None:
 		    count += 1
+	    logger.info("getScannersCount %s" % count)
 	    return count
 
 	def exposed_getDongles(self):
-	    print "getDongles"
 	    out=set()
 
 	    for ser in services:
 		if ser.dongles is not None:
 		    for d in ser.dongles:
 			out.add(d,)
-	    print "return", out
+	    logger.info("getDongles %s" % out)
 	    return list(out)
 
 	def __str__(self):
 	    return str(dir(self))
 
 	def exposed_exit(self):
+	    logger.info("remoteExit")
 	    return self.exit(True)
 
 	def exposed_restart(self):
+	    logger.info("remoteRestart")
 	    return self.exit(False)
 
 	def exposed_Lock(self):
-	    print "lock requested"
+	    logger.info("lock requested")
 	    global enabled
 	    enabled = False
 	    self.exit(False)
 
 	def exposed_Unlock(self):
-	    print "lock released"
+	    logger.info("lock released")
 	    global enabled
 	    enabled = True
 	    self.exit(False)

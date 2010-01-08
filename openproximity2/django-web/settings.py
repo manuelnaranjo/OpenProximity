@@ -17,6 +17,7 @@
 import os
 from net.aircable.openproximity.pluginsystem import pluginsystem
 from lxmltool import XMLTool
+from net.aircable.utils import logger
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -158,6 +159,7 @@ SERIALIZATION_MODULES = {
 # load xml settings
 OPENPROXIMITY = XMLTool('/etc/openproximity2/settings.xml')
 
+logger.info("starting up plugins")
 pluginsystem.find_plugins()
 for plugin in pluginsystem.get_plugins('django'):
     if plugin.provides.get('TEMPLATE_DIRS', None) is not None :
@@ -165,11 +167,12 @@ for plugin in pluginsystem.get_plugins('django'):
     if plugin.provides.get('LOCALE_PATHS', None) is not None:
 	LOCALE_PATHS += ( os.path.join(plugin.__path__[0], plugin.provides['LOCALE_PATHS']), )
     if plugin.provides.get('django_app', False):
-	INSTALLED_APPS += (plugin.module_name,)#( '%s.%s' % ('plugins', plugin.name), )
+	INSTALLED_APPS += (plugin.module_name,)
 
+logger.info("starting up plugin providers")
 for plugin in pluginsystem.get_plugins('plugin_provider'):
     for plug in plugin.provides['find_plugins']():
 	INSTALLED_APPS += (plug.module_name, )
 
-print "plugin system initied"
+logger.info("plugin system initied")
 
