@@ -10,7 +10,7 @@ diff -uprN rpyc/core/async.py rpyc.old/core/async.py
          self._is_ready = True
          self._is_exc = is_exc
          self._obj = obj
-+        if len(self._callbacks) == 0:
++        if len(self._callbacks) == 0 and is_exc:
 +    	    raise obj
          for cb in self._callbacks:
              cb(self)
