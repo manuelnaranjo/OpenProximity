@@ -2,7 +2,7 @@
 
 source prepare_installer.sh
 
-VERSION="devel-$(date +%m%d%Y%H%M%S)"
+VERSION="devel-$(date +%Y%m%d%H%M%S)"
 
 cd $OP2
 echo $VERSION > openproximity2/latest-version
