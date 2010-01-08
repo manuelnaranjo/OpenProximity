@@ -3,7 +3,6 @@
 {% load i18n microblog %}
 
 {% block extrahead %}
-<script type="text/javascript" src="http://proximitymarketing.googlecode.com/svn/trunk/openproximity2/latest-version.js"></script>
 <script type="text/javascript" src="/site_media/MochiKit.js"></script>
 
 <script type="text/javascript">
@@ -94,6 +93,18 @@
 setInterval("update_stats()", 20000) <!-- update each 20 seconds -->
 setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
 
+function check_version(){
+    var reply=compare_version("{{version.current}}");
+    var foot =$('version_foot');
+    foot.innerHTML ="<p>{% trans "server version" %}: <b>" + reply.latest + "</b> {% trans "running version" %}: <b>{{ version.current }}</b></p>";
+
+    if ( reply.new_available == false ){
+	var top = $('new_version_top');
+	top.innerHTML="<h1><a href=\"http://code.google.com/p/proximitymarketing/\">{% trans "There's a new version available" %}</a></h1>";
+	top.innerHTML+="<p>{% trans "New Version" %}: " + reply.latest + "</p>";
+        top.innerHTML+="<p>{% trans "Your Version" %}: {{ version.current }}</p>";
+    }
+}
 </script>
 
 {% comment %} field line content refresh 'amount to show' 'first read' {% endcomment %}
@@ -102,16 +113,8 @@ setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
 {% endblock %}
 
 {% block content %}
-<script type="text/javascript">
-    var reply=compare_version("{{version.current}}");
-    if ( reply.new_available ){
-        document.write("<h1><a href=\"http://code.google.com/p/proximitymarketing/\">{% trans "There's a new version available" %}</a></h1>")
-        document.write("<p>{% trans "New Version" %}: ")
-        document.write(reply.latest)
-        document.write("</p><p>{% trans "Your Version" %}: {{ version.current }}</p>")
-    }
-</script>
-					    
+<div id="new_version_top"></div>
+
 <table width="100%">
     <colgroup span="2" width="50%">
     <tr>
@@ -261,12 +264,14 @@ setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
 
 {% endblock %}
 {% block footer %}
+<div id='version_foot'></div>
 <script type="text/javascript">
-	var reply=compare_version("{{version.current}}");
-	document.write("<p>server version: <b>")
-	document.write(reply.latest)
-	document.write("</b> running version: <b>{{ version.current }}</b></p>")
-
 	update_rpc_info()
 </script>
+
+<script type="text/javascript" src="http://proximitymarketing.googlecode.com/svn/trunk/openproximity2/latest-version.js"></script>
+<script type="text/javascript">
+	check_version()
+</script>
+
 {% endblock %}
