@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-01-07 19:15-0300\n"
+"POT-Creation-Date: 2010-01-09 10:38-0300\n"
 "PO-Revision-Date: 2010-01-07 18:39\n"
 "Last-Translator: <info@bluecomunications>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,8 +18,8 @@ msgstr ""
 
 #: bluez/templates/bluez/hci.html:14 bluez/templates/bluez/hci.html.py:18
 #: bluez/templates/bluez/index.html:16 bluez/templates/bluez/index.html:20
-#: openproximity/templates/op/index.html:172
-#: openproximity/templates/op/index.html:222
+#: openproximity/templates/op/index.html:175
+#: openproximity/templates/op/index.html:225
 msgid "yes,no"
 msgstr "sí, no"
 
@@ -28,8 +28,8 @@ msgid "Adapter"
 msgstr "Adaptador"
 
 #: bluez/templates/bluez/hci.html:23 bluez/templates/bluez/index.html:25
-#: openproximity/templates/op/index.html:163
-#: openproximity/templates/op/index.html:184
+#: openproximity/templates/op/index.html:166
+#: openproximity/templates/op/index.html:187
 msgid "Error Message"
 msgstr "Mensaje de Error"
 
@@ -200,11 +200,11 @@ msgstr "RSSI"
 msgid "bluetooth rfcomm channel that provides the used service"
 msgstr "canal rfcomm que brindo el servicio utilizado."
 
-#: openproximity/rpc/scanner.py:84
+#: openproximity/rpc/scanner.py:85
 msgid "Auto Discovered Dongle"
 msgstr "Dongle Auto Detectado"
 
-#: openproximity/rpc/uploader.py:73
+#: openproximity/rpc/uploader.py:74
 msgid "Autodiscovered Bluetooth dongle"
 msgstr "Dongle Bluetooth Auto Detectado"
 
@@ -291,7 +291,7 @@ msgstr "Por favor corregir"
 #: openproximity/templates/op/campaign_form.html:15
 #: openproximity/templates/op/configure_dongle.html:47
 #: openproximity/templates/op/dongle_form.html:15
-#: openproximity/templates/op/index.html:84
+#: openproximity/templates/op/index.html:83
 msgid "Configure"
 msgstr "Configurar"
 
@@ -301,7 +301,7 @@ msgid "Configure Dongle"
 msgstr "Configurar Dongle"
 
 #: openproximity/templates/op/configure_dongle.html:18
-#: openproximity/templates/op/index.html:206
+#: openproximity/templates/op/index.html:209
 #: openproximity/templates/op/last_seen.html:76
 msgid "Address"
 msgstr "Dirección"
@@ -326,151 +326,160 @@ msgstr "Usar como uploader"
 msgid "Maximum Connections"
 msgstr "Máxima cantidad de conexiones"
 
-#: openproximity/templates/op/index.html:108
+#: openproximity/templates/op/index.html:99
+#, fuzzy
+msgid "server version"
+msgstr "Nueva Versión"
+
+#: openproximity/templates/op/index.html:99
+msgid "running version"
+msgstr ""
+
+#: openproximity/templates/op/index.html:103
 msgid "There's a new version available"
 msgstr "Existe una nueva versión!"
 
-#: openproximity/templates/op/index.html:109
+#: openproximity/templates/op/index.html:104
 msgid "New Version"
 msgstr "Nueva Versión"
 
-#: openproximity/templates/op/index.html:111
+#: openproximity/templates/op/index.html:105
 msgid "Your Version"
 msgstr "Tú Versión"
 
-#: openproximity/templates/op/index.html:119
+#: openproximity/templates/op/index.html:122
 msgid "Server Statistics"
 msgstr "Estadísticas de Servidor"
 
-#: openproximity/templates/op/index.html:122
+#: openproximity/templates/op/index.html:125
 msgid "Seen"
 msgstr "Vistos"
 
-#: openproximity/templates/op/index.html:126
+#: openproximity/templates/op/index.html:129
 msgid "Per Dongle"
 msgstr "Por Dongle"
 
-#: openproximity/templates/op/index.html:138
+#: openproximity/templates/op/index.html:141
 msgid "Valid Obex"
 msgstr "Obex Válido"
 
-#: openproximity/templates/op/index.html:142
+#: openproximity/templates/op/index.html:145
 #: openproximity/templates/op/last_seen.html:81
 msgid "Tried"
 msgstr "Probados"
 
-#: openproximity/templates/op/index.html:146
+#: openproximity/templates/op/index.html:149
 #: openproximity/templates/op/last_seen.html:82
 msgid "Timeout"
 msgstr "Timeout"
 
-#: openproximity/templates/op/index.html:150
+#: openproximity/templates/op/index.html:153
 #: openproximity/templates/op/last_seen.html:83
 msgid "Rejected"
 msgstr "Rechazados"
 
-#: openproximity/templates/op/index.html:154
+#: openproximity/templates/op/index.html:157
 #: openproximity/templates/op/last_seen.html:84
 msgid "Accepted"
 msgstr "Aceptados"
 
-#: openproximity/templates/op/index.html:158
+#: openproximity/templates/op/index.html:161
 msgid "Reset Statistics"
 msgstr "Reiniciar Estadísticas"
 
-#: openproximity/templates/op/index.html:168
+#: openproximity/templates/op/index.html:171
 msgid "Server Status"
 msgstr "Estado del Servidor"
 
-#: openproximity/templates/op/index.html:171
+#: openproximity/templates/op/index.html:174
 msgid "RPC Server is running"
 msgstr "El servidor RPC esta corriendo"
 
-#: openproximity/templates/op/index.html:175
+#: openproximity/templates/op/index.html:178
 msgid "Uploaders Connected"
 msgstr "Uploaders conectados"
 
-#: openproximity/templates/op/index.html:179
+#: openproximity/templates/op/index.html:182
 msgid "Scanners Connected"
 msgstr "Scanners conectados"
 
-#: openproximity/templates/op/index.html:189
+#: openproximity/templates/op/index.html:192
 msgid "Restart RPC Server"
 msgstr "Reiniciar Servidor RPC"
 
-#: openproximity/templates/op/index.html:197
+#: openproximity/templates/op/index.html:200
 msgid "Server Log"
 msgstr "Log del Servidor"
 
-#: openproximity/templates/op/index.html:203
+#: openproximity/templates/op/index.html:206
 msgid "Known Dongles"
 msgstr "Dongles Conocidos"
 
-#: openproximity/templates/op/index.html:207
+#: openproximity/templates/op/index.html:210
 msgid "Is Scanner"
 msgstr "Es Scanner"
 
-#: openproximity/templates/op/index.html:208
+#: openproximity/templates/op/index.html:211
 msgid "Scanner Enabled"
 msgstr "Activar Scanner"
 
-#: openproximity/templates/op/index.html:209
+#: openproximity/templates/op/index.html:212
 msgid "Scanner Priority"
 msgstr "Prioridad de Scanner"
 
-#: openproximity/templates/op/index.html:210
+#: openproximity/templates/op/index.html:213
 msgid "Is Uploader"
 msgstr "Es Uploader"
 
-#: openproximity/templates/op/index.html:211
+#: openproximity/templates/op/index.html:214
 msgid "Uploader Enabled"
 msgstr "Uploader Activado"
 
-#: openproximity/templates/op/index.html:212
+#: openproximity/templates/op/index.html:215
 msgid "Max Connections"
 msgstr "Máxima Cantidad de Conexiones"
 
-#: openproximity/templates/op/index.html:216
+#: openproximity/templates/op/index.html:219
 msgid "Marketing Campaigns"
 msgstr "Campañas de Marketing"
 
-#: openproximity/templates/op/index.html:221
+#: openproximity/templates/op/index.html:224
 msgid "Enabled"
 msgstr "Activado"
 
-#: openproximity/templates/op/index.html:225
+#: openproximity/templates/op/index.html:228
 msgid "Service"
 msgstr "Servicio"
 
-#: openproximity/templates/op/index.html:229
+#: openproximity/templates/op/index.html:232
 msgid "Start"
 msgstr "Inicio"
 
-#: openproximity/templates/op/index.html:233
+#: openproximity/templates/op/index.html:236
 msgid "End"
 msgstr "Fin"
 
-#: openproximity/templates/op/index.html:237
+#: openproximity/templates/op/index.html:240
 msgid "Name Filter"
 msgstr "Filtro de Nombre"
 
-#: openproximity/templates/op/index.html:241
+#: openproximity/templates/op/index.html:244
 msgid "Address Filter"
 msgstr "Filtro de Dirección"
 
-#: openproximity/templates/op/index.html:245
+#: openproximity/templates/op/index.html:248
 msgid "DevClass Filter"
 msgstr "Filtro de Clase de Dispositivo"
 
-#: openproximity/templates/op/index.html:250
+#: openproximity/templates/op/index.html:253
 msgid "Serving File"
 msgstr "Sirviendo Archivo"
 
-#: openproximity/templates/op/index.html:252
+#: openproximity/templates/op/index.html:255
 msgid "Chances"
 msgstr "Probabilidad"
 
-#: openproximity/templates/op/index.html:254
+#: openproximity/templates/op/index.html:257
 msgid "See File"
 msgstr "Ver Archivo"
 
