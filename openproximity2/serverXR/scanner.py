@@ -15,7 +15,6 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 import dbus, rpyc, time, traceback
 from net.aircable.utils import logger
-from net.aircable.utils import settings
 from net.aircable.openproximity.signals.scanner import *
 from net.aircable.wrappers import Adapter
 from rpyc.utils.lib import ByValWrapper

@@ -26,6 +26,9 @@ from net.aircable.wrappers import Adapter
 from threading import Thread
 from rpyc.utils.lib import ByValWrapper
 
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', '/tmp/aircable/media')
+TIMEOUT = os.environ.get('TIMEOUT', '20')
+
 # TODO add hci connection handling for detecting real timeout or out of range
 def doWork(dongle_path, bt_address, files, target, service, uuid, out, semaphore): #, manager):
     logger.debug('UploaderAdapter doWork')
@@ -62,11 +65,11 @@ def doWork(dongle_path, bt_address, files, target, service, uuid, out, semaphore
     arguments += ('-r', '1' )
     if service == 'opp':
 	arguments += ('-U', 'none', '-H', '-S' )
-    arguments += ('-T', str(settings.TIMEOUT) )
+    arguments += ('-T', str(TIMEOUT) )
     arguments += ('-b', target )
     arguments += ('-B', str(port) )
     for f, fk in files:
-	arguments += ('-p', os.path.join(settings.MEDIA_ROOT, f) )
+	arguments += ('-p', os.path.join(MEDIA_ROOT, f) )
     proc = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     logger.debug("Uploader calling obexftp for %s on channel %s" % (target, port))
@@ -228,7 +231,7 @@ class UploadManager:
 		logger.debug("uploading %s %s %s" % ( files, target, uuid ) )
 		
 		for file_, fk in files:
-		    f = os.path.join(settings.MEDIA_ROOT, file_)
+		    f = os.path.join(MEDIA_ROOT, file_)
 		    d = os.path.dirname(f)
 		    if not os.path.isdir(d) or os.path.basename(f) not in os.listdir( d ):
 			logger.debug("grabbing file %s" % d)
