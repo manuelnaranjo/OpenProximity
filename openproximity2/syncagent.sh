@@ -4,8 +4,10 @@
 
 source common.sh
 LOG_DIR=/var/log/aircable
+LOG_FILE=$LOG_DIR/syncagent.log
 
 export PYTHONPATH
+export LOG_FILE
 
 OP2_VERSION=$(cat latest-version)
 export OP2_VERSION

@@ -5,6 +5,8 @@
 source common.sh
 
 LOG_DIR=/var/log/aircable
+LOG_FILE=$LOG_DIR/server.log
+export LOG_FILE
 
 export PYTHONPATH
 
