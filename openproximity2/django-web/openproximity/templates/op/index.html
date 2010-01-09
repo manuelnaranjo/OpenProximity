@@ -98,7 +98,7 @@ function check_version(){
     var foot =$('version_foot');
     foot.innerHTML ="<p>{% trans "server version" %}: <b>" + reply.latest + "</b> {% trans "running version" %}: <b>{{ version.current }}</b></p>";
 
-    if ( reply.new_available == false ){
+    if ( reply.new_available == true ){
 	var top = $('new_version_top');
 	top.innerHTML="<h1><a href=\"http://code.google.com/p/proximitymarketing/\">{% trans "There's a new version available" %}</a></h1>";
 	top.innerHTML+="<p>{% trans "New Version" %}: " + reply.latest + "</p>";
