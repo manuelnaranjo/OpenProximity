@@ -47,7 +47,7 @@ def __initLog():
 		maxBytes=1024*512, #512KB,
 		backupCount=5 #2.5MB log
 	    )
-	    formatter=logging.Formatter('%(asctime)-12s %(levelno)-2s %(filename)s:%(lineno)d\t%(message)s')
+	    formatter=logging.Formatter('%(asctime)-12s %(levelname)-8s %(pathname)s/%(module)s:%(funcName)s[%(thread)d]\t%(message)s')
 	    log_.setLevel(logging.DEBUG)
 	    log_.setFormatter(formatter)
 	    logger.addHandler(log_)
