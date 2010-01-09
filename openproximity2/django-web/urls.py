@@ -54,14 +54,13 @@ urlpatterns = patterns ('',
 
 for plugin in pluginsystem.get_plugins('urls'):
     logger.info("%s provides urls" % plugin.provides.get('name', plugin.name))
-    urls = plugin.provides.get('urls')
-    for url_, path in urls:
-	urlpatterns += patterns( '', 
-	    (r'^%s/' % url, 
-		include('%s.%s' % ( plugin.__name__, path)),
-		{},
-		plugin.__name__ # allow url to be reverse resolved
-	))
+    url, path = plugin.provides.get('urls')
+    urlpatterns += patterns( '', 
+        (r'^%s/' % url, 
+    	    include('%s.%s' % ( plugin.__name__, path)),
+	    {},
+	    plugin.__name__ # allow url to be reverse resolved
+    ))
 
 urlpatterns += patterns('', 
     (r'', include('openproximity.urls'),{},"openproximity")
