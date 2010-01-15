@@ -73,7 +73,7 @@ class OpenProximityService(Service):
 	    global enabled
 	    
 	    if not enabled:
-		logger.debug("rpc is locked, dropping signal", signal)
+		logger.debug("rpc is locked, dropping signal %s" % signal)
 		return
 	    
 	    logger.debug("exposed_listener %s %s %s" % ( signal, args, kwargs) )
@@ -142,7 +142,7 @@ class OpenProximityService(Service):
 
 	    concurrent = (created == False and setting.value)
 
-	    logger.info("Concurrent setting", concurrent)
+	    logger.info("Concurrent setting %s" % concurrent)
 	    self.scanner.setConcurrent(concurrent)
 	    self.refreshScanners()
 
