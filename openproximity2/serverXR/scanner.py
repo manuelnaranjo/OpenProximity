@@ -300,7 +300,7 @@ class ScanManager:
 		
 	    dongle.found[address]['rssi'].append(int(values['RSSI']))
 	    dongle.found[address]['time'].append(time.time())
-	    logger.debug('%s device found: %s' % (path, address) )
+	    logger.debug('%s device found: %s, %s' % (path, address, values.get('Name', None)) )
 	    
 	def property_changed(self, name, value, path=None):
 	    if self.__index == None:
