@@ -145,10 +145,10 @@ def handle_addrecord(services, remote_, dongle, pending):
     record.remote.save() # update last seen
     record.setRSSI(remote_['rssi'])
 
-    if record.remote.name is None and remote_['name'] is not None:
+    if remote_['name'] is not None and record.remote.name!=remote_['name']:
         record.remote.name = remote_['name']
         record.remote.save()
-    if record.remote.devclass == -1 and remote_['devclass'] != -1:
+    if remote_['devclass'] != -1 and record.remote.devclass!=remote_['devclass']:
         record.remote.devclass = remote_['devclass']
         record.remote.save()
         
