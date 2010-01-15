@@ -23,23 +23,12 @@ def isAIRcable(address):
 
 #init logging
 def __initLog():
+	logger=logging.getLogger()
+	logger.setLevel(logging.NOTSET)
+	
 	logger=logging.getLogger('openproximity')
 	logger.setLevel(logging.DEBUG)
-	
-	formatter=logging.Formatter('%(asctime)-12s %(name)-4s: %(levelno)-2s %(message)s')
-	
-	if os.environ.get('CONSOLE_LOG') == 'yes' or \
-		os.environ.get('DEBUG')=="yes":
-	    console=logging.StreamHandler()
-	    console.setLevel(logging.DEBUG)
-	    console.setFormatter(formatter)
-	    logger.addHandler(console)
-
-	if os.environ.get('LOG_PORT') is not None:
-	    socketHandler=logging.handlers.SocketHandler('localhost',
-		os.environ.get('LOG_PORT'))
-	    #socketHandler.addFormatter(formatter)
-	    logger.addHandler(socketHandler)
+	formatter=logging.Formatter('%(asctime)-12s %(module)s:%(funcName)s: %(message)s')
 	
 	if os.environ.get('LOG_FILE', None) is not None:
 	    log_=logging.handlers.RotatingFileHandler(
@@ -47,10 +36,25 @@ def __initLog():
 		maxBytes=1024*512, #512KB,
 		backupCount=5 #2.5MB log
 	    )
-	    formatter=logging.Formatter('%(asctime)-12s %(levelname)-8s %(pathname)s/%(module)s:%(funcName)s[%(thread)d]\t%(message)s')
+	    format=logging.Formatter('%(asctime)-12s %(levelname)-8s %(pathname)s/%(module)s:%(funcName)s[%(thread)d]\t%(message)s')
 	    log_.setLevel(logging.DEBUG)
-	    log_.setFormatter(formatter)
+	    log_.setFormatter(format)
 	    logger.addHandler(log_)
+	
+	
+	if os.environ.get('CONSOLE_LOG') == 'yes' or \
+		os.environ.get('DEBUG')=="yes":
+	    console=logging.StreamHandler()
+	    console.setFormatter(formatter)
+	    logger.addHandler(console)
+
+	if os.environ.get('LOG_PORT') is not None:
+	    socketHandler=logging.handlers.SocketHandler('localhost',
+		os.environ.get('LOG_PORT'))
+	    socketHandler.addFormatter(formatter)
+	    logger.addHandler(socketHandler)
+	
+	
 	return logger
 	
 def logmain(app):
