@@ -15,7 +15,7 @@ function syncdb(){
     cd django-web
     set -e
     echo "Initializating DB"
-    LOG_FILE=LOG_DIR/syncdb.log python manage.py syncdb --noinput
+    LOG_FILE=$LOG_DIR/syncdb.log python manage.py syncdb --noinput
     set +e
     cd ..
 }
@@ -23,7 +23,7 @@ function syncdb(){
 function createadmin(){
     cd django-web
     set -e
-    LOG_FILE=LOG_DIR/syncdb.log python createadmin.py
+    LOG_FILE=$LOG_DIR/syncdb.log python createadmin.py
     set +e
     cd ..
 }
