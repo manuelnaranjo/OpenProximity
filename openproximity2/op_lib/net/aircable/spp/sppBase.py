@@ -19,22 +19,25 @@
 """
 
 import socket, time
-import logging
+
 import dbus
 
 from re import compile
 from errors import *
 from select import select
 
-logger = logging.getLogger('sppAIRcableBase');
-# If you don't want to configure the logging settings from a file
-# then uncomment this
-console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-console.setFormatter(formatter)
-logger.addHandler(console)
-logger.setLevel(logging.DEBUG)
+try:
+    from net.aircable.utils import logger
+except:
+    import logging
+    logger = logging.getLogger('sppAIRcable')
+
+    console = logging.StreamHandler()
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    logger.addHandler(console)
+    logger.setLevel(logging.DEBUG)
+
 
 class sppBase:
 	'''
@@ -46,26 +49,10 @@ class sppBase:
 	service = None;
 	device  = None;
 	
-	__logger  = None;
 	bus 	  = dbus.SystemBus();
 	__pattern = compile(r'.*\n');
 	
 	new_bluez_api = True;
-	
-	def logInfo(self, text):
-	    self.__logger.info(text);
-	
-	def logWarning(self, text):
-	    self.__logger.warning(text);
-	
-	def logError(self, text):
-	    self.__logger.error(text);
-	    
-	def logDebug(self, text):
-	    self.__logger.debug(text);
-	    
-	def __init_logger(self):
-	    self.__logger = logger
 	
 	def getDefaultDeviceAddress(self):
 	    obj     = self.bus.get_object( 'org.bluez', '/' )
@@ -92,7 +79,6 @@ class sppBase:
 		    socket descriptor
 	    '''
 	    self.__socket = socket;
-	    self.__init_logger();
 
 	def __init__( self,
 			channel = -1, 
@@ -109,7 +95,6 @@ class sppBase:
 		    device:  Bluetooth Address of the local device you want to 
 			     use for making the connection, None for default.
 	    '''
-	    self.__init_logger();
 
 	    self.channel = int(channel);
 	    self.service = service;
@@ -123,10 +108,10 @@ class sppBase:
 		    self.getAdapterObjectPath(),
 		    'org.bluez.Adapter')
             
-	    self.logInfo("sppBase.__init__");
-	    self.logInfo("Channel: %s" % channel );
-	    self.logInfo("Service: %s" % service );
-	    self.logInfo("Device: %s"  % device  );
+	    logger.info("sppBase.__init__");
+	    logger.info("Channel: %s" % channel );
+	    logger.info("Service: %s" % service );
+	    logger.info("Device: %s"  % device  );
 
 	def checkConnected(self, message =''):
 		if self.socket == None:
@@ -135,7 +120,7 @@ class sppBase:
 	def disconnect(self, force=False):
 	    if not force:
 		self.checkConnected("Can't close if it's opened");
-	    self.logInfo("Closing socket");
+	    logger.info("Closing socket");
 	    self.socket.shutdown(socket.SHUT_RDWR);
 	    self.socket.close()
 	    self.socket = None
@@ -148,7 +133,7 @@ class sppBase:
 	    '''
 	    self.checkConnected('Can\'t send if not connected');
 	    
-	    self.logDebug(">> %s" % text)
+	    logger.debug(">> %s" % text)
 		
 	    ret = self.socket.sendall(text, socket.MSG_WAITALL);
 	    
@@ -188,7 +173,7 @@ class sppBase:
 		time.sleep(0.1)
 	    
 	    if( log ):
-		self.logDebug("<< %s" % ret)
+		logger.debug("<< %s" % ret)
 	    
 	    return ret
 
@@ -203,7 +188,7 @@ class sppBase:
 
 		if self.__pattern.match(out):
 			out = out.replace('\n', '');
-			self.logDebug("<< %s" % out )
+			logger.debug("<< %s" % out )
 			return out
 	
 	def readBuffer(self, honnor_eol=False,timeout=1, log=False):
@@ -223,7 +208,7 @@ class sppBase:
 			break;
 	    except SPPException, err:
 		if log:
-		    self.logDebug("readBuffer error: %s, out:%s"%(err, out))
+		    logger.exception(err)
 	    
 	    
 	    return str(out).replace('\n', '')
@@ -239,13 +224,13 @@ class sppBase:
 			try:
 				line = self.readLine()
 			except socket.error:
-				self.logInfo("Connection lost connection")
+				logger.info("Connection lost connection")
 				break;
 
-			self.logDebug("line=%s" % line)
+			logger.debug("line=%s" % line)
 		
 			if (line != None and line.find("DONE") >- 1):
-				self.logDebug("EOF")
+				logger.debug("EOF")
 				break;
 			elif line.startswith(">") or len(line)>1 or line.find("GO")==-1:
 				out += line
@@ -253,12 +238,12 @@ class sppBase:
 			#self.sendLine("GO")
 		
 		out=out.replace('>','')
-		self.logDebug("Got:\n%s" % out);
+		logger.debug("Got:\n%s" % out);
 		return out
     
 	def shellAskLine(self, number):
 		'''Function wrapper for a shell operation'''
-		self.logDebug('shellAskLine %s' % number)
+		logger.debug('shellAskLine %s' % number)
 		#self.makeShellReady()
 		self.sendLine("p%04i" % number)
 		while [ 1 ]:
@@ -273,7 +258,7 @@ class sppBase:
 		self.__sendCommand("S%04i%s" % (number, content))
     
 	def __sendCommand(self, command):
-		self.logDebug('__sendCommand %s' % command)
+		logger.debug('__sendCommand %s' % command)
 		#self.makeShellReady()
 		self.sendLine(command)
 		while [ 1 ]:
@@ -298,17 +283,17 @@ class sppBase:
 
 	# stupid function that will try to sync both shells
 	def makeShellReady(self):
-		self.logDebug("MakeShellReady()")
+		logger.debug("MakeShellReady()")
 		line=""
 		timeout=self.socket.gettimeout()
 		self.socket.settimeout(1)
 
 		while [ 1 ]:
-			self.logDebug('reading')
+			logger.debug('reading')
 			try:
 				line += self.read(200)
 			except socket.error: # wait until socket timesout
-				self.logDebug('Shell cleaned')
+				logger.debug('Shell cleaned')
 				self.socket.settimeout(timeout)
 				return line
 				
@@ -317,6 +302,6 @@ class sppBase:
 		
 		time.sleep(2)
 		if exit:
-			self.logInfo("Sending exit")
+			logger.info("Sending exit")
 			self.shellExit()
 

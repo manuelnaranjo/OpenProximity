@@ -37,8 +37,8 @@ class sppClient(sppBase):
 			    channel = channel, 
 			    service = service, 
 			    device  = device);
-	    self.logInfo("sppClient.__init__")
-	    self.logInfo("target: %s" % target )
+	    logger.info("sppClient.__init__")
+	    logger.info("target: %s" % target )
 	    self.target = target
 
 
@@ -51,7 +51,7 @@ class sppClient(sppBase):
 			return int(val[0].getAttribute('value'), 16)
 				    
 	def resolveService(self, target, service='spp' ):
-	    self.logInfo("Resolving service %s for device %s...."
+	    logger.info("Resolving service %s for device %s...."
 		    %(service, target) 
 		);
 	    
@@ -66,6 +66,7 @@ class sppClient(sppBase):
 	    '''
 		Starts the connection
 	    '''
+	    logger.info("connecting")
 	    if not self.target:
 		raise SPPNotImplemented, 'Scanning is not supported, you need to do that by your own'
 	    
@@ -73,15 +74,15 @@ class sppClient(sppBase):
 		self.channel = self.resolveService( self.target, self.service)
 		    
 	    if (self.socket == None):
-		self.logInfo('creating socket')
+		logger.debug('creating socket')
 		self.socket = socket.socket( getattr(socket, 'AF_BLUETOOTH', 31),
 						socket.SOCK_STREAM, 
 						getattr(socket, 'BTPROTO_RFCOMM', 3) );
 	    #Let BlueZ decide outgoing port
-	    self.logInfo('binding to %s, %i' % ( self.device , 0 ))
+	    logger.debug('binding to %s, %i' % ( self.device , 0 ))
 	    self.socket.bind( (self.device,0) );
 		
-	    self.logInfo('connecting to %s, %i' % ( self.target, self.channel ))
+	    logger.debug('connecting to %s, %i' % ( self.target, self.channel ))
 	    self.socket.connect( (self.target, self.channel) );
 
 

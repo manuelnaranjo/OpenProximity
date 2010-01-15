@@ -31,7 +31,7 @@ class sppServer(sppBase):
 		    service='spp', 
 		    device = None):
 	    sppBase.__init__(self, channel, service, device);
-	    self.logInfo("sppServer.__init__")
+	    logger.debug("sppServer.__init__")
 	    
 
 	def listenAndWait(self):
@@ -45,29 +45,29 @@ class sppServer(sppBase):
 		This method will block.
 	    '''
 	    if (self.__RecHandle <= 0):
-		self.logWarning("No SDP service registered");
+		logger.warning("No SDP service registered");
 		
-	    self.logDebug( 'creating socket' )
+	    logger.debug( 'creating socket' )
 	    sock = socket.socket( socket.AF_BLUETOOTH, 
 						socket.SOCK_STREAM, 
 						socket.BTPROTO_RFCOMM );
 	    #Let BlueZ decide outgoing port
-	    self.logDebug ( 'binding to %s, %i' % ( self.device , self.channel ) )
+	    logger.debug ( 'binding to %s, %i' % ( self.device , self.channel ) )
 	    sock.bind( (self.device,self.channel) );
 
-	    self.logDebug ( 'Listening' )
+	    logger.debug ( 'Listening' )
 	    sock.listen( 1 );
 	    
-	    self.logInfo ( 'Waiting for connection' )
+	    logger.info ( 'Waiting for connection' )
 	    (self.socket, self.peer) = sock.accept()
 	    
-	    self.logInfo( 'Connection from %s at channel %s' % 
+	    logger.info( 'Connection from %s at channel %s' % 
 		(self.peer[0], self.peer[1]) )
 		
 	    sock.close()
 	    
 	def __registerSDPOldAPI(self, xml):
-	    self.logWarning("BlueZ 3.X API doesn't allow to register records on just one specific device")
+	    logger.warning("BlueZ 3.X API doesn't allow to register records on just one specific device")
 	    obj = self.bus.get_object('org.bluez', '/org/bluez')
 	    self.database = dbus.Interface(obj, 'org.bluez.Database')
 	    self.__RecHandle = self.database.AddRecordFromXML(xml)
@@ -144,7 +144,7 @@ class sppServer(sppBase):
 		    xml_entry: If you are not going to use spp then you need to provide
 			    this argument
 	    '''
-	    self.logInfo("Registering service %s named %s with description %s" %
+	    logger.info("Registering service %s named %s with description %s" %
 		    (self.service, name, description) )
 		    
 	    if self.service != 'spp' and not xml_entry:
@@ -155,20 +155,20 @@ class sppServer(sppBase):
 	    else:
 		xml = xml_entry
 		
-	    self.logDebug( "Registering:%s" % xml )
+	    logger.debug( "Registering:%s" % xml )
 	    
 	    if self.new_bluez_api :
 		self.__registerSDPNewAPI(xml)
 	    else:
 		self.__registerSDPOldAPI(xml)
 	    
-	    self.logInfo( "Registered, RecHandle = 0x%X" % self.__RecHandle )
+	    logger.info( "Registered, RecHandle = 0x%X" % self.__RecHandle )
 	    
 	def unregisterSDP(self):
 	    if self.__RecHandle < 0:
 		raise SPPException, "Can't unregister SDP record if it wasn't registered first"
 	    
-	    self.logInfo("Removing SDP record handle: 0x%X" % self.__RecHandle)
+	    logger.info("Removing SDP record handle: 0x%X" % self.__RecHandle)
 	    self.database.RemoveRecord(self.__RecHandle)
 
 
