@@ -355,14 +355,14 @@ def __restart_server():
 
 def bluetooth_dongle_signal(instance, **kwargs):
     ''' gets called when ever there is a change in dongles '''
-    if type(instance) in [ BluetoothDongle, ScannerBluetoothDongle, 
-	    UploaderBluetoothDongle, RemoteScannerBluetoothDongle ]:
+    if isinstance(instance, BluetoothDongle):
         logger.info('bluetooth_dongle_signal')
 	__restart_server()
 
 def campaign_signal(instance, **kwargs):
     ''' gets called when ever there is a change in marketing campaigns '''
-    if type(instance) in [ CampaignFile, MarketingCampaign ] and not hasattr(instance, 'no_restart'):
+    if (isinstance(instance, CampaignFile) or isinstance(instance, Campaign)) \
+	    and not hasattr(instance, 'no_restart'):
 	logger.info('campaing_signal')
 	__restart_server()
 
