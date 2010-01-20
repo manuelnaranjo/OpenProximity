@@ -16,6 +16,9 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import gc
+#gc.set_debug(gc.DEBUG_STATS)
+
 from net.aircable.utils import logger, logmain
 
 if __name__ == '__main__':
@@ -24,6 +27,8 @@ if __name__ == '__main__':
 # setup Django ORM
 try:
     import settings # Assumed to be in the same directory.
+    setattr(settings, "DEBUG", False)
+    print getattr(settings, "DEBUG")
     from django.core.management import setup_environ
     setup_environ(settings)
 except ImportError:
@@ -39,7 +44,7 @@ import openproximity.rpc as rpc
 import openproximity.rpc.scanner, openproximity.rpc.uploader
 import threading, time, traceback, sys
 
-from django.db import transaction, models
+from django.db import transaction, models, close_connection, reset_queries
 from openproximity.models import CampaignFile, Setting
 from rpyc import Service, async
 from rpyc.utils.server import ThreadedServer, ForkingServer
@@ -65,6 +70,7 @@ class OpenProximityService(Service):
 			ser.remote_quit()
 		    except:
 			pass
+	    pending = set()
 	    if exit:
 		sys.exit(3) # restart me please
 
@@ -98,6 +104,15 @@ class OpenProximityService(Service):
 		logger.error("rpc listener while doing scanner or uploader")
 		logger.exception(err)
 		transaction.rollback() # oops rollback
+	    logger.debug("freeing up some memory: %s" % len(gc.garbage))
+	    
+	    #this things happen when a web request is completed
+	    #we don't have a web request, have to do it our own
+	    reset_queries()
+	    close_connection()
+	    del gc.garbage[:]
+	    gc.collect()
+	    logger.debug("done: %s" % len(gc.garbage))
 
 	def exposed_generic_register(self, remote_quit, dongles, ping, client):
 	    logger.info("generic register")
