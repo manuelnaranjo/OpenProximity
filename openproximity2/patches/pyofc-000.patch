@@ -1,0 +1,12 @@
+diff -uprN pyofc2.orig/ofc2.py pyofc2/ofc2.py
+--- pyofc2.orig/ofc2.py	2010-01-18 09:42:48.000000000 -0300
++++ pyofc2/ofc2.py	2010-01-18 10:14:32.000000000 -0300
+@@ -134,7 +134,7 @@ area_line = lambda **kw: area_linefactor
+ area_hollow = lambda **kw: area_linefactory(type='area_hollow', **kw)
+ 
+ scatter_value = ofc_factory('values', ['x','y'])
+-scatterfactory = ofc_factory('_scatter', ['type', 'dot_size', 'color', 'colour', 'values'])
++scatterfactory = ofc_factory('_scatter', ['type', 'dot_size', 'color', 'colour', 'values', 'dot_type'])
+ scatter = lambda **kw: scatterfactory(type='scatter', **kw)
+ scatter_line = lambda **kw: scatterfactory(type='scatter_line', **kw)
+ 
