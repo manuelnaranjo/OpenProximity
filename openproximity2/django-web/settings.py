@@ -20,7 +20,7 @@ from lxmltool import XMLTool
 from net.aircable.utils import logger
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
+TEMPLATE_DEBUG = True
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
