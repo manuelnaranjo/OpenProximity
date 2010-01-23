@@ -6,7 +6,7 @@ diff -uprN pyofc2.orig/ofc2.py pyofc2/ofc2.py
  
  scatter_value = ofc_factory('values', ['x','y'])
 -scatterfactory = ofc_factory('_scatter', ['type', 'dot_size', 'color', 'colour', 'values'])
-+scatterfactory = ofc_factory('_scatter', ['type', 'dot_size', 'color', 'colour', 'values', 'dot_type'])
++scatterfactory = ofc_factory('_scatter', ['type', 'dot_size', 'color', 'colour', 'values', 'dot_type', 'text'])
  scatter = lambda **kw: scatterfactory(type='scatter', **kw)
  scatter_line = lambda **kw: scatterfactory(type='scatter_line', **kw)
  
