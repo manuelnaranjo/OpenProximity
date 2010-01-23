@@ -130,7 +130,7 @@ cp -r "$CWD"/serverXR .
 cp "$CWD"/shell.sh .
 cp "$CWD"/syncdb.sh .
 cp "$CWD"/syncagent.sh .
-
+rm -rf $(find . -name .svn)
 
 cd "$OP2"
 mkdir tmp
