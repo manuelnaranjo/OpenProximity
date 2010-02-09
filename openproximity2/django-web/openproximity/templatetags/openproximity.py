@@ -24,3 +24,9 @@ class PluginsNode(template.Node):
 	context['plugins'] = pluginsystem.get_plugins('urls')
 	return ''
 register.tag('plugins', do_plugins)
+
+@register.simple_tag
+def createNavButton(ref, rid, text, style):
+    return '''<a class="nav_button" title="%s" id="%s" href="%s">
+	<div style="%s" >%s</div></a>''' % (text, rid, ref, style, text)
+
