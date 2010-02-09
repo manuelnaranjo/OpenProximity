@@ -1,0 +1,50 @@
+{% load i18n openproximity %}
+<div class="stats">
+    <h1>{% trans "Server Statistics" %}</h1>
+    <table id="stats">
+        <tr>
+	    <td>{% trans "Seen" %}</td>
+	    <td id="stats_seen">{{ stats.seen.total }}</td>
+	</tr>
+	<tr>
+	    <td>{% trans "Per Dongle" %}</td>
+	    <td>
+	        <table id="stats_per_dongle">
+		    {% for d in stats.seen.perdongle %}
+			<tr>
+			    <td>{{ d.address}}</td>
+			    <td id="stats_count_{{ d.address }}">{{ d.count }}</td>
+			</tr>
+		    {% endfor %}
+		</table>
+	    </td>
+	</tr>
+	<tr>
+	    <td>{% trans "Valid Obex" %}</td>
+	    <td id="stats_valid">{{ stats.valid }}</td>
+	</tr>
+	<tr>
+	    <td>{% trans "Tried" %}</td>
+	    <td id="stats_tries">{{ stats.tries }}</td>
+	</tr>
+	<tr>
+	    <td>{% trans "Timeout" %}</td>
+	    <td id="stats_timeout">{{ stats.timeout }}</td>
+	</tr>
+	<tr>
+	    <td>{% trans "Rejected" %}</td>
+	    <td id="stats_rejected">{{ stats.rejected }}</td>
+	</tr>
+	<tr>
+	    <td>{% trans "Accepted" %}</td>
+	    <td id="stats_accepted">{{ stats.accepted }}</td>
+	</tr>
+	{% if stats.error %}
+	    <tr id="error">
+		<td>{% trans "Error Message" %}</td>
+		<td>{{ stats.error }}</td>
+	    </tr>
+	{% endif %}
+    </table>
+    <a id="reset-stats" href="/stats/restart" class="btn">{% trans "Reset Statistics" %}</a>
+</div>

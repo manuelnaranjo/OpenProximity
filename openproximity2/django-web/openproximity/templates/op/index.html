@@ -3,8 +3,6 @@
 {% load i18n microblog %}
 
 {% block extrahead %}
-<script type="text/javascript" src="/site_media/MochiKit.js"></script>
-
 <script type="text/javascript">
 	function update_field(el, val){
 		getElement(el).innerHTML=val
@@ -80,8 +78,9 @@
 				tr.appendChild(create_td('dongle_upload', val.isUploader))
 				tr.appendChild(create_td('dongle_upload_enabled', val.upload_enabled))
 				tr.appendChild(create_td('dongle_upload_maxconn', val.max_conn))
-				tr.appendChild(create_td('dongle_setup', '<a href="configure/dongle/' + val.address +'" class="btn">{% trans "Configure" %}</a>'))
+				tr.appendChild(create_td('dongle_setup', '<a href="configure/dongle/' + val.address +'">{% trans "Configure" %}</a>'))
 			}
+			
 		};
 	
 		var infoFetchFailed = function(err){
@@ -103,8 +102,12 @@ function check_version(){
 	top.innerHTML="<h1><a href=\"http://code.google.com/p/proximitymarketing/\">{% trans "There's a new version available" %}</a></h1>";
 	top.innerHTML+="<p>{% trans "New Version" %}: " + reply.latest + "</p>";
         top.innerHTML+="<p>{% trans "Your Version" %}: {{ version.current }}</p>";
+        top.style.display="";
     }
 }
+
+addLoadEvent(update_rpc_info);
+addLoadEvent(check_version);
 </script>
 
 {% comment %} field line content refresh 'amount to show' 'first read' {% endcomment %}
@@ -113,165 +116,35 @@ function check_version(){
 {% endblock %}
 
 {% block content %}
-<div id="new_version_top"></div>
-
-<table width="100%">
-    <colgroup span="2" width="50%">
-    <tr>
-       <td>
-       <h1>{% trans "Server Statistics" %}</h1>
-	<table id="stats">
-	    <tr>
-		<td>{% trans "Seen" %}</td>
-		<td id="stats_seen">{{ stats.seen.total }}</td>
-	    </tr>
-	    <tr>
-		<td>{% trans "Per Dongle" %}</td>
-		<td>
-		    <table id="stats_per_dongle">
-			{% for d in stats.seen.perdongle %}
-			    <tr>
-				<td>{{ d.address}}</td>
-				<td id="stats_count_{{ d.address }}">{{ d.count }}</td>
-			    </tr>
-			{% endfor %}
-		    </table>
-		</td>
-	    <tr>
-		<td>{% trans "Valid Obex" %}</td>
-		<td id="stats_valid">{{ stats.valid }}</td>
-	    </tr>
-	    <tr>
-		<td>{% trans "Tried" %}</td>
-		<td id="stats_tries">{{ stats.tries }}</td>
-	    </tr>
-	    <tr>
-		<td>{% trans "Timeout" %}</td>
-		<td id="stats_timeout">{{ stats.timeout }}</td>
-	    </tr>
-	    <tr>
-		<td>{% trans "Rejected" %}</td>
-		<td id="stats_rejected">{{ stats.rejected }}</td>
-	    </tr>
-	    <tr>
-		<td>{% trans "Accepted" %}</td>
-		<td id="stats_accepted">{{ stats.accepted }}</td>
-	    <tr>
-	    <tr>
-		<td><a href="stats/restart" class="btn">{% trans "Reset Statistics" %}</a></td>
-	    </tr>
+    <div id="new_version_top" style="display: none" class="content-main"></div>
     
-	    {% if stats.error %}
-		<tr id="error">
-		    <td>{% trans "Error Message" %}</td>
-		    <td>{{ stats.error }}</td>
-		</tr>
-	    {% endif %}
-	</table>
-	<h1>{% trans "Server Status" %}</h1>
-	<table id="rpc">
-	    <tr>
-		<td>{% trans "RPC Server is running" %}</td>
-		<td id="rpc_running">{{ rpc.running|yesno:_("yes,no") }}</td>
-	    </tr>
-	    <tr>
-		<td>{% trans "Uploaders Connected" %}</td>
-		<td id="rpc_uploadres">{{ rpc.uploaders }}</td>
-	    </tr>
-	    <tr>
-		<td>{% trans "Scanners Connected" %}</td>
-		<td id="rpc_scanners">{{ rpc.scanners }}</td>
-	    </tr>
-	    {% if rpc.error %}
-		    <tr id="error">
-			<td>{% trans "Error Message" %}</td>
-			<td>{{ rpc.error }}</td>
-		    </tr>
-	    {% endif %}
-	    <tr>
-		<td><a href="../rpc/server/restart" class="btn">{% trans "Restart RPC Server" %}</a></td>
-		<td></td>
-		<td></td>
-	    </tr>
-	</table>
-
-       </td>
-       <td valign="top">
-	    <h1>{% trans "Server Log" %}</h1>
-	    <div id="messages"></div>
-	</td>
-</table>
-
-
-<h1>{% trans "Known Dongles" %}</h1>
-<table id="known" class="known">
-    <tr>
-	<td>{% trans "Address" %}</td>
-	<td>{% trans "Is Scanner" %}</td>
-	<td>{% trans "Scanner Enabled" %}</td>
-	<td>{% trans "Scanner Priority" %}</td>
-	<td>{% trans "Is Uploader" %}</td>
-	<td>{% trans "Uploader Enabled" %}</td>	
-	<td>{% trans "Max Connections" %}</td>
-    </tr>
-</table>
-
-<h1>{% trans "Marketing Campaigns" %}</h1>
-{% for camp in camps %}
-    <h2><a href="admin/openproximity/marketingcampaign/{{camp.pk}}/" class="btn">{{ camp.name }}</a></h2>
-    <table id="camp">
-    <tr>
-	<td>{% trans "Enabled" %}</td>
-	<td>{{ camp.enabled|yesno:_("yes,no") }}
-    </tr>
-    <tr>
-	<td>{% trans "Service" %}</td>
-	<td>{{ camp.get_service_display }}</td>
-    </tr>
-    <tr>
-	<td>{% trans "Start" %}</td>
-	<td>{{ camp.start }}</td>
-    </tr>
-    <tr>
-	<td>{% trans "End" %}</td>
-	<td>{{ camp.end }}</td>
-    </tr>
-    <tr>
-	<td>{% trans "Name Filter" %}</td>
-	<td>{{ camp.name_filter }}</td>
-    </tr>
-    <tr>
-	<td>{% trans "Address Filter" %}</td>
-	<td>{{ camp.addr_filter }}</td>
-    </tr>
-    <tr>
-	<td>{% trans "DevClass Filter" %}</td>
-	<td>{{ camp.devclass_filter }}</td>
-    </tr>
-    {% for file in camp.campaignfile_set.all %}
-    <tr>
-	<td>{% trans "Serving File" %}</td>
-	<td>{{ file.file.name }}</td>
-	<td>{% trans "Chances" %}</td>
-	<td>{{ file.chance }}</td>
-	<td><a href="file/grab/{{file.file.name}}" class="btn">{% trans "See File" %}</a></td>
-    </tr>
-    {% endfor %}
-    </table>
-    
-
-{% endfor %} <!-- camps -->
-
+    <div style="height: 400px;">
+	<div style="position: absolute; top: 0; left: 0; width: 50%" >
+	    <div class="content-main"><div class="inner">{% include "op/imports/server_stats.html" %}</div></div>
+	    <div class="content-main"><div class="inner">{% include "op/imports/server_status.html" %}</div></div>
+	</div>
+	<div style="position: absolute; top: 0; right: 0; width: 49%;">
+	    <div class="log content-main">
+		<div class="inner">
+		    <h1>{% trans "Server Log" %}</h1>
+		    <div id="messages"></div>
+		</div>
+	    </div>
+	</div>
+    </div>
+    <div class="content-main">
+	<div class="inner">
+	{% include "op/imports/known_dongles.html" %}
+	</div>
+    </div>
+    <div class="content-main">
+	<div class="inner">
+	{% include "op/imports/campaigns.html" %}
+	</div>
+    </div>
 {% endblock %}
+
 {% block footer %}
-<div id='version_foot'></div>
-<script type="text/javascript">
-	update_rpc_info()
-</script>
-
-<script type="text/javascript" src="http://proximitymarketing.googlecode.com/svn/trunk/openproximity2/latest-version.js"></script>
-<script type="text/javascript">
-	check_version()
-</script>
-
+    <div id='version_foot'></div>
+    <script type="text/javascript" src="http://proximitymarketing.googlecode.com/svn/trunk/openproximity2/latest-version.js"></script>
 {% endblock %}

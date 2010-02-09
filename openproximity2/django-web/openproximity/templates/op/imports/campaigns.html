@@ -1,0 +1,49 @@
+{% load i18n openproximity %}
+<div class="campaigns">
+    <h1>{% trans "Marketing Campaigns" %}</h1>
+    {% for camp in camps %}
+	<h2><a href="admin/openproximity/marketingcampaign/{{camp.pk}}/" class="btn">{{ camp.name }}</a></h2>
+	<table id="camp">
+	    <tr>
+		<td>{% trans "Enabled" %}</td>
+		<td>{{ camp.enabled|yesno:_("yes,no") }}</td>
+	    </tr>
+	    <tr>
+		<td>{% trans "Service" %}</td>
+		<td>{{ camp.get_service_display }}</td>
+	    </tr>
+	    <tr>
+		<td>{% trans "Start" %}</td>
+		<td>{{ camp.start }}</td>
+	    </tr>
+	    <tr>
+		<td>{% trans "End" %}</td>
+		<td>{{ camp.end }}</td>
+	    </tr>
+	    <tr>
+		<td>{% trans "Name Filter" %}</td>
+		<td>{{ camp.name_filter }}</td>
+	    </tr>
+	    <tr>
+		<td>{% trans "Address Filter" %}</td>
+		<td>{{ camp.addr_filter }}</td>
+	    </tr>
+	    <tr>
+		<td>{% trans "DevClass Filter" %}</td>
+		<td>{{ camp.devclass_filter }}</td>
+	    </tr>
+	    {% for file in camp.campaignfile_set.all %}
+		<tr>
+		    <td>{% trans "Serving File" %}</td>
+		    <td>{{ file.file.name }}</td>
+		    <td>{% trans "Chances" %}</td>
+		    <td>{{ file.chance }}</td>
+		    <td>{% createNavButton "file/grab/{{file.file.name}}" "seefile" "See File" "height:52px" %}</td>
+		</tr>
+	    {% endfor %}
+	</table>
+    {% empty %}
+	<strong>{% trans "There are none known campaigns" %}:</strong>
+	<a href="/admin/openproximity/marketingcampaign/add/">{% trans "Create a campaign Now" %}</a>
+    {% endfor %} <!-- camps -->
+</div>

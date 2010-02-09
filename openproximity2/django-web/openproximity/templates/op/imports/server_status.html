@@ -1,0 +1,25 @@
+{% load i18n %}
+<div class="server">
+    <h1>{% trans "Server Status" %}</h1>
+    <table id="rpc">
+        <tr>
+	    <td>{% trans "RPC Server is running" %}</td>
+	    <td id="rpc_running">{{ rpc.running|yesno:_("yes,no") }}</td>
+	</tr>
+	<tr>
+	    <td>{% trans "Uploaders Connected" %}</td>
+	    <td id="rpc_uploadres">{{ rpc.uploaders }}</td>
+	</tr>
+	<tr>
+	    <td>{% trans "Scanners Connected" %}</td>
+	    <td id="rpc_scanners">{{ rpc.scanners }}</td>
+	</tr>
+	{% if rpc.error %}
+	    <tr id="error">
+		<td>{% trans "Error Message" %}</td>
+		<td>{{ rpc.error }}</td>
+	    </tr>
+	{% endif %}
+    </table>
+    <a href="../rpc/server/restart" class="btn">{% trans "Restart RPC Server" %}</a>
+</div>
