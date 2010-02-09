@@ -11,12 +11,12 @@ diff -uprN notification.orig/engine.py notification/engine.py
  from django.contrib.auth.models import User
 -from django.contrib.sites.models import Site
 +
-+from notification import NOTIFICATION_USE_SITE, NOTIFICATION_DEFAULT_SITE_NAME, NOTIFICATION_LOCK_TIMEOUT
++from notification import NOTIFICATION_USE_SITE, NOTIFICATION_DEFAULT_SITE_NAME, NOTIFICATION_LOCK_WAIT_TIMEOUT
 +
 +if NOTIFICATION_USE_SITE:
 +    from django.contrib.sites.models import Site
 +else:
-+    Site = Null
++    Site = None
  
  from lockfile import FileLock, AlreadyLocked, LockTimeout
  
