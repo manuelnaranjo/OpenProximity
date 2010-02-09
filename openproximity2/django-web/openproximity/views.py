@@ -18,7 +18,7 @@
 from django.db import transaction
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render_to_response, get_object_or_404
-from django.template import Context
+from django.template import RequestContext
 from django.template.loader import get_template
 from django.utils import simplejson
 from django.utils.encoding import smart_str
@@ -126,7 +126,7 @@ def configure_campaign(request, name=None):
     return render_to_response('op/campaign_form.html',
 	{ 
 	    'form':  form,
-	})
+	}, context_instance=RequestContext(request))
 
 @decorators.staff_member_required
 def configure_dongle(request, address=None):
@@ -188,7 +188,7 @@ def configure_dongle(request, address=None):
 	{ 
 	    'form':  form,
 	    'messages': messages,
-	})
+	}, context_instance=RequestContext(request))
 
 @decorators.staff_member_required
 def server_rpc_command(request, command):
@@ -364,7 +364,7 @@ def index(request):
 	    "camps": getMatchingCampaigns(),
 	    "stats": stats,
 	    "version": version,
-	})
+	}, context_instance=RequestContext(request))
 
 def rpc_stats(request):
     stats = generate_stats()
@@ -447,7 +447,9 @@ def rpc_command(request, command):
     return f(request)
 
 def last_seen(request):
-    return render_to_response("op/last_seen.html")
+    return render_to_response("op/last_seen.html",
+	{},
+        context_instance=RequestContext(request))
 
 TOTAL = 30000
 
