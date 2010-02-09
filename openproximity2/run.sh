@@ -5,6 +5,7 @@
 
 PID_FILE=/var/run/openproximity.pid
 LOG_DIR=/var/log/aircable
+RPC="scanner uploader"
 CWD=$(pwd)
 
 . common.sh
@@ -29,12 +30,12 @@ cd $CWD
 # wait until rpc is ready
 sleep 5
 
-. rpc_scanner.sh
-echo $! >> $PID_FILE
-cd $CWD
-
-. rpc_uploader.sh
-echo $! >> $PID_FILE
-cd $CWD
+for i in $RPC ; do
+    LOG_FILE=$LOG_DIR/$i.log
+    export LOG_FILE
+    
+    echo "Starting RPC $i Client"
+    ( cd serverXR && work manager.py localhost 8010 $i ) &
+done
 
 exit 0
