@@ -22,50 +22,71 @@
 	return False;
     }
 </script>
+<script type="text/javascript" src="/site_media/MochiKit.js"></script>
+<script type="text/javascript">
+var roundedCornersOnLoad = function(){
+    roundClass(null, "wrapper", null);
+    roundClass(null, 'nav_button');
+    roundClass(null, 'userinfo', {corners: 'bl br'});
+    roundClass(null, 'content-main', null);
+    roundClass(null, 'footer', null);
+    roundClass(null, 'btn', {bgColor: "#e4e4e4", color: "#A6D5E9"});
+    roundClass(null, 'rounded-white', {bgColor: "#e4e4e4", color: "white"});
+}
+addLoadEvent(roundedCornersOnLoad);
+</script>
 
 {% block extrahead %}{% endblock %}
 </head>
 <body id="{% block bodyid %}page{% endblock %}">
-<div id="wrapper" class="down">
-<div id="nav">
-<div id="logo">&nbsp;</div>
-<div id="navwrapper" class="up">
-    {% block navbar %}
-	<a href="/" id="nav_index">{% trans "Index" %}</a>
-	<a href="javascript: popitup('/last-seen/')" id="nav_index">{% trans "Last Seen" %}</a>
-	{% if settings.debug %}
-	    <a href="/data/" id="nav_data">{% trans "Data Browse" %}</a>
+
+    {% include "op/imports/userinfo.html" %} <!-- login information -->
+
+    <div id="navigation" class="navigation"> 
+	<div class="logo">&nbsp;</div>
+        {% block navbar %}
+	    {% createNavButton "/" "nav_index" _("Index") "height: 55px"%}
+	    {% createNavButton "javascript: popitup('/last-seen/')" "nav_seen" _("Last Seen") "height: 55px"%}
+	    {% if settings.debug %}
+		{% createNavButton "/data/" "nav_data" _("Data Browse") "height: 55px"%}
+	    {% endif %}
+	    {% createNavButton "/admin/openproximity/" "nav_admin" _("Admin Site") "height: 55px"%}
+	    {% if settings.debug %}
+		{% createNavButton "/bluez/" "nav_debug" _("Debug") "height: 55px"%}
+	    {% endif %}
+	    {% if settings.translate %}
+		{% createNavButton "/admin/translate/" "nav_trans" _("Translate") "height: 55px"%}
+	    {% endif %}
+	{% endblock%}
+        {% if plugins %}
+	    <div id="plugins" class="nav_button" style="width: 220px">
+		<div style="height: 55px"><!-- stupid trick to get mochikit doing round corners right -->
+		{% trans "PLUGINS" %}
+		<br>
+		<select onchange="window.location.href=this.value" id="plugins_list">
+        	    <option value="/">----------------------</option>
+        	    {% for plugin in plugins %}
+        		<option value="/{{ plugin.provides.urls.0 }}" >{{ plugin.name }}</option>
+        	    {% endfor %}
+		</select>
+		</div>
+	    </div>
 	{% endif %}
-	<a href="/admin/openproximity/" id="nav_admin">{% trans "Admin Site" %}</a>
-	{% if settings.debug %}
-	    <a href="/bluez/" id="nav_debug">{% trans "Debug" %}</a>
-	{% endif %}
-	{% if settings.translate %}
-	    <a href="/admin/translate/" id="nav_trans">{% trans "Translate" %}</a>
-	{% endif %}
-    {% endblock%}
-    {% if plugins %}
-        <div id="plugins">
-            {% trans "PLUGINS" %}
-            <br>
-    	    <select onchange="window.location.href=this.value" id="plugins_list">
-                <option value="/">----------------------</option>
-                {% for plugin in plugins %}
-            	    <option value="/{{ plugin.provides.urls.0 }}" >{{ plugin.name }}</option>
-            	{% endfor %}
-	    </select>
+    </div>
+
+    <div class="{% block content_class %}content{% endblock %}"> <!-- user content -->
+	{% block content %}{% endblock %}
+    </div>
+    
+    <div class="footer">
+	<div class="inner"> <!-- little trick for accurate corner rounding -->
+	    {% block footer %}{% endblock %}
+	    <a href="http://code.google.com/p/proximitymarketing/">OpenProximity 2.0</a> Powered by <a href="http://www.aircable.net">AIRcable.net</a>
 	</div>
-    {% endif %}
-</div>
-</div>
-<div id="header">{% block header %}{% endblock %}</div>
-<div id="content" class="up">
-{% block content %}{% endblock %}
-</div>
-</div>
-<div id="footer" class="down">
-    {% block footer %}{% endblock %}
-<p><a href="http://code.google.com/p/proximitymarketing/">OpenProximity 2.0</a> Powered by <a href="http://www.aircable.net">AIRcable.net</a></p>
-</div>
+    </div>
+    <br>
 </body>
 </html>
+{% load i18n openproximity %}
+{% settings %}
+{% plugins %}
