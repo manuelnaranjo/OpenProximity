@@ -2,6 +2,7 @@
 {% load i18n %}
 {% block title %}| {% trans "Configure Dongle" %}{% endblock %}
 {% block content %}
+<div class="content-main"><div class="inner">
 {% if form.errors %}
 <h1>{% trans "Errors while configuring" %}</h1>
 <p id="error">
@@ -23,4 +24,5 @@
 	{% endif %}
 </p>
 </form>
+</div></div>
 {% endblock %}
