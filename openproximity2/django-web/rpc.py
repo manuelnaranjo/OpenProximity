@@ -28,7 +28,7 @@ if __name__ == '__main__':
 try:
     import settings # Assumed to be in the same directory.
     setattr(settings, "DEBUG", False)
-    print getattr(settings, "DEBUG")
+    logger.info("RPC-DEBUG %s" % getattr(settings, "DEBUG"))
     from django.core.management import setup_environ
     setup_environ(settings)
 except ImportError:
@@ -52,6 +52,7 @@ from rpyc.utils.server import ThreadedServer, ForkingServer
 services = set()
 pending = set()
 enabled = True # useful when tables are been drop
+all_dongles = set()
 
 class OpenProximityService(Service):
 	dongles = None
@@ -116,6 +117,7 @@ class OpenProximityService(Service):
 
 	def exposed_generic_register(self, remote_quit, dongles, ping, client):
 	    logger.info("generic register")
+	    all_dongles.update(dongles)
 	    try:
 		for plugin in pluginsystem.get_plugins('rpc_register'):
 			logger.debug("plugin %s provides rpc register" % plugin.name )
@@ -130,7 +132,7 @@ class OpenProximityService(Service):
 
 	def exposed_scanner_register(self, remote_quit, scanner, dongles, ping):
 	    global enabled
-
+	    all_dongles.update(dongles)
 	    self.dongles = set()
 	    # wrap all calls as async, to avoid collitions
 	    self.add_dongle = async(scanner.add_dongle)
@@ -163,7 +165,7 @@ class OpenProximityService(Service):
 
 	def exposed_uploader_register(self, remote_quit, uploader, dongles, ping):
 	    global enabled
-
+	    all_dongles.update(dongles)
 	    self.dongles = set()
 	    self.add_dongle = async(uploader.add_dongle)
 	    self.upload = async(uploader.upload)
@@ -214,6 +216,10 @@ class OpenProximityService(Service):
 			out.add(d,)
 	    logger.info("getDongles %s" % out)
 	    return list(out)
+	    
+	def exposed_getAllDongles(self):
+	    logger.info("getAllDongles %s" % all_dongles)
+	    return list(all_dongles)
 
 	def __str__(self):
 	    return str(dir(self))
