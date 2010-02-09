@@ -7,6 +7,8 @@
 
 {% block content %}
 
+<div class="content-main">
+<div class="inner">
 {% for model in model_list %}
   <div class="modelgroup {% cycle 'even' 'odd' %}">
     <table>
@@ -24,5 +26,7 @@
     </table>
   </div>
 {% endfor %}
+</div>
+</div>
 
 {% endblock %}

@@ -1,6 +1,14 @@
 {% extends "op/base.html" %}
+
+{% block extrahead %}
+    <style type="text/css">
+	{% include "op/databrowse.css" %}
+    </style>
+{% endblock %}
+
 {% block header %}
 <a style="color:black;" href="{{ root_url }}">{% block databrowse_title %}OpenProximity 2.0{% endblock %}</a>
 {% block extra_header %}{% endblock %}
 {% endblock %}
 
+{% block content_class %}content content-main{% endblock %}
