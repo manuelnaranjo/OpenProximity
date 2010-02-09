@@ -14,17 +14,30 @@
 </style>
 {% endblock %}
 
+<script type="text/javascript" src="/site_media/MochiKit.js"></script>
+<script type="text/javascript">
+    var roundedCornersOnLoad = function(){
+	roundClass(null, "wrapper", null);
+	roundClass(null, 'nav_button');
+	roundClass(null, 'userinfo', {corners: 'bl br'});
+	roundClass(null, 'content-main', null);
+	roundClass(null, 'footer', null);
+	roundClass(null, 'btn', {bgColor: "#e4e4e4", color: "#A6D5E9"});
+	roundClass(null, 'rounded-white', {bgColor: "#e4e4e4", color: "white"});
+    }
+    addLoadEvent(roundedCornersOnLoad); 
+</script>
 {% block extrahead %}{% endblock %}
 </head>
 
 <body id="{% block bodyid %}page{% endblock %}">
-<div id="wrapper" class="down">
+<div class="content">
 {% block content %}{% endblock %}
 </div>
-<div id="footer" class="down">
+<div class="footer"><div class="inner">
     {% block footer %}{% endblock %}
 <p><a href="javascript: self.close()">{% trans "Close this Window"%}</a></p>
 <p><a href="http://code.google.com/p/proximitymarketing/">OpenProximity 2.0</a> Powered by <a href="http://www.aircable.net">AIRcable.net</a></p>
-</div>
+</div></div>
 </body>
 </html>

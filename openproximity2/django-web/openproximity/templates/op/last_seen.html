@@ -2,8 +2,6 @@
 {% load i18n %}
 
 {% block extrahead %}
-<script type="text/javascript" src="/site_media/MochiKit.js"></script>
-
 <script type="text/javascript">
 
 function create_tr_seen(content){
@@ -65,10 +63,14 @@ function update_table(){
 
     defer.addCallbacks(gotLastSeen, lastSeenFailed);
 }
+
+addLoadEvent(update_table);
+setInterval("update_table()", 30*1000); //update each 30 secs
 </script>
 {% endblock %}
 
 {% block content %}
+<div class="content-main"><div class="inner">
 <b>{% trans "Devices seen during the last 15 minutes" %}</b>
 <table id="last_seen">
     <thead>
@@ -86,9 +88,6 @@ function update_table(){
     </thread>
     <tbody id="last_seen_body"></tbody>
 </table>
+</div></div>
 
-<script type="text/javascript">
-    update_table();
-    setInterval("update_table()", 30*1000); //update each 30 secs
-</script>
 {% endblock %}
