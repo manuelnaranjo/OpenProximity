@@ -26,7 +26,9 @@ class PluginsNode(template.Node):
 register.tag('plugins', do_plugins)
 
 @register.simple_tag
-def createNavButton(ref, rid, text, style):
-    return '''<a class="nav_button" title="%s" id="%s" href="%s">
-	<div style="%s" >%s</div></a>''' % (text, rid, ref, style, text)
-
+def createNavButton(ref, rid, text, style=None):
+    return '''<div class="nav_button" id="%s">
+    <div class="inner">
+    	    <a style="%s"  href="%s">%s</a>
+    </div>
+</div>''' % (rid, style if style else ';', ref, text)
