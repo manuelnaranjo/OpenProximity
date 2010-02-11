@@ -13,7 +13,7 @@
 	}
 	
 	function create_td(id, content){
-		td = TD()
+		var td = TD()
 		td.id = id
 		td.innerHTML = content
 		return td
@@ -46,6 +46,55 @@
 		}
 		defer.addCallbacks(gotStats, statsFetchFailed);
 	}
+	
+	function create_button(id, text, href, bgColor){
+	    if (bgColor==null){
+		bgColor="#e4e4e4";
+	    }
+	    var inner;
+	    var out;
+	    var a;
+	    out=DIV({'id': id, 'class':'nav_button'})
+	    inner=DIV({'class': 'inner', 'style': 'height: 1.5em'})
+	    out.appendChild(inner)
+	    a=A({'href': href})
+	    a.innerHTML=text
+	    inner.appendChild(a)
+	    roundElement(out, {bgColor: bgColor})
+	    return out
+	}
+
+	function update_known_dongles(dongles){
+	    var old_body=$('known').getElementsByTagName('tbody')[0];
+	    var new_body=TBODY();
+
+	    for (var addr in dongles){
+		var val = dongles[addr]
+		var tr = TR()
+		tr.id="rpc_dongles"+val.address
+		tr.class="rpc_dongles"
+		tr.appendChild(create_td('dongle_address', val.address))
+		tr.appendChild(create_td('dongle_scan', val.isScanner))
+		tr.appendChild(create_td('dongle_scan_enabled', val.scan_enabled))
+		tr.appendChild(create_td('dongle_scan_priority', val.scan_pri))
+		tr.appendChild(create_td('dongle_upload', val.isUploader))
+		tr.appendChild(create_td('dongle_upload_enabled', val.upload_enabled))
+		tr.appendChild(create_td('dongle_upload_maxconn', val.max_conn))
+		var td=TD({'style': 'width: 10em;'})
+		td.id = 'dongle_setup';
+		td.appendChild(
+		    create_button(
+			'configure_'+val.address, 
+			"{% trans "Configure" %}",
+			'configure/dongle/' + val.address,
+			'white'
+		    )
+		);
+		tr.appendChild(td);
+		new_body.appendChild(tr);
+	    }
+	    swapDOM(old_body, new_body);
+	}
 
 	function update_rpc_info(){
 		var defer;
@@ -56,31 +105,7 @@
 			update_field('rpc_running', info.running)
 			update_field('rpc_uploadres', info.uploaders)
 			update_field('rpc_scanners', info.scanners)
-
-			var i;
-			while ( true ){
-				i = getElement('rpc_dongles')
-				if (i == null) break;
-				
-				removeElement(i) 
-			}
-
-			parent = getElement('known')
-
-			for (var addr in info.dongles){
-				var val = info.dongles[addr]
-				tr = parent.insertRow(parent.rows.length)
-				tr.id="rpc_dongles"
-				tr.appendChild(create_td('dongle_address', val.address))
-				tr.appendChild(create_td('dongle_scan', val.isScanner))
-				tr.appendChild(create_td('dongle_scan_enabled', val.scan_enabled))
-				tr.appendChild(create_td('dongle_scan_priority', val.scan_pri))
-				tr.appendChild(create_td('dongle_upload', val.isUploader))
-				tr.appendChild(create_td('dongle_upload_enabled', val.upload_enabled))
-				tr.appendChild(create_td('dongle_upload_maxconn', val.max_conn))
-				tr.appendChild(create_td('dongle_setup', '<a href="configure/dongle/' + val.address +'">{% trans "Configure" %}</a>'))
-			}
-			
+			update_known_dongles(info.dongles)
 		};
 	
 		var infoFetchFailed = function(err){
@@ -95,13 +120,18 @@ setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
 function check_version(){
     var reply=compare_version("{{version.current}}");
     var foot =$('version_foot');
-    foot.innerHTML ="<p>{% trans "server version" %}: <b>" + reply.latest + "</b> {% trans "running version" %}: <b>{{ version.current }}</b></p>";
+    var p=P("{% trans "server version" %}: " + reply.latest + " {% trans "running version" %}: {{ version.current }}");
+    foot.appendChild(p)
 
     if ( reply.new_available == true ){
 	var top = $('new_version_top');
-	top.innerHTML="<h1><a href=\"http://code.google.com/p/proximitymarketing/\">{% trans "There's a new version available" %}</a></h1>";
-	top.innerHTML+="<p>{% trans "New Version" %}: " + reply.latest + "</p>";
-        top.innerHTML+="<p>{% trans "Your Version" %}: {{ version.current }}</p>";
+	var h1=H1()
+	var a = A({'href': 'http://code.google.com/p/proximitymarketing/'});
+	a.innerHTML="{% trans "There's a new version available" %}";
+	h1.appendChild(a);
+	top.appendChild(h1)
+	top.appendChild(P("{% trans "New Version" %}: " + reply.latest));
+        top.appendChild(P("{% trans "Your Version" %}: {{ version.current }}"));
         top.style.display="";
     }
 }
@@ -111,19 +141,19 @@ addLoadEvent(check_version);
 </script>
 
 {% comment %} field line content refresh 'amount to show' 'first read' {% endcomment %}
-{% Tweet 'messages' 'fields.time' './microblog' 'post.fields.time.split(\' \')[1] + " " + post.fields.content + "<br>"' 5 17 %}
+{% Tweet 'messages' 'fields.time' './microblog' 'post.fields.time.split(\' \')[1] + " " + post.fields.content + "<br/>"' 5 17 %}
 
 {% endblock %}
 
 {% block content %}
     <div id="new_version_top" style="display: none" class="content-main"></div>
     
-    <div style="height: 400px;">
-	<div style="position: absolute; top: 0; left: 0; width: 50%" >
-	    <div class="content-main"><div class="inner">{% include "op/imports/server_stats.html" %}</div></div>
-	    <div class="content-main"><div class="inner">{% include "op/imports/server_status.html" %}</div></div>
+    <div style="height: 455px; float:bottom">
+	<div style="width: 50%; float: left;" >
+	    <div class="content-main" style="float:bottom;"><div class="inner">{% include "op/imports/server_stats.html" %}</div></div>
+	    <div class="content-main" style="float:bottom;"><div class="inner">{% include "op/imports/server_status.html" %}</div></div>
 	</div>
-	<div style="position: absolute; top: 0; right: 0; width: 49%;">
+	<div style="width: 49%; float:right;">
 	    <div class="log content-main">
 		<div class="inner">
 		    <h1>{% trans "Server Log" %}</h1>
@@ -132,12 +162,12 @@ addLoadEvent(check_version);
 	    </div>
 	</div>
     </div>
-    <div class="content-main">
+    <div class="content-main" style="float: bottom">
 	<div class="inner">
 	{% include "op/imports/known_dongles.html" %}
 	</div>
     </div>
-    <div class="content-main">
+    <div class="content-main" style="float: bottom">
 	<div class="inner">
 	{% include "op/imports/campaigns.html" %}
 	</div>
