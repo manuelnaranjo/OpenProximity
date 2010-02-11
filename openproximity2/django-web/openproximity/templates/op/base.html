@@ -19,14 +19,15 @@
 	if (window.focus){ 
 	    newwindow.focus() 
 	}
-	return False;
     }
+
 </script>
 <script type="text/javascript" src="/site_media/MochiKit.js"></script>
 <script type="text/javascript">
 var roundedCornersOnLoad = function(){
     roundClass(null, "wrapper", null);
     roundClass(null, 'nav_button');
+    roundClass(null, 'nav_button_grey', {bgColor: '#e4e4e4'});
     roundClass(null, 'userinfo', {corners: 'bl br'});
     roundClass(null, 'content-main', null);
     roundClass(null, 'footer', null);
@@ -43,26 +44,26 @@ addLoadEvent(roundedCornersOnLoad);
     {% include "op/imports/userinfo.html" %} <!-- login information -->
 
     <div id="navigation" class="navigation"> 
-	<div class="logo">&nbsp;</div>
+	<object class="logo">&nbsp;</object>
         {% block navbar %}
-	    {% createNavButton "/" "nav_index" _("Index") "height: 55px"%}
-	    {% createNavButton "javascript: popitup('/last-seen/')" "nav_seen" _("Last Seen") "height: 55px"%}
+	    {% createNavButton "/" "nav_index" _("Index") %}
+	    {% createNavButton "javascript: popitup('/last-seen/')" "nav_seen" _("Last Seen") %}
 	    {% if settings.debug %}
-		{% createNavButton "/data/" "nav_data" _("Data Browse") "height: 55px"%}
+		{% createNavButton "/data/" "nav_data" _("Data Browse") %}
 	    {% endif %}
-	    {% createNavButton "/admin/openproximity/" "nav_admin" _("Admin Site") "height: 55px"%}
+	    {% createNavButton "/admin/openproximity/" "nav_admin" _("Admin Site") %}
 	    {% if settings.debug %}
-		{% createNavButton "/bluez/" "nav_debug" _("Debug") "height: 55px"%}
+		{% createNavButton "/bluez/" "nav_debug" _("Debug") %}
 	    {% endif %}
 	    {% if settings.translate %}
-		{% createNavButton "/admin/translate/" "nav_trans" _("Translate") "height: 55px"%}
+		{% createNavButton "/admin/translate/" "nav_trans" _("Translate") %}
 	    {% endif %}
 	{% endblock%}
         {% if plugins %}
 	    <div id="plugins" class="nav_button" style="width: 220px">
 		<div style="height: 55px"><!-- stupid trick to get mochikit doing round corners right -->
 		{% trans "PLUGINS" %}
-		<br>
+		<br/>
 		<select onchange="window.location.href=this.value" id="plugins_list">
         	    <option value="/">----------------------</option>
         	    {% for plugin in plugins %}
@@ -83,10 +84,7 @@ addLoadEvent(roundedCornersOnLoad);
 	    {% block footer %}{% endblock %}
 	    <a href="http://code.google.com/p/proximitymarketing/">OpenProximity 2.0</a> Powered by <a href="http://www.aircable.net">AIRcable.net</a>
 	</div>
+	<br/>
     </div>
-    <br>
 </body>
 </html>
-{% load i18n openproximity %}
-{% settings %}
-{% plugins %}
