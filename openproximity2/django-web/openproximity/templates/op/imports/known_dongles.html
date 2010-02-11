@@ -1,9 +1,10 @@
 {% load i18n %}
 <div class="dongles">
     <h1>{% trans "Known Dongles" %}</h1>
-    <div class="rounded-white" class="known">
+    <div class="rounded-white known">
     <table id="known" class="known" style="width:100%">
-	<tr>
+	<thead>
+	    <tr>
 	    <td>{% trans "Address" %}</td>
 	    <td>{% trans "Is Scanner" %}</td>
 	    <td>{% trans "Scanner Enabled" %}</td>
@@ -12,7 +13,11 @@
 	    <td>{% trans "Uploader Enabled" %}</td>
 	    <td>{% trans "Max Connections" %}</td>
 	    <td></td>
-	</tr>
+	    </tr>
+	</thead>
+	<tbody>
+	    <tr><td></td></tr>
+	</tbody>
     </table>
     </div>
 </div>
