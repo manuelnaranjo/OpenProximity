@@ -18,32 +18,32 @@
 	    </div>
 	    <div class="setting">
 		<div class="label">{% trans "Start" %}</div>
-		<span class="value">{{ camp.start }}</span>
+		<span class="value">{{ camp.start|default:_("Not Set") }}</span>
 	    </div>
 	    <div class="setting">
 		<div class="label">{% trans "End" %}</div>
-		<span class="value">{{ camp.end }}</span>
+		<span class="value">{{ camp.end|default:_("Not Set") }}</span>
 	    </div>
 	    <div class="setting">
 		<div class="label">{% trans "Name Filter" %}</div>
-		<span class="value">{{ camp.name_filter|default:"None" }}</span>
+		<span class="value">{{ camp.name_filter|default:_("Not Set") }}</span>
 	    </div>
 	    <div class="setting">
 		<div class="label">{% trans "Address Filter" %}</div>
-		<span class="value">{{ camp.addr_filter|default:"None" }}</span>
+		<span class="value">{{ camp.addr_filter|default:_("Not Set") }}</span>
 	    </div>
 	    <div class="setting">
 		<div class="label">{% trans "DevClass Filter" %}</div>
-		<span class="value">{{ camp.devclass_filter|default:"None" }}</span>
+		<span class="value">{{ camp.devclass_filter|default:_("Not Set") }}</span>
 	    </div>
 	    {% for file in camp.campaignfile_set.all %}
 		<div class="setting">
 		    <div class="label">{% trans "Serving File" %}</div>
-		    <span class="value">{{ file.file.name }}</span>
+		    <span class="value">{{ file.file.name|default:_("Not Set") }}</span>
 		</div>
 		<div class="setting">
 		    <div class="label">{% trans "Chances" %}</div>
-		    <span class="value">{{ file.chance }}</span>
+		    <span class="value">{{ file.chance|default:_("Not Set") }}</span>
 		</div>
 		<div class="nav_button_grey" style="width: 20em; color: #E4E4E4">
 		    <div class="inner" style="height: 2em;">
