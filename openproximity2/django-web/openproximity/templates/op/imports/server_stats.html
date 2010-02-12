@@ -36,10 +36,10 @@
 	    <span class="value" id="stats_accepted">{{ stats.accepted }}</span>
 	</div>
 	{% if stats.error %}
-	    <tr id="error">
+	    <div class="setting error" id="error">
 		<div class="label">{% trans "Error Message" %}</div>
-		<div class="value">{{ stats.error }}</div>
-	    </tr>
+		<span class="value">{{ stats.error }}</span>
+	    </div>
 	{% endif %}
     <div class="nav_button_grey" style="width: 20em; color: #E4E4E4">
 	<div class="inner" style="height: 2em;">

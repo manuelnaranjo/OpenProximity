@@ -15,9 +15,9 @@
 	    <div class="value" id="rpc_scanners">{{ rpc.scanners }}</div>
 	</div>
 	{% if rpc.error %}
-	    <tr id="error">
+	    <div class="setting error" id="error">
 		<div class="label">{% trans "Error Message" %}</div>
-		<div class="value" id="error">{{ rpc.error }}</div>
+		<span class="value" id="error">{{ rpc.error }}</span>
 	    </div>
 	{% endif %}
 	<div class="nav_button_grey" style="width: 20em; color: #E4E4E4">
