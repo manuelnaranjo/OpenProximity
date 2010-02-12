@@ -4,15 +4,15 @@
 	<legend>{% trans "Server Status" %}</legend>
         <div class="setting">
 	    <div class="label">{% trans "RPC Server is running" %}</div>
-	    <div class="value" id="rpc_running">{{ rpc.running|yesno:_("yes,no") }}</div>
+	    <span class="value" id="rpc_running">{{ rpc.running|yesno:_("yes,no") }}</span>
 	</div>
 	<div class="setting">
 	    <div class="label">{% trans "Uploaders Connected" %}</div>
-	    <div class="value" id="rpc_uploadres">{{ rpc.uploaders }}</div>
+	    <span class="value" id="rpc_uploadres">{{ rpc.uploaders }}</span>
 	</div>
 	<div class="setting">
 	    <div class="label">{% trans "Scanners Connected" %}</div>
-	    <div class="value" id="rpc_scanners">{{ rpc.scanners }}</div>
+	    <span class="value" id="rpc_scanners">{{ rpc.scanners }}</span>
 	</div>
 	{% if rpc.error %}
 	    <div class="setting error" id="error">
