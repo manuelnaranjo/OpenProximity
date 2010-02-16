@@ -53,7 +53,8 @@ class RemoteScanAdapter(ScanAdapter):
 	priority = 0
 	sending = False
 	
-	def __init__(self, priority, local=None, address=None, bus=None):
+	def __init__(self, priority, local=None, address=None, 
+			bus=None, scanner_manager=None):
 		if priority is None or priority < 0:
 			priority=0
 			
@@ -61,6 +62,7 @@ class RemoteScanAdapter(ScanAdapter):
 		self.local = local
 		self.bt_address = address
 		self.bus = bus
+		self.scanner_manager = scanner_manager
 		
 		manager = self.bus.get_object(remotescanner_url,
 		    "/net/aircable/RemoteScanner/Manager")
@@ -69,8 +71,35 @@ class RemoteScanAdapter(ScanAdapter):
 		remote_object = self.bus.get_object(remotescanner_url, self.dbus_path)
 		
 		self.iface = dbus.Interface(remote_object, remotescanner_url)
+		
+		self.bus.add_signal_receiver(self.connected, # callback
+			signal_name='ScannerConnected', # signal name
+			dbus_interface=remotescanner_url, # interface name
+		)
+
+		self.bus.add_signal_receiver(self.disconnected, # callback
+			signal_name='ScannerDisconnected', # signal name
+			dbus_interface=remotescanner_url, # interface name
+		)
 
 		logger.debug("Initializated RemoteScannerDongle: %s" % priority)
+	
+	def connected(self, local, remote):
+	    if self.bt_address.lower() == remote.lower():
+		logger.info("scanner connected %s" % remote)
+		self.scanner_manager.property_changed(
+		    'Discovering',
+		    0,
+		    self.dbus_path)
+
+	def disconnected(self, local, remote):
+	    if self.bt_address.lower() == remote.lower():
+		logger.info("scanner disconnected %s" % remote)
+		self.scanner_manager.property_changed(
+		    'Discovering',
+		    0,
+		    self.dbus_path)
+
 	
 	def __str__(self):
 		return 'RemoteScanner %s %s %s' % (
@@ -82,6 +111,7 @@ class RemoteScanAdapter(ScanAdapter):
 	    
 	    if not self.iface.isConnected():
 		self.iface.Connect(self.local, self.bt_address)
+		return
 	
 	    self.sending = True
 	    self.found = dict()
@@ -159,7 +189,7 @@ class ScanManager:
 			    print "trying with a remote scanner"
 			    adapter = RemoteScanAdapter(self.scanners[i][0], 
 				local=self.scanners[i][1], address=i, 
-				bus=self.bus)
+				bus=self.bus, scanner_manager=self)
 			
 			self.__dongles[i] = adapter
 		
@@ -310,7 +340,7 @@ class ScanManager:
 		    logger.debug('Discovery completed for path: %s' % path)
 		    dongle = self.__getScannerForPath(path)
 		    dongle.endScan()
-		    if self.concurrent:
+		    if self.concurrent and dongle.dbus_path in self.pending:
 			self.pending.remove(dongle.dbus_path)
 		    self.discovery_completed(dongle)
 		    return
@@ -325,7 +355,8 @@ class ScanManager:
 	def discovery_completed(self, dongle):
 		founds = list()
 		
-		for found,data in dongle.found.iteritems():
+		if dongle.found:
+		    for found,data in dongle.found.iteritems():
 			founds.append(
 			    { 
 				'address': str(found), 
