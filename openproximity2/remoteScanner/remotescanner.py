@@ -122,6 +122,7 @@ class RemoteScanner(dbus.service.Object):
 	except Exception, err:
 	    print "Failed while connecting", err
 	    traceback.print_exc()	    
+	    self.ScannerDisconnected(self.local, self.remote)
 	    
     def disconnect(self):
 	try:
