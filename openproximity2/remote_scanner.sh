@@ -14,4 +14,9 @@ export LOG_FILE
 
 cd remoteScanner
 echo "Starting Remote Scanner DBUS Service"
-python remotescanner.py
+if [ -z "$DEBUG" ] ; then
+    python remotescanner.py &
+else
+    export DEBUG
+    python remotescanner.py
+fi
