@@ -22,6 +22,7 @@ import dbus
 import dbus.service
 import dbus.glib
 import dbus.mainloop.glib
+from net.aircable.utils import logger
 
 from re import compile
 
@@ -49,7 +50,7 @@ class RemoteManager(dbus.service.Object):
 	if own in self.connections:
 	    if new is None or len(new) is 0:
 		for client in self.connections[own]:
-		    print client.path, "lost connection, killing it"
+		    logger.info("%s lost connection, killing it" % print client.path)
 		    client.force_disconnect()
 		self.connections[own] = None
 
@@ -61,7 +62,7 @@ class RemoteManager(dbus.service.Object):
 	path="%s/%i" % (CONNECTION, self.i)
 	self.i+=1
 	remote = RemoteScanner(self.bus, path)
-	print sender, "connected on", path
+	logger.info("%s connected on %s" % (sender, path))
 	if sender not in self.connections:
 	    self.connections[sender] = list()
 	self.connections[sender].append(remote)
@@ -97,8 +98,7 @@ class RemoteScanner(dbus.service.Object):
 		# in case client died without closing connection
 	        #os.system('hcitool dc %s' % self.remote)
 	except Exception, err:
-	    print "Failed on force_disconnect", err
-	    traceback.print_exc()
+	    logger.exception(err)
     
     def connect(self):
 	try:
@@ -114,22 +114,22 @@ class RemoteScanner(dbus.service.Object):
 
 	    # empty all buffers get it to clean state
 	    self.client.socket.settimeout(30)
-	    print self.client.readLine()
-	    print self.client.readBuffer()
+	    logger.debug(self.client.readLine())
+	    logger.debug(self.client.readBuffer())
 
     	    self.ScannerConnected(self.local, self.remote)
 
 	except Exception, err:
-	    print "Failed while connecting", err
-	    traceback.print_exc()	    
+	    logger.exception(err)
+	    self.client = None
 	    self.ScannerDisconnected(self.local, self.remote)
-	    
+
     def disconnect(self):
 	try:
 	    self.client.sendLine('c')
     	    self.client.disconnect(True)
 	except Exception, err:
-	    print "Failed while disconnecting", err
+	    logger.exception(err)
 
 	self.ScannerDisconnected(self.local, self.remote)
 	self.client = None
@@ -139,14 +139,13 @@ class RemoteScanner(dbus.service.Object):
 	    self.PropertyChanged('Discovering', 1)
 	    threading.Thread(target=self.__scan, args=(times, )).start()
 	except Exception, err:
-	    traceback.print_exc()
-	    print "Failed on scan start", err
+	    logger.exception(err)
 
     def __scan(self, times):
 	try:
 	    self.client.socket.settimeout(30)
 	    self.client.sendLine("r%i" % times) 
-	    print self.client.readBuffer()
+	    logger.debug(self.client.readBuffer())
 
 	    flag = True
 	    while ( flag ):
@@ -157,13 +156,14 @@ class RemoteScanner(dbus.service.Object):
 			address, rssi = line.split('RSSI')
 			self.DeviceFound( AddDots(address) , {'RSSI': int(rssi)})
 		    elif line.find('COMMAND') >-1:
-			print "RSSI completed"
+			logger.info("RSSI completed")
 			flag = False
 			break
 	except (SPPException, SPPNotConnectedException, TypeError), e:
-	    print "error while scanning, could be that we lost connection", e
+	    logger.error("error while scanning, could be that we lost connection")
+	    logger.exception(e)
 	except Exception, err:
-	    traceback.print_exc()	
+	    logger.exception(err)
 	    self.disconnect()
 	
 	self.PropertyChanged('Discovering', 0)
@@ -171,51 +171,50 @@ class RemoteScanner(dbus.service.Object):
     
     @dbus.service.signal(URL, signature="s")
     def ConnectionException(self, text):
-	print "ConnectionException", text
+	logger.info("ConnectionException %s" % text)
     
     @dbus.service.signal(URL, signature="sa{si}")
     def DeviceFound(self, address, values):
 	# simulate bluez format
-	print "Found %s: %s" % (address, values )
+	logger.info("Found %s: %s" %(address, values ))
 	
     @dbus.service.signal(URL, signature="ss")
     def ScannerConnected(self, local, remote):
-	print "ScannerConnected %s: %s" % (local, remote )
+	logger.info("ScannerConnected %s: %s" % (local, remote ))
 
     @dbus.service.signal(URL, signature="ss")
     def ScannerDisconnected(self, local, remote):
-	print "ScannerDisconnected %s: %s" % (local, remote )
+	logger.info("ScannerDisconnected %s: %s" % (local, remote ))
 	
     @dbus.service.signal(URL, signature="si")
     def PropertyChanged(self, name, value):
-	print "PropertyChanged %s: %s" % (name, value)
+	logger.info("PropertyChanged %s: %s" % (name, value))
     
     @dbus.service.method(URL, in_signature="i", out_signature="")
     def StartScan(self, times=1):
-	print "StartScan"
+	logger.info("StartScan: %s" % times)
 	self.scan(times)
 	return
 	
     @dbus.service.method(URL, in_signature="ss", out_signature="")
     def Connect(self, local, remote):
-	print "Connect", str(local), str(remote)
 	self.local = str(local)
 	self.remote = str(remote)
-	print "Connect", self.local, self.remote
+	logger.info("Connect: %s -> %s" % (self.local, self.remote))
 	threading.Thread(target=self.connect).start()
 	return
 
     @dbus.service.method(URL)
     def Disconnect(self):
-	print "Disconnect"
+	logger.info("Disconnect")
 	threading.Thread(target=self.disconnect).start()
 	return
 	
     @dbus.service.method(URL, out_signature="b")
     def isConnected(self):
-	if self.client is None:
-	    return False
-	return self.client.socket is not None
+	connected = self.client is None or ( self.client.socket is not None )
+	logger.info("isConnected %s" % connected)
+	return connected
 
 if __name__=='__main__':
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -231,5 +230,5 @@ if __name__=='__main__':
     from net.aircable.spp import sppClient
     from net.aircable.spp.errors import SPPException, SPPNotConnectedException
     mainloop = gobject.MainLoop()
-    print "Running RemoteScanner Service."
+    logger.info("Running RemoteScanner Service.")
     mainloop.run()
