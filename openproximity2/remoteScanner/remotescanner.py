@@ -50,7 +50,7 @@ class RemoteManager(dbus.service.Object):
 	if own in self.connections:
 	    if new is None or len(new) is 0:
 		for client in self.connections[own]:
-		    logger.info("%s lost connection, killing it" % print client.path)
+		    logger.info("%s lost connection, killing it" % client.path)
 		    client.force_disconnect()
 		self.connections[own] = None
 
