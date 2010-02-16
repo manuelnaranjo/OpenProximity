@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-09 15:56-0300\n"
+"POT-Creation-Date: 2010-02-12 11:49-0300\n"
 "PO-Revision-Date: 2010-02-11 14:45\n"
 "Last-Translator: <foo@foo.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,8 +18,10 @@ msgstr ""
 
 #: bluez/templates/bluez/hci.html:14 bluez/templates/bluez/hci.html.py:18
 #: bluez/templates/bluez/index.html:16 bluez/templates/bluez/index.html:20
-#: openproximity/templates/op/imports/campaigns.html:9
+#: openproximity/templates/op/imports/campaigns.html:13
 #: openproximity/templates/op/imports/server_status.html:7
+#: templates/op/imports/campaigns.html:13
+#: templates/op/imports/server_status.html:7
 msgid "yes,no"
 msgstr "sí, no"
 
@@ -28,8 +30,10 @@ msgid "Adapter"
 msgstr "Adattatore"
 
 #: bluez/templates/bluez/hci.html:23 bluez/templates/bluez/index.html:25
-#: openproximity/templates/op/imports/server_stats.html:44
+#: openproximity/templates/op/imports/server_stats.html:42
 #: openproximity/templates/op/imports/server_status.html:19
+#: templates/op/imports/server_stats.html:40
+#: templates/op/imports/server_status.html:19
 msgid "Error Message"
 msgstr "Messaggio di Errore"
 
@@ -111,40 +115,74 @@ msgid "dongles names"
 msgstr "Nome dei Dongles"
 
 #: openproximity/models.py:96
-msgid "if you want your campaign to change the bluetooth dongles names when running then set this variable"
-msgstr "Se desideri che questa campagna cambi il nome dei Dongles Bluetooth quando si attiva, definisci il Nome"
+msgid ""
+"if you want your campaign to change the bluetooth dongles names when running "
+"then set this variable"
+msgstr ""
+"Se desideri che questa campagna cambi il nome dei Dongles Bluetooth quando "
+"si attiva, definisci il Nome"
 
 #: openproximity/models.py:113
 msgid "how many times it should try again when rejected, -1 infinite"
-msgstr "quante volte il sistema tenta di inviare il contenuto in caso di Rifiuto, -1 per infinite volte"
+msgstr ""
+"quante volte il sistema tenta di inviare il contenuto in caso di Rifiuto, -1 "
+"per infinite volte"
 
 #: openproximity/models.py:115
-msgid "how much time to wait after a certain device has rejected a file before we try again"
-msgstr "quanto tempo aspettare in caso di rifiuto di un device prima di  tentare di inviarlo di nuovo"
+msgid ""
+"how much time to wait after a certain device has rejected a file before we "
+"try again"
+msgstr ""
+"quanto tempo aspettare in caso di rifiuto di un device prima di  tentare di "
+"inviarlo di nuovo"
 
 #: openproximity/models.py:117
 msgid "how many times it should try to send when timing out, -1 infinite"
-msgstr "quante volte il sistema tenta di inviare un contenuto in caso di mancata risposta, -1 per infinite volte"
+msgstr ""
+"quante volte il sistema tenta di inviare un contenuto in caso di mancata "
+"risposta, -1 per infinite volte"
 
 #: openproximity/models.py:119
-msgid "how much time to wait after a certain device has made a timeout before we try again"
-msgstr "quanto tempo aspettare in caso di mancata risposta di un device prima di tentare di inviarlo di nuovo"
+msgid ""
+"how much time to wait after a certain device has made a timeout before we "
+"try again"
+msgstr ""
+"quanto tempo aspettare in caso di mancata risposta di un device prima di "
+"tentare di inviarlo di nuovo"
 
 #: openproximity/models.py:121
-msgid "how many times will this campaign be accepted before disabling, -1 means infinite"
-msgstr "quante volte questa campagna verrà inviata con successo prima di disabilitarsi, -1 significa significa sempre attiva"
+msgid ""
+"how many times will this campaign be accepted before disabling, -1 means "
+"infinite"
+msgstr ""
+"quante volte questa campagna verrà inviata con successo prima di "
+"disabilitarsi, -1 significa significa sempre attiva"
 
 #: openproximity/models.py:123
-msgid "if the meassured rssi is over or equal than this value then campaign will match, take into account rssi is negative, range -255 0"
-msgstr "se l' RSSI medio è superiore o uguale a questo valore il contenuto verrò inviato al dispositivo rilevato. Il valore del RSSI è negativo, il range è da -255 a 0"
+msgid ""
+"if the meassured rssi is over or equal than this value then campaign will "
+"match, take into account rssi is negative, range -255 0"
+msgstr ""
+"se l' RSSI medio è superiore o uguale a questo valore il contenuto verrò "
+"inviato al dispositivo rilevato. Il valore del RSSI è negativo, il range è "
+"da -255 a 0"
 
 #: openproximity/models.py:125
-msgid "if the meassured rssi is less or equal than this value then campaign will match, take into account rssi is negative, range -255 0"
-msgstr "se l' RSSI medio è minore o uguale a questo valore il contenuto verrò inviato al dispositivo rilevato. Il valore del RSSI è negativo, il range è da -255 a 0"
+msgid ""
+"if the meassured rssi is less or equal than this value then campaign will "
+"match, take into account rssi is negative, range -255 0"
+msgstr ""
+"se l' RSSI medio è minore o uguale a questo valore il contenuto verrò "
+"inviato al dispositivo rilevato. Il valore del RSSI è negativo, il range è "
+"da -255 a 0"
 
 #: openproximity/models.py:161
-msgid "if < 1 then a random number generator will check if the user is lucky enough to get this file"
-msgstr "se è minore di 1 verrà generato un numero random e si controlla se l'utente viene sorteggiato per  ricevere il contenuto"
+msgid ""
+"if < 1 then a random number generator will check if the user is lucky enough "
+"to get this file"
+msgstr ""
+"se è minore di 1 verrà generato un numero random e si controlla se l'utente "
+"viene sorteggiato per  ricevere il contenuto"
 
 #: openproximity/models.py:163
 msgid "campaign file itself"
@@ -177,291 +215,362 @@ msgstr "Dongle Bluetooth Auto Rilevato"
 #: openproximity/templates/admin/base.html:27
 #: openproximity/templates/op/imports/userinfo.html:5
 #: openproximity/templates/op/imports/userinfo.html:10
+#: templates/admin/base.html:27 templates/op/imports/userinfo.html:5
+#: templates/op/imports/userinfo.html:10
 msgid "Welcome,"
 msgstr "Benvenuto"
 
-#: openproximity/templates/admin/base.html:32
+#: openproximity/templates/admin/base.html:32 templates/admin/base.html:32
 msgid "Documentation"
 msgstr "Documentazione"
 
 #: openproximity/templates/admin/base.html:40
 #: openproximity/templates/op/imports/userinfo.html:7
+#: templates/admin/base.html:40 templates/op/imports/userinfo.html:7
 msgid "Change password"
 msgstr "Cambia Password"
 
 #: openproximity/templates/admin/base.html:47
 #: openproximity/templates/op/imports/userinfo.html:8
+#: templates/admin/base.html:47 templates/op/imports/userinfo.html:8
 msgid "Log out"
 msgstr "Esci"
 
-#: openproximity/templates/admin/base.html:54
+#: openproximity/templates/admin/base.html:54 templates/admin/base.html:54
 msgid "Home"
 msgstr "Inizio"
 
 #: openproximity/templates/admin/base_site.html:4
+#: templates/admin/base_site.html:4
 msgid "OpenProximity site admin"
 msgstr "Sito di Amministrazione di OpenProximity"
 
 #: openproximity/templates/admin/base_site.html:7
+#: templates/admin/base_site.html:7
 msgid "OpenProximity administration"
 msgstr "Amministrazione di OpenProximity"
 
 #: openproximity/templates/admin/base_site.html:11
+#: templates/admin/base_site.html:11
 msgid "OpenProximity Home"
 msgstr "Inizio di OpenProximity"
 
-#: openproximity/templates/op/base.html:48
+#: openproximity/templates/op/base.html:49 templates/op/base.html:49
 msgid "Index"
 msgstr "Indice"
 
-#: openproximity/templates/op/base.html:49
-#: openproximity/templates/op/last_seen.html:80
+#: openproximity/templates/op/base.html:50
+#: openproximity/templates/op/last_seen.html:80 templates/op/base.html:50
+#: templates/op/last_seen.html:80
 msgid "Last Seen"
 msgstr "Ultimi Rilevati"
 
-#: openproximity/templates/op/base.html:51
+#: openproximity/templates/op/base.html:52 templates/op/base.html:52
 msgid "Data Browse"
 msgstr "Visualizzatore di<br/>Dati"
 
-#: openproximity/templates/op/base.html:53
+#: openproximity/templates/op/base.html:54 templates/op/base.html:54
 msgid "Admin Site"
 msgstr "Amministra<br/>Sito"
 
-#: openproximity/templates/op/base.html:55
+#: openproximity/templates/op/base.html:56 templates/op/base.html:56
 msgid "Debug"
 msgstr "Debug"
 
-#: openproximity/templates/op/base.html:58
+#: openproximity/templates/op/base.html:59 templates/op/base.html:59
 msgid "Translate"
 msgstr "Traduci"
 
-#: openproximity/templates/op/base.html:64
+#: openproximity/templates/op/base.html:65 templates/op/base.html:65
 msgid "PLUGINS"
 msgstr "PLUGINS"
 
 #: openproximity/templates/op/base_popup.html:39
+#: templates/op/base_popup.html:39
 msgid "Close this Window"
 msgstr "Chiudere questa Finestra"
 
 #: openproximity/templates/op/campaign_form.html:3
+#: templates/op/campaign_form.html:3
 msgid "Configure Campaign"
 msgstr "Configurare Campagna"
 
 #: openproximity/templates/op/campaign_form.html:6
 #: openproximity/templates/op/dongle_form.html:7
+#: templates/op/campaign_form.html:6 templates/op/dongle_form.html:7
 msgid "Errors while configuring"
 msgstr "Errore in Configurazione"
 
 #: openproximity/templates/op/campaign_form.html:8
 #: openproximity/templates/op/dongle_form.html:9
+#: templates/op/campaign_form.html:8 templates/op/dongle_form.html:9
 msgid "Please Correct"
 msgstr "Per favore correggi"
 
 #: openproximity/templates/op/campaign_form.html:15
 #: openproximity/templates/op/dongle_form.html:16
-#: openproximity/templates/op/index.html:81
+#: openproximity/templates/op/index.html:88 templates/op/campaign_form.html:15
+#: templates/op/dongle_form.html:16 templates/op/index.html:88
 msgid "Configure"
 msgstr "Configura"
 
 #: openproximity/templates/op/dongle_form.html:3
+#: templates/op/dongle_form.html:3
 msgid "Configure Dongle"
 msgstr "Configura Dongle"
 
-#: openproximity/templates/op/index.html:98
+#: openproximity/templates/op/index.html:123 templates/op/index.html:123
 #, fuzzy
 msgid "server version"
 msgstr "Nuova Versione"
 
-#: openproximity/templates/op/index.html:98
+#: openproximity/templates/op/index.html:123 templates/op/index.html:123
 msgid "running version"
 msgstr ""
 
-#: openproximity/templates/op/index.html:102
+#: openproximity/templates/op/index.html:130 templates/op/index.html:130
 msgid "There's a new version available"
 msgstr "Esiste una nuova versione disponibile!"
 
-#: openproximity/templates/op/index.html:103
+#: openproximity/templates/op/index.html:133 templates/op/index.html:133
 msgid "New Version"
 msgstr "Nuova Versione"
 
-#: openproximity/templates/op/index.html:104
+#: openproximity/templates/op/index.html:134 templates/op/index.html:134
 msgid "Your Version"
 msgstr "La tua Versione"
 
-#: openproximity/templates/op/index.html:129
+#: openproximity/templates/op/index.html:159 templates/op/index.html:159
 msgid "Server Log"
 msgstr "Log del Server"
 
-#: openproximity/templates/op/last_seen.html:74
+#: openproximity/templates/op/last_seen.html:74 templates/op/last_seen.html:74
 msgid "Devices seen during the last 15 minutes"
 msgstr "Dispositivi rilevati negli ultimi 15 minuti"
 
 #: openproximity/templates/op/last_seen.html:78
-#: openproximity/templates/op/imports/known_dongles.html:7
+#: openproximity/templates/op/imports/known_dongles.html:8
+#: templates/op/last_seen.html:78 templates/op/imports/known_dongles.html:8
 msgid "Address"
 msgstr "Indirizzo"
 
 #: openproximity/templates/op/last_seen.html:79
+#: openproximity/templates/op/imports/campaigns.html:8
+#: templates/op/last_seen.html:79 templates/op/imports/campaigns.html:8
 msgid "Name"
 msgstr "Nome"
 
-#: openproximity/templates/op/last_seen.html:81
+#: openproximity/templates/op/last_seen.html:81 templates/op/last_seen.html:81
 msgid "Devclass"
 msgstr "Classe del Dispositivo"
 
-#: openproximity/templates/op/last_seen.html:82
+#: openproximity/templates/op/last_seen.html:82 templates/op/last_seen.html:82
 msgid "Obex Valid"
 msgstr "Obex Valido"
 
 #: openproximity/templates/op/last_seen.html:83
-#: openproximity/templates/op/imports/server_stats.html:27
+#: openproximity/templates/op/imports/server_stats.html:25
+#: templates/op/last_seen.html:83 templates/op/imports/server_stats.html:23
 msgid "Tried"
 msgstr "Tentativi"
 
 #: openproximity/templates/op/last_seen.html:84
-#: openproximity/templates/op/imports/server_stats.html:31
+#: openproximity/templates/op/imports/server_stats.html:29
+#: templates/op/last_seen.html:84 templates/op/imports/server_stats.html:27
 msgid "Timeout"
 msgstr "Timeout"
 
 #: openproximity/templates/op/last_seen.html:85
-#: openproximity/templates/op/imports/server_stats.html:35
+#: openproximity/templates/op/imports/server_stats.html:33
+#: templates/op/last_seen.html:85 templates/op/imports/server_stats.html:31
 msgid "Rejected"
 msgstr "Rifiutati"
 
 #: openproximity/templates/op/last_seen.html:86
-#: openproximity/templates/op/imports/server_stats.html:39
+#: openproximity/templates/op/imports/server_stats.html:37
+#: templates/op/last_seen.html:86 templates/op/imports/server_stats.html:35
 msgid "Accepted"
 msgstr "Accettati"
 
 #: openproximity/templates/op/remotebluetoothdevicerecord_form.html:25
+#: templates/op/remotebluetoothdevicerecord_form.html:25
 msgid "Submit"
 msgstr "Inviare"
 
 #: openproximity/templates/op/tabular_remotescanner.html:15
+#: templates/op/tabular_remotescanner.html:15
 msgid "Delete?"
 msgstr "Cancellare?"
 
-#: openproximity/templates/op/imports/campaigns.html:3
+#: openproximity/templates/op/imports/campaigns.html:4
+#: templates/op/imports/campaigns.html:4
 msgid "Marketing Campaigns"
 msgstr "Campagne di Marketing"
 
-#: openproximity/templates/op/imports/campaigns.html:8
+#: openproximity/templates/op/imports/campaigns.html:12
+#: templates/op/imports/campaigns.html:12
 msgid "Enabled"
 msgstr "Attivo"
 
-#: openproximity/templates/op/imports/campaigns.html:12
+#: openproximity/templates/op/imports/campaigns.html:16
+#: templates/op/imports/campaigns.html:16
 msgid "Service"
 msgstr "Servizio"
 
-#: openproximity/templates/op/imports/campaigns.html:16
+#: openproximity/templates/op/imports/campaigns.html:20
+#: templates/op/imports/campaigns.html:20
 msgid "Start"
 msgstr "Inizio"
 
-#: openproximity/templates/op/imports/campaigns.html:20
+#: openproximity/templates/op/imports/campaigns.html:21
+#: openproximity/templates/op/imports/campaigns.html:25
+#: openproximity/templates/op/imports/campaigns.html:29
+#: openproximity/templates/op/imports/campaigns.html:33
+#: openproximity/templates/op/imports/campaigns.html:37
+#: openproximity/templates/op/imports/campaigns.html:42
+#: openproximity/templates/op/imports/campaigns.html:46
+#, fuzzy
+msgid "Not Set"
+msgstr "Definire"
+
+#: openproximity/templates/op/imports/campaigns.html:24
+#: templates/op/imports/campaigns.html:24
 msgid "End"
 msgstr "Fine"
 
-#: openproximity/templates/op/imports/campaigns.html:24
+#: openproximity/templates/op/imports/campaigns.html:28
+#: templates/op/imports/campaigns.html:28
 msgid "Name Filter"
 msgstr "Filtro per Nome"
 
-#: openproximity/templates/op/imports/campaigns.html:28
+#: openproximity/templates/op/imports/campaigns.html:32
+#: templates/op/imports/campaigns.html:32
 msgid "Address Filter"
 msgstr "Filtro per Indirizzo"
 
-#: openproximity/templates/op/imports/campaigns.html:32
+#: openproximity/templates/op/imports/campaigns.html:36
+#: templates/op/imports/campaigns.html:36
 msgid "DevClass Filter"
 msgstr "Filtro per Classe del Dispositivo"
 
-#: openproximity/templates/op/imports/campaigns.html:37
+#: openproximity/templates/op/imports/campaigns.html:41
+#: templates/op/imports/campaigns.html:41
 msgid "Serving File"
 msgstr "Invio Contenuto"
 
-#: openproximity/templates/op/imports/campaigns.html:39
+#: openproximity/templates/op/imports/campaigns.html:45
+#: templates/op/imports/campaigns.html:45
 msgid "Chances"
 msgstr "Probabilità"
 
-#: openproximity/templates/op/imports/campaigns.html:46
+#: openproximity/templates/op/imports/campaigns.html:50
+#: templates/op/imports/campaigns.html:50
+msgid "See File"
+msgstr "Guarda Contenuto"
+
+#: openproximity/templates/op/imports/campaigns.html:55
+#: templates/op/imports/campaigns.html:55
 msgid "There are none known campaigns"
 msgstr ""
 
-#: openproximity/templates/op/imports/campaigns.html:47
+#: openproximity/templates/op/imports/campaigns.html:56
+#: templates/op/imports/campaigns.html:56
 msgid "Create a campaign Now"
 msgstr ""
 
 #: openproximity/templates/op/imports/known_dongles.html:3
+#: templates/op/imports/known_dongles.html:3
 msgid "Known Dongles"
 msgstr "Dongles note"
 
-#: openproximity/templates/op/imports/known_dongles.html:8
+#: openproximity/templates/op/imports/known_dongles.html:9
+#: templates/op/imports/known_dongles.html:9
 msgid "Is Scanner"
 msgstr "E' Scanner"
 
-#: openproximity/templates/op/imports/known_dongles.html:9
+#: openproximity/templates/op/imports/known_dongles.html:10
+#: templates/op/imports/known_dongles.html:10
 msgid "Scanner Enabled"
 msgstr "Attiva Scanner"
 
-#: openproximity/templates/op/imports/known_dongles.html:10
+#: openproximity/templates/op/imports/known_dongles.html:11
+#: templates/op/imports/known_dongles.html:11
 msgid "Scanner Priority"
 msgstr "Priorità dello Scanner"
 
-#: openproximity/templates/op/imports/known_dongles.html:11
+#: openproximity/templates/op/imports/known_dongles.html:12
+#: templates/op/imports/known_dongles.html:12
 msgid "Is Uploader"
 msgstr "E' Uploader"
 
-#: openproximity/templates/op/imports/known_dongles.html:12
+#: openproximity/templates/op/imports/known_dongles.html:13
+#: templates/op/imports/known_dongles.html:13
 msgid "Uploader Enabled"
 msgstr "Uploader Attivo"
 
-#: openproximity/templates/op/imports/known_dongles.html:13
+#: openproximity/templates/op/imports/known_dongles.html:14
+#: templates/op/imports/known_dongles.html:14
 msgid "Max Connections"
 msgstr "Numero Massimo di Connessioni"
 
-#: openproximity/templates/op/imports/server_stats.html:3
+#: openproximity/templates/op/imports/server_stats.html:4
+#: templates/op/imports/server_stats.html:4
 msgid "Server Statistics"
 msgstr "Statistiche del Server"
 
 #: openproximity/templates/op/imports/server_stats.html:6
+#: templates/op/imports/server_stats.html:6
 msgid "Seen"
 msgstr "Rilevati"
 
-#: openproximity/templates/op/imports/server_stats.html:10
+#: openproximity/templates/op/imports/server_stats.html:11
+#: templates/op/imports/server_stats.html:11
 msgid "Per Dongle"
 msgstr "Per Dongle"
 
-#: openproximity/templates/op/imports/server_stats.html:23
+#: openproximity/templates/op/imports/server_stats.html:21
+#: templates/op/imports/server_stats.html:19
 msgid "Valid Obex"
 msgstr "Obex Validi"
 
-#: openproximity/templates/op/imports/server_stats.html:49
+#: openproximity/templates/op/imports/server_stats.html:48
+#: templates/op/imports/server_stats.html:46
 msgid "Reset Statistics"
 msgstr "Cancella Statistiche"
 
-#: openproximity/templates/op/imports/server_status.html:3
+#: openproximity/templates/op/imports/server_status.html:4
+#: templates/op/imports/server_status.html:4
 msgid "Server Status"
 msgstr "Stato del Server"
 
 #: openproximity/templates/op/imports/server_status.html:6
+#: templates/op/imports/server_status.html:6
 msgid "RPC Server is running"
 msgstr "Il Server RPC è in esecuzione"
 
 #: openproximity/templates/op/imports/server_status.html:10
+#: templates/op/imports/server_status.html:10
 msgid "Uploaders Connected"
 msgstr "Uploaders connessi"
 
 #: openproximity/templates/op/imports/server_status.html:14
+#: templates/op/imports/server_status.html:14
 msgid "Scanners Connected"
 msgstr "Scanners connessi"
 
-#: openproximity/templates/op/imports/server_status.html:24
-msgid "Restart RPC Server"
+#: openproximity/templates/op/imports/server_status.html:25
+#: templates/op/imports/server_status.html:25
+#, fuzzy
+msgid "Reset RPC Server"
 msgstr "Riavvia il Server RPC"
 
 #: openproximity/templates/op/imports/userinfo.html:11
+#: templates/op/imports/userinfo.html:11
 msgid "Anonymous"
 msgstr ""
 
 #: openproximity/templates/op/imports/userinfo.html:12
+#: templates/op/imports/userinfo.html:12
 #, fuzzy
 msgid "Log in"
 msgstr "Esci"
@@ -480,6 +589,3 @@ msgstr "Esci"
 
 #~ msgid "Maximum Connections"
 #~ msgstr "Numero Massimo Connessioni"
-
-#~ msgid "See File"
-#~ msgstr "Guarda Contenuto"
