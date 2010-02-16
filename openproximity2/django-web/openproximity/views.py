@@ -223,7 +223,7 @@ def stats_restart(request):
     tables = [ 'openproximity_bluetoothdongle',
 		'openproximity_campaignfile',
 		'openproximity_marketingcampaign',
-		'openproximity_remotescannerbluetooethdongle',
+		'openproximity_remotescannerbluetoothdongle',
 		'openproximity_scannerbluetoothdongle',
 		'openproximity_uploaderbluetoothdongle',
 		'openproximity_generalsetting',
