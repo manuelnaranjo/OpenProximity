@@ -148,7 +148,7 @@ addLoadEvent(check_version);
 {% block content %}
     <div id="new_version_top" style="display: none" class="content-main"></div>
     
-    <div style="height: 552px; float:bottom">
+    <fieldset>
 	<div style="width: 50%; float: left;" >
 	    <div class="content-main" style="float:bottom;"><div class="inner">{% include "op/imports/server_stats.html" %}</div></div>
 	    <div class="content-main" style="float:bottom;"><div class="inner">{% include "op/imports/server_status.html" %}</div></div>
@@ -161,7 +161,7 @@ addLoadEvent(check_version);
 		</div>
 	    </div>
 	</div>
-    </div>
+    </fieldset>
     <div class="content-main" style="float: none">
 	<div class="inner">
 	{% include "op/imports/known_dongles.html" %}
