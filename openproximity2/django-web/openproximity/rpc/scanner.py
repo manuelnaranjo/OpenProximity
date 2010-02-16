@@ -144,14 +144,15 @@ def handle_addrecord(services, remote_, dongle, pending):
     record.setRemoteDevice(address)
     record.remote.save() # update last seen
     record.setRSSI(remote_['rssi'])
+    
+    if not isinstance(dongle, RemoteScannerBluetoothDongle):
+	if remote_['name'] is not None and record.remote.name!=remote_['name']:
+	    record.remote.name = remote_['name']
+	    record.remote.save()
+	if remote_['devclass'] != -1 and record.remote.devclass!=remote_['devclass']:
+	    record.remote.devclass = remote_['devclass']
+	    record.remote.save()
 
-    if remote_['name'] is not None and record.remote.name!=remote_['name']:
-        record.remote.name = remote_['name']
-        record.remote.save()
-    if remote_['devclass'] != -1 and record.remote.devclass!=remote_['devclass']:
-        record.remote.devclass = remote_['devclass']
-        record.remote.save()
-        
     logger.debug(record)
     logger.debug(record.remote)
 
@@ -171,7 +172,13 @@ def handle_addrecord(services, remote_, dongle, pending):
     
 def addrecords(services, address, records, pending):
     logger.info('addrecords for dongle %s' % address)
-    dongle = ScannerBluetoothDongle.objects.get(address=address)
+    try:
+	dongle = RemoteScannerBluetoothDongle.objects.get(address=address)
+	logger.info("remote dongle")
+    except:
+	logger.info("local dongle")
+	dongle = ScannerBluetoothDongle.objects.get(address=address)
+    
 
     for i in records:
         handle_addrecord(services, i, dongle, pending)
