@@ -32,22 +32,23 @@ AIRCABLE_PATH = None
 # load settings from config file, do it the right way!
 OPENPROXIMITY_CONFIG_FILE=os.environ.get('OPENPROXIMITY_CONFIG_FILE', "/etc/openproximity2.conf")
 
-for line in file(OPENPROXIMITY_CONFIG_FILE).readlines():
-    line=line.strip()
-    if len(line) == 0 or line.startswith("#"):
-	continue
-    key, val = line.split("=", 1)
-    try:
-	val = eval(val.strip())
+if os.path.isfile(OPENPROXIMITY_CONFIG_FILE):
+    for line in file(OPENPROXIMITY_CONFIG_FILE).readlines():
+	line=line.strip()
+	if len(line) == 0 or line.startswith("#"):
+	    continue
+	key, val = line.split("=", 1)
+	try:
+	    val = eval(val.strip())
 	
-	# hack it a bit!
-	if val=="yes":
-	    val=True
-	elif val=="no":
-	    val=False
-    except:
-	pass
-    locals()[key]=val
+	    # hack it a bit!
+	    if val=="yes":
+		val=True
+	    elif val=="no":
+		val=False
+	except:
+	    pass
+	locals()[key]=val
 
 AIRCABLE_PATH=AIRCABLE_PATH or os.environ.get('AIRCABLE_PATH', '/tmp')
 

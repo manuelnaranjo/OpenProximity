@@ -158,15 +158,16 @@ done
 
 rm -rf "$OP2"/tmp
 
+PYTHONPATH=$OP2/openproximity2/libs
 #update messages
-cd "$OP2/openproximity2"; bash manager.sh makemessages -a
+cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py makemessages -a
 
 #copy messages back to original code
 cp -r "$OP2/openproximity2/django-web/locale" "$CWD/django-web/"
 rm -f `find $CWD/django-web/locale | grep "\.mo$"`
 
 #now compile messages
-cd "$OP2/openproximity2"; bash manager.sh compilemessages
+cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py makemessages -a
 
 #clean up compiled python files
 rm -f `find . | grep "\.pyc$"`
