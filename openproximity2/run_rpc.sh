@@ -7,6 +7,8 @@ PID_FILE=/var/run/openproximity.pid
 LOG_DIR=/var/log/aircable
 CWD=$(pwd)
 
+source common.sh
+
 echo "Starting RPC $1 Client"
 
 if [ -z "$DEBUG" ]; then
@@ -15,6 +17,6 @@ if [ -z "$DEBUG" ]; then
     ( cd serverXR && work manager.py localhost 8010 $1 ) &
 else
     export DEBUG
-    ( cd serverXR && python manager.py localhost 8010 $1 ) &
+    ( cd serverXR && python manager.py localhost 8010 $1 )
 fi
 

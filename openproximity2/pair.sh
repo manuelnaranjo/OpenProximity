@@ -12,9 +12,9 @@ echo "Starting Pairing manager"
 if [ -z $DEBUG ]; then
     LOG_FILE=$LOG_DIR/pair.log
     export LOG_FILE
-    (cd serverXR && work pair.py) &
+    (cd serverXR && work pair.py localhost 8010 ) &
 else
     export DEBUG
-    (cd serverXR && python pair.py)
+    (cd serverXR && python pair.py localhost 8010 )
 fi
 
