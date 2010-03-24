@@ -128,20 +128,13 @@ def handle_addrecord(services, remote_, dongle, pending):
     address = remote_['address']
 
     logger.info("handle_addrecord %s" % address)
-
-    if RemoteDevice.objects.filter(address=address).count() == 0:
-        logger.info("first time found, not yet known in our DB")
-        remote = RemoteDevice()
-        remote.address = address
-	if remote_['name'] is not None:
-    	    remote.name = remote_['name']
-    	remote.devclass = remote_['devclass']
-        remote.save()
-        
+    remote=RemoteDevice.getRemoteDevice(address=address, 
+					name=remote_['name'], 
+					devclass=remote_['devclass'])
     record = RemoteBluetoothDeviceFoundRecord()
     record.action = signals.FOUND_DEVICE
     record.dongle = dongle
-    record.setRemoteDevice(address)
+    record.remote = remote
     record.remote.save() # update last seen
     record.setRSSI(remote_['rssi'])
     
