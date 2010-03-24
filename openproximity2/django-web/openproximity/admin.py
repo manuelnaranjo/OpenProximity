@@ -50,7 +50,7 @@ class CampaignFileAdmin(admin.StackedInline):
 class MarketingCampaignAdmin(admin.ModelAdmin):
     fieldsets = (
 	(None, {
-	    'fields': ('name', 'enabled', 'service'),
+	    'fields': ('name', 'enabled', 'service', 'pin_code'),
 	}),
 	('Times filter',{
 	    'fields': ('rejected_count', 'rejected_timeout', 
@@ -76,7 +76,8 @@ class MarketingCampaignAdmin(admin.ModelAdmin):
     inlines = [ CampaignFileAdmin, ]
     
     list_display = ( 'name', 
-			'service', 
+			'service',
+			'pin_code',
 			'start',
 			'end',
 			'rssi_min',

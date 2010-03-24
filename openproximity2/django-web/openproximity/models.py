@@ -95,6 +95,11 @@ class Campaign(models.Model):
 	verbose_name=_("dongles names"),
 	help_text=_("if you want your campaign to change the bluetooth dongles names when running then set this variable")
     )
+    pin_code=models.CharField(null=True, blank=True, max_length=16,
+	default="1234",
+	help_text=_("certain target devices require pairing, this is the pin code going to be used")
+    )
+    
     
     def matches(self, remote, *args, **kwargs):
 	return False
@@ -180,6 +185,22 @@ class RemoteDevice(models.Model):
     def __unicode__(self):
 	return "%s, %s" % (self.address, self.name)
 
+    @classmethod
+    def getRemoteDevice(cls, address, name=None, devclass=None):
+	qs = cls.objects.filter(address=address)
+	if qs.count() == 0:
+            logger.info("first time found, not yet known in our DB") 
+            remote = RemoteDevice()
+            remote.address = address
+            remote.name = name
+            remote.devclass = devclass
+            remote.save()
+            return remote
+        if qs.count() > 1:
+    	    for i in qs[:1]:
+    		i.delete()
+	return qs[0]
+
 class DeviceRecord(models.Model):
     time = models.DateTimeField(blank=False, serialize = True,
 	verbose_name=_("time"))
@@ -203,14 +224,10 @@ class DeviceRecord(models.Model):
 
 class RemoteBluetoothDeviceRecord(DeviceRecord):
     remote = models.ForeignKey(RemoteDevice, verbose_name=_("remote address"), serialize = True)
-    
+
     def setRemoteDevice(self, address):
-        qs = RemoteDevice.objects.filter(address=address)
-        if qs.count() > 1:
-    	    for i in qs[:1]:
-    		i.delete()
-	self.remote=qs[0]
-    
+	self.remote = RemoteDevice.getRemoteDevice(address)
+
     def __unicode__(self):
 	return "%s, %s" % (
 	    self.dongle.address, 
