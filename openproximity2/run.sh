@@ -31,11 +31,7 @@ cd $CWD
 sleep 5
 
 for i in $RPC ; do
-    LOG_FILE=$LOG_DIR/$i.log
-    export LOG_FILE
-    
-    echo "Starting RPC $i Client"
-    ( cd serverXR && work manager.py localhost 8010 $i ) &
+    . run_rpc.sh $i
 done
 
 exit 0

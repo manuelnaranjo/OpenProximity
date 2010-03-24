@@ -7,13 +7,14 @@ source common.sh
 LOG_DIR=/var/log/aircable
 
 export PYTHONPATH
-LOG_FILE=$LOG_DIR/pair.log
-export LOG_FILE
 
 echo "Starting Pairing manager"
 if [ -z $DEBUG ]; then
-    work pair.py &
+    LOG_FILE=$LOG_DIR/pair.log
+    export LOG_FILE
+    (cd serverXR && work pair.py) &
 else
-    python pair.py
+    export DEBUG
+    (cd serverXR && python pair.py)
 fi
 
