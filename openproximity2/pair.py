@@ -1,17 +1,37 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #testing pairing service
 
 import gobject
 
 import sys, os
 import dbus, dbus.service, dbus.mainloop.glib
-from net.aircable.utils import logger, logmain
-
-if __name__ == '__main__':
-    logmain("pair.py")
+from net.aircable.utils import logger
 
 PIN=os.environ.get("PIN_CODE", "1234")
 logger.info("PIN code defaulting to %s" % PIN)
+
+def handle_name_owner_changed(own, old, new):
+    if own.startswith('org.bluez'):
+	if new is None or len(str(new))==0:
+	    logger.info( "bluez has gone down, time to get out")
+	else:
+	    logger.info( "bluez started, time to restart")
+	
+
+def registerAgent(path):
+    adapter = dbus.Interface(bus.get_object("org.bluez", path),
+						  "org.bluez.Adapter")
+    adapter.RegisterAgent(path, "DisplayYesNo")
+    logger.info("adapter registered for path %s" % path)
+
+
+def handle_adapter_added(path, signal):
+    logger.info("bluez.%s: %s" % (signal, path))
+    registerAgent(path)
+
+def handle_adapter_removed(path, signal):
+    logger.info("adapter removed %s" % path)
 
 class Rejected(dbus.DBusException):
 	_dbus_error_name = "org.bluez.Error.Rejected"
@@ -80,46 +100,42 @@ def create_device_error(error):
 	logger.info("Creating device failed: %s" % (error))
 	mainloop.quit()
 
-if __name__ == '__main__':
-    try:
-	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+def registerControlSignals(bus):
+    bus.add_signal_receiver(handle_name_owner_changed,
+	'NameOwnerChanged',
+	'org.freedesktop.DBus',
+	'org.freedesktop.DBus',
+	'/org/freedesktop/DBus')
 
-	bus = dbus.SystemBus()
+    bus.add_signal_receiver(handle_adapter_added,
+	signal_name='AdapterAdded',
+	dbus_interface='org.bluez.Manager',
+	member_keyword='signal')
+
+    bus.add_signal_receiver(handle_adapter_removed,
+	signal_name='AdapterRemoved',
+	dbus_interface='org.bluez.Manager',
+	member_keyword='signal')
+
+def initAgent():
+    try:
 	manager = dbus.Interface(bus.get_object("org.bluez", "/"),
 							"org.bluez.Manager")
-
-	if len(sys.argv) > 1:
-		path = manager.FindAdapter(sys.argv[1])
-	else:
-		path = manager.DefaultAdapter()
-
-	adapter = dbus.Interface(bus.get_object("org.bluez", path),
-							"org.bluez.Adapter")
-
-	path = "/test/agent"
-	agent = Agent(bus, path)
-
-	mainloop = gobject.MainLoop()
-
-	if len(sys.argv) > 2:
-		if len(sys.argv) > 3:
-			device = adapter.FindDevice(sys.argv[2])
-			adapter.RemoveDevice(device)
-
-		agent.set_exit_on_release(False)
-		adapter.CreatePairedDevice(sys.argv[2], path, "DisplayYesNo",
-					reply_handler=create_device_reply,
-					error_handler=create_device_error)
-	else:
-		adapter.RegisterAgent(path, "DisplayYesNo")
-		logger.info("Agent registered")
-
-	mainloop.run()
-	logger.info("Agent is exiting")
-	#adapter.UnregisterAgent(path)
-	#print "Agent unregistered"
+	for path in manager.ListAdapters():
+	  registerAgent(path)
+	logger.info("Agent registered on all paths")
     except Exception, err:
 	logger.error("Something went wrong on the agent application")
 	logger.exception(err)
 
+if __name__ == '__main__':
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
+    bus = dbus.SystemBus()
+    registerControlSignals(bus)
+    mainloop = gobject.MainLoop()
+    path = "/test/agent"
+    agent = Agent(bus, path)
+    initAgent()
+    mainloop.run()
+    logger.info("Agent is exiting")
