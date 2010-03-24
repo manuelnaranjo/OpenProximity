@@ -117,14 +117,12 @@ cp "$CWD"/LICENSE .
 cp "$CWD"/manager.sh .
 cp -r "$CWD"/op_lib/net "$LIB_TARGET"
 cp -r "$CWD"/op_lib/plugins "$LIB_TARGET"
-cp "$CWD"/pair.py .
 cp "$CWD"/pair.sh .
 cp -r "$CWD"/remoteScanner .
 cp "$CWD"/remote_scanner.sh .
-cp "$CWD"/rpc_scanner.sh .
 cp "$CWD"/rpc.sh .
-cp "$CWD"/rpc_uploader.sh .
 cp "$CWD"/run.sh .
+cp "$CWD"/run_rpc.sh .
 cp "$CWD"/server.sh .
 cp -r "$CWD"/serverXR .
 cp "$CWD"/shell.sh .
