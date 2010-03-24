@@ -45,7 +45,7 @@ import openproximity.rpc.scanner, openproximity.rpc.uploader
 import threading, time, traceback, sys
 
 from django.db import transaction, models, close_connection, reset_queries
-from openproximity.models import CampaignFile, Setting
+from openproximity.models import CampaignFile, Setting, getMatchingCampaigns, RemoteDevice
 from rpyc import Service, async
 from rpyc.utils.server import ThreadedServer, ForkingServer
 
@@ -243,6 +243,22 @@ class OpenProximityService(Service):
 	    global enabled
 	    enabled = True
 	    self.exit(False)
+	    
+	def exposed_getPIN(self, remote, local):
+	    logger.info("getPIN request for %s->%s" % (local, remote) )
+	    remote = RemoteDevice.getRemoteDevice(address=remote)
+	    try:
+		camps = getMatchingCampaigns(remote=remote, enabled=True)
+		for camp in camps:
+		    if camp.pin_code:
+			logger.debug("pin code: %s" % camp.pin_code)
+			return camp.pin_code
+	    except Exception, err:
+		logger.error(err)
+		logger.exception(err)
+	    logger.info("No pin code")
+	    
+	    raise Exception("No pin code found")
 
 def run():
     server=ThreadedServer(OpenProximityService, '0.0.0.0', 

@@ -7,9 +7,40 @@ import gobject
 import sys, os
 import dbus, dbus.service, dbus.mainloop.glib
 from net.aircable.utils import logger
+import rpyc
 
-PIN=os.environ.get("PIN_CODE", "1234")
-logger.info("PIN code defaulting to %s" % PIN)
+DEFAULT_PIN=os.environ.get("PIN_CODE", "1234")
+logger.info("PIN code defaulting to %s" % DEFAULT_PIN)
+server = None
+
+PATH="/net/aircable/pairing"
+
+def connect(address, port):
+    logger.info("Connecting to %s:%s" % (address, port))
+    try:
+      s = rpyc.connect(address, int(port))
+      return s
+    except Exception, err:
+      logger.error("can't connect to server")
+      logger.exception(err)
+    return None
+
+def getPIN(address, dongle):
+  global server
+  print sys.argv
+  if len(sys.argv) > 2:
+    logger.info("server available")
+    if not server:
+      logger.info("server available")
+      server=connect(sys.argv[1], sys.argv[2])
+    try:
+      out = server.root.getPIN(address, dongle)
+      return str(out)
+    except Exception, err:
+      logger.error("couldn't get PIN from server")
+      logger.exception(err)
+  logger.info("faulting to default pin")
+  return DEFAULT_PIN
 
 def handle_name_owner_changed(own, old, new):
     if own.startswith('org.bluez'):
@@ -22,7 +53,7 @@ def handle_name_owner_changed(own, old, new):
 def registerAgent(path):
     adapter = dbus.Interface(bus.get_object("org.bluez", path),
 						  "org.bluez.Adapter")
-    adapter.RegisterAgent(path, "DisplayYesNo")
+    adapter.RegisterAgent(PATH, "DisplayYesNo")
     logger.info("adapter registered for path %s" % path)
 
 
@@ -57,9 +88,18 @@ class Agent(dbus.service.Object):
 
 	@dbus.service.method("org.bluez.Agent",
 					in_signature="o", out_signature="s")
-	def RequestPinCode(self, device):
-	    logger.info("RequestPinCode (%s): %s" % (device, PIN) )
-	    return PIN
+	def RequestPinCode(self, path):
+	    device = dbus.Interface(bus.get_object("org.bluez", path),
+							"org.bluez.Device")
+	    dongle = dbus.Interface(bus.get_object("org.bluez", 
+					      device.GetProperties()['Adapter']),
+					"org.bluez.Adapter")
+	    device=str(device.GetProperties()['Address'])
+	    dongle=str(dongle.GetProperties()['Address'])
+	    print device, dongle
+	    pin=getPIN(device, dongle)
+	    logger.info("RequestPinCode (%s->%s): %s" % (dongle, device, pin) )
+	    return pin
 
 	@dbus.service.method("org.bluez.Agent",
 					in_signature="o", out_signature="u")
@@ -91,14 +131,6 @@ class Agent(dbus.service.Object):
 					in_signature="", out_signature="")
 	def Cancel(self):
 	    logger.info("Cancel")
-
-def create_device_reply(device):
-	logger.info("New device (%s)" % (device))
-	mainloop.quit()
-
-def create_device_error(error):
-	logger.info("Creating device failed: %s" % (error))
-	mainloop.quit()
 
 def registerControlSignals(bus):
     bus.add_signal_receiver(handle_name_owner_changed,
@@ -134,8 +166,8 @@ if __name__ == '__main__':
     bus = dbus.SystemBus()
     registerControlSignals(bus)
     mainloop = gobject.MainLoop()
-    path = "/test/agent"
-    agent = Agent(bus, path)
+    agent = Agent(bus, PATH)
+    agent.set_exit_on_release(False)
     initAgent()
     mainloop.run()
     logger.info("Agent is exiting")
