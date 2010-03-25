@@ -383,5 +383,19 @@ def campaign_signal(instance, **kwargs):
 	logger.info('campaing_signal')
 	__restart_server()
 
+def logline_signal(instance, **kwargs):
+    ''' gets called when ever there is a new logline'''
+    if isinstance(instance, LogLine):
+	if LogLine.objects.count()>100:
+	    logger.info('logline cache clean up')
+	    logger.debug("logline count: %s" % LogLine.objects.count())
+	    qs = LogLine.objects.all().order_by('time')
+	    idm = qs[0].pk
+	    idM = qs[qs.count()-50].pk
+	    LogLine.objects.filter(pk__gte=idm, pk_lte=idM).delete()
+	    logger.debug("logline count: %s" % LogLine.objects.count())
+
 models.signals.post_save.connect(bluetooth_dongle_signal)
 models.signals.post_save.connect(campaign_signal)
+models.signals.post_save.connect(logline_signal)
+
