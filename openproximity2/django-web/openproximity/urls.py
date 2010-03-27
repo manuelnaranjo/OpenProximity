@@ -23,6 +23,7 @@ from django.views.generic.simple import direct_to_template
 
 from models import *
 import views
+import treeview
 
 class RemoteRecordForm(forms.ModelForm):
     class Meta:
@@ -66,5 +67,6 @@ urlpatterns = patterns('',
     (r'^file/grab/(?P<file>.+)', views.grab_file),
     (r'^microblog/', include(blog.urlpatterns)),
     (r'^last-seen/$', views.last_seen),
+    (r'^treeview/', include(treeview.urlpatterns)),
     (r'^$', views.index),
 )
