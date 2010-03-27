@@ -4,31 +4,47 @@
 {% block extrahead %}
 <script type="text/javascript" src="/site_media/lib/jquery.js"></script>
 <script type="text/javascript" src="/site_media/jquery.tree.js"></script>
+<script type="text/javascript" 
+    src="/site_media/plugins/jquery.tree.contextmenu.js"></script>
 
 <script type="text/javascript">
-    function load_initial_data(){
-	t = $('#async_tree')
-	t.tree(
-	    {
+    function create_tree(){
+	t = $('#async_tree');
+	t.tree({
 		data: {
 		    type: "json",
 		    async: true,
 		    opts: {
 			method: "POST",
-			url: "data",
+			url: "data"
 		    }
 		},
 		ui:{
 		    dots: false,
-		    animation: 100,
+		    animation: 100
 		},
 		lang:{
 		    loading: "{% trans "Loading" %} ..."
+		},
+		plugins: {
+		    contextmenu: {
+			items: {
+			    remove: false,
+			    rename: false,
+			    create: false,
+			    refresh: {
+				label: "{% trans "Refresh" %}",
+				icon:  "refresh",
+				visible: function(node, tree){ return node.hasClass('leaf') != true },
+				action: function(node, tree){ tree.refresh(node) }
+			    }
+			}
+		    }
 		}
 	    }
-	)
+	);
     }
-addLoadEvent(load_initial_data)
+addLoadEvent(create_tree)
 </script>
 
 {% endblock %}

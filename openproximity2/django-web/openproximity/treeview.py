@@ -197,6 +197,7 @@ def wrapper(generator, *args, **kwargs):
 def initialData(request):
     out = [
 	Node("remote_devices", _("Remote Devices")).getDict(),
+	Node("campaigns", _("Campaigns")).getDict(),
 	Node("scanner_dongles", _("Scanner Dongles")).getDict(),
 	Node("uploader_dongles", _("Uploader Dongles")).getDict(),
 	Node("all_dongles", _("All Dongles")).getDict()
@@ -209,6 +210,7 @@ def initialData(request):
 
 DATA={
     'remote_devices': lambda x: wrapper(modelList, x, models.RemoteDevice),
+    'campaigns': lambda x: wrapper(modelList, x, models.MarketingCampaign),
     'scanner_dongles': lambda x: wrapper(modelList, x, models.ScannerBluetoothDongle),
     'uploader_dongles': lambda x: wrapper(modelList, x, models.UploaderBluetoothDongle),
     'all_dongles': lambda x: wrapper(modelList, x, models.BluetoothDongle, True),
@@ -224,7 +226,7 @@ def data(request):
 	logger.debug("model detail %s" % spl)
 	return modelDetail(request, *spl)
     elif len(spl) == 4:
-	logger.debug("related model detail %s" spl)
+	logger.debug("related model detail %s" % spl)
 	return relatedDetail(request, *spl)
     elif len(spl) == 6:
 	logger.debug("related model detail subquery %s" % spl)
