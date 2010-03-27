@@ -214,6 +214,8 @@ class DeviceRecord(models.Model):
 	return "%s - %s [%s]" % (str(self.time), self.dongle.address, self._meta.module_name)
 
     class Meta:
+	# don't create a table for me please
+#	abstract = True
 	ordering = ['time']
 
     def save(self, force_insert=False, force_update=False):
@@ -244,6 +246,8 @@ class RemoteBluetoothDeviceRecord(DeviceRecord):
 	)
 
     class Meta:
+	# don't create a table for me please
+#	abstract = True
 	ordering = ['time']
 
 class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
@@ -285,6 +289,8 @@ class RemoteBluetoothDeviceFileTry(RemoteBluetoothDeviceRecord):
     campaign = models.ForeignKey(MarketingCampaign)
     
     class Meta:
+	# don't create a table for me please
+#	abstract = True
 	ordering = ['time']
     
 class RemoteBluetoothDeviceFilesRejected(RemoteBluetoothDeviceFileTry):
@@ -397,7 +403,7 @@ def logline_signal(instance, **kwargs):
 	    qs = LogLine.objects.all().order_by('time')
 	    idm = qs[0].pk
 	    idM = qs[qs.count()-50].pk
-	    LogLine.objects.filter(pk__gte=idm, pk_lte=idM).delete()
+	    LogLine.objects.filter(pk__gte=idm, pk__lte=idM).delete()
 	    logger.debug("logline count: %s" % LogLine.objects.count())
 
 models.signals.post_save.connect(bluetooth_dongle_signal)
