@@ -13,16 +13,13 @@
 	}
 	
 	function create_td(id, content){
-		var td = TD()
-		td.id = id
-		td.innerHTML = content
+		var td = TD({ 'id': id, 'innerHTML': content })
 		return td
 	}
 
 	function update_stats(){
 		var defer;
-		 
-		defer = loadJSONDoc('rpc/stats');    
+		defer = loadJSONDoc('rpc/stats');
 
 		var gotStats=function(stats){
 		    var td;
@@ -57,8 +54,7 @@
 	    out=DIV({'id': id, 'class':'nav_button'})
 	    inner=DIV({'class': 'inner', 'style': 'height: 1.5em'})
 	    out.appendChild(inner)
-	    a=A({'href': href})
-	    a.innerHTML=text
+	    a=A({ 'href': href, 'innerHTML': text })
 	    inner.appendChild(a)
 	    roundElement(out, {bgColor: bgColor})
 	    return out
@@ -69,19 +65,22 @@
 	    var new_body=TBODY();
 
 	    for (var addr in dongles){
-		var val = dongles[addr]
-		var tr = TR()
-		tr.id="rpc_dongles"+val.address
-		tr.class="rpc_dongles"
-		tr.appendChild(create_td('dongle_address', val.address))
-		tr.appendChild(create_td('dongle_scan', val.isScanner))
-		tr.appendChild(create_td('dongle_scan_enabled', val.scan_enabled))
-		tr.appendChild(create_td('dongle_scan_priority', val.scan_pri))
-		tr.appendChild(create_td('dongle_upload', val.isUploader))
-		tr.appendChild(create_td('dongle_upload_enabled', val.upload_enabled))
-		tr.appendChild(create_td('dongle_upload_maxconn', val.max_conn))
-		var td=TD({'style': 'width: 10em;'})
-		td.id = 'dongle_setup';
+		var val = dongles[addr];
+		var tr = TR({ 
+		    'class': 'rpc_dongles', 
+		    'id': "rpc_dongles_"+val.address
+		});
+		tr.appendChild(create_td('dongle_address', val.address));
+		tr.appendChild(create_td('dongle_scan', val.isScanner));
+		tr.appendChild(create_td('dongle_scan_enabled', val.scan_enabled));
+		tr.appendChild(create_td('dongle_scan_priority', val.scan_pri));
+		tr.appendChild(create_td('dongle_upload', val.isUploader));
+		tr.appendChild(create_td('dongle_upload_enabled', val.upload_enabled));
+		tr.appendChild(create_td('dongle_upload_maxconn', val.max_conn));
+		var td=TD({
+		    'style': 'width: 10em;',
+		    'id': 'dongle_setup'
+		});
 		td.appendChild(
 		    create_button(
 			'configure_'+val.address, 
@@ -114,8 +113,6 @@
 		defer.addCallbacks(gotInfo, infoFetchFailed);
 	}
 
-setInterval("update_stats()", 20000) <!-- update each 20 seconds -->
-setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
 
 function check_version(){
     var reply=compare_version("{{version.current}}");
@@ -126,8 +123,10 @@ function check_version(){
     if ( reply.new_available == true ){
 	var top = $('new_version_top');
 	var h1=H1()
-	var a = A({'href': 'http://code.google.com/p/proximitymarketing/'});
-	a.innerHTML="{% trans "There's a new version available" %}";
+	var a = A({ 
+	    'href': 'http://code.google.com/p/proximitymarketing/',
+	    'innerHTML': "{% trans "There's a new version available" %}"
+	});
 	h1.appendChild(a);
 	top.appendChild(h1)
 	top.appendChild(P("{% trans "New Version" %}: " + reply.latest));
@@ -136,6 +135,10 @@ function check_version(){
     }
 }
 
+setInterval("update_stats()", 20000) <!-- update each 20 seconds -->
+setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
+
+addLoadEvent(update_stats)
 addLoadEvent(update_rpc_info);
 addLoadEvent(check_version);
 </script>

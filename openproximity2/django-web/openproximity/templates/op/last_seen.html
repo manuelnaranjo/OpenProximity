@@ -6,7 +6,7 @@
 
 function create_tr_seen(content){
     tr=TR();
-    tr.id='seen_' + content.address
+    tr.id='seen_' + content.address;
     var fields=['address', 'name', 'last_seen'];//, 'devclass'];
     
     for (i in fields){
@@ -14,7 +14,7 @@ function create_tr_seen(content){
 	td.innerHTML=content[fields[i]];
 	tr.appendChild(td);
     }
-    update_info(content.address)
+    update_info(content.address);
     return tr
 }
 
@@ -24,16 +24,15 @@ function update_info(address){
 
     var gotDeviceInfo = function(stats){
 	var i;
-	var fields=['valid', 
+	var fields=['valid', 'timeout', 'rejected', 'accepted'];
 	//'tries', 
-	'timeout', 'rejected', 'accepted']
 	
-	t=getElement('seen_' + address)
+	t=getElement('seen_' + address);
 	
 	for ( i in fields){
-	    td = TD()
-	    td.innerHTML=stats[fields[i]]
-	    t.appendChild(td)
+	    td = TD();
+	    td.innerHTML=stats[fields[i]];
+	    t.appendChild(td);
 	}
     }
     
@@ -50,11 +49,11 @@ function update_table(){
     var gotLastSeen = function(stats){
 	var i;
 	
-	t=getElement('last_seen_body')
-	replaceChildNodes(t)
+	t=getElement('last_seen_body');
+	replaceChildNodes(t);
 	for ( i in stats){
 	    tr=create_tr_seen(stats[i]);
-	    t.appendChild(tr)
+	    t.appendChild(tr);
 	}
     }
     
