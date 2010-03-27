@@ -1,0 +1,46 @@
+{% extends "op/base.html" %}
+{% load i18n %}
+
+{% block extrahead %}
+<script type="text/javascript" src="/site_media/lib/jquery.js"></script>
+<script type="text/javascript" src="/site_media/jquery.tree.js"></script>
+
+<script type="text/javascript">
+    function load_initial_data(){
+	t = $('#async_tree')
+	t.tree(
+	    {
+		data: {
+		    type: "json",
+		    async: true,
+		    opts: {
+			method: "POST",
+			url: "data",
+		    }
+		},
+		ui:{
+		    dots: false,
+		    animation: 100,
+		},
+		lang:{
+		    loading: "{% trans "Loading" %} ..."
+		}
+	    }
+	)
+    }
+addLoadEvent(load_initial_data)
+</script>
+
+{% endblock %}
+
+{% block content %}
+	<div class="content-main">
+	    <fieldset style="margin: 0px; padding: 0px; border: none">
+	    <div class="inner">
+		<div id="async_tree">
+		</div>
+	    </div>
+	    </fieldset>
+	</div>
+{% endblock %}
+
