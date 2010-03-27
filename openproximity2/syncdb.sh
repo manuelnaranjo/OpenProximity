@@ -5,4 +5,5 @@
 source common.sh
 
 syncdb
+createadmin
 
