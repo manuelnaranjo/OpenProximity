@@ -210,9 +210,10 @@ class DeviceRecord(models.Model):
     def __unicode__(self):
 	return self.dongle.address
 	
+    def nodeRepresentation(self):
+	return "%s - %s [%s]" % (str(self.time), self.dongle.address, self._meta.module_name)
+
     class Meta:
-	# don't create a table for me please
-#	abstract = True
 	ordering = ['time']
 
     def save(self, force_insert=False, force_update=False):
@@ -233,10 +234,16 @@ class RemoteBluetoothDeviceRecord(DeviceRecord):
 	    self.dongle.address, 
 	    self.remote.address
 	)
-	
+
+    def nodeRepresentation(self):
+	return "%s - %s->%s [%s]" % (
+					str(self.time), 
+					self.dongle.address, 
+					self.remote.address, 
+					self._meta.module_name
+	)
+
     class Meta:
-	# don't create a table for me please
-#	abstract = True
 	ordering = ['time']
 
 class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
@@ -278,8 +285,6 @@ class RemoteBluetoothDeviceFileTry(RemoteBluetoothDeviceRecord):
     campaign = models.ForeignKey(MarketingCampaign)
     
     class Meta:
-	# don't create a table for me please
-#	abstract = True
 	ordering = ['time']
     
 class RemoteBluetoothDeviceFilesRejected(RemoteBluetoothDeviceFileTry):

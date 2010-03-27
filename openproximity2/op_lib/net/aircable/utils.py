@@ -62,3 +62,17 @@ def logmain(app):
 
 # some shared variables
 logger = __initLog()
+
+def get_subclass(object):
+    for related in object._meta.get_all_related_objects():
+	if type(object) in related.model._meta.get_parent_list():
+	    if hasattr(object,related.var_name):
+		return get_subclass(getattr(object, related.var_name))
+    return object
+
+def get_subclasses(klass):
+    out = [klass, ]
+    if len(klass.__subclasses__()) > 0:
+	for k in klass.__subclasses__():
+	    out.extend(get_subclasses(k))
+    return out
