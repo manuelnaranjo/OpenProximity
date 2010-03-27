@@ -79,7 +79,6 @@ a img { border: none; }
     float: left; 
     width: 206px; 
     height: 66px; 
-    background: url(/site_media/{% if settings.logo %}{{ settings.logo }}{% else %}logo.gif{% endif %}) no-repeat; 
 }
 #nav { 
     padding: 0; 
@@ -194,7 +193,7 @@ table.known td {
 }
 
 .log {
-    /* height: 600px; */http://192.168.1.109/
+    /* height: 600px; */
 }
 
 .rest {
@@ -213,4 +212,9 @@ table.known td {
 
 .setting {
     float: bottom;
+}
+
+.tree-default-context a ins.refresh { 
+    background-position:0 0; 
+    background: url(/site_media/view-refresh.png);
 }
