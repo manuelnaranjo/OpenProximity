@@ -196,7 +196,6 @@ class OpenProximityService(Service):
 	    for ser in services:
 		if getattr(ser,'uploader',None) is not None:
 		    count += 1
-	    logger.info("getUploadersCount %s" % count)
 	    return count
 
 	def exposed_getScannersCount(self):
@@ -204,22 +203,15 @@ class OpenProximityService(Service):
 	    for ser in services:
 		if getattr(ser,'scanner',None) is not None:
 		    count += 1
-	    logger.info("getScannersCount %s" % count)
 	    return count
 
 	def exposed_getDongles(self):
-	    out=set()
-
-	    for ser in services:
-		if ser.dongles is not None:
-		    for d in ser.dongles:
-			out.add(d,)
-	    logger.info("getDongles %s" % out)
-	    return list(out)
-	    
-	def exposed_getAllDongles(self):
-	    logger.info("getAllDongles %s" % all_dongles)
-	    return list(all_dongles)
+	    def getDongles_internal(self):
+		for ser in services:
+		    if ser.dongles is not None:
+			for d in ser.dongles:
+			    yield d
+	    return list(self.getDongles_internal())
 
 	def __str__(self):
 	    return str(dir(self))
