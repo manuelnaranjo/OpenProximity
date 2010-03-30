@@ -29,6 +29,34 @@ function download_and_uncompress(){
     cd $PACKAGE-$VERSION; cp -r $FOLDER $LIB_TARGET
 }
 
+function download_jstree(){
+    PACKAGE=$1
+    VERSION=$2
+    URL=$3
+    URL_P=$4
+
+    echo "processing $PACKAGE"
+    
+    if [ ! -f "$CWD"/libs/$PACKAGE.$VERSION.zip ]; then
+        echo "Downloading"
+        wget -O "$CWD"/libs/$PACKAGE.$VERSION.zip $URL/$URL_P.$VERSION.zip
+    fi
+    
+    echo "extracting $PACKAGE"
+    mkdir jstree_tmp
+    cd jstree_tmp
+    mkdir orig
+    cd orig ; unzip "$CWD"/libs/$PACKAGE.$VERSION.zip ; cd ..
+    mkdir out
+    cd out
+    cp ../orig/jquery.tree.js .
+    mkdir lib && cp ../orig/lib/jquery.js lib/
+    mkdir plugins && cp ../orig/plugins/jquery.tree.contextmenu.js plugins/
+    mkdir themes && cp -r ../orig/themes/default themes/
+    cp -r * $OP2/openproximity2/django-web/media/
+}
+
+
 function download_egg(){
     PACKAGE=$1
     VERSION=$2
@@ -129,6 +157,7 @@ cp "$CWD"/shell.sh .
 cp "$CWD"/syncdb.sh .
 cp "$CWD"/syncagent.sh .
 rm -rf $(find . -name .svn)
+rm -rf $(find . -name *~)
 
 cd "$OP2"
 mkdir tmp
@@ -143,7 +172,7 @@ download_and_uncompress poster 0.4 poster http://pypi.python.org/packages/source
 download_and_uncompress PyOFC2 0.1.1dev pyofc2 http://pypi.python.org/packages/source/P/PyOFC2
 download_and_uncompress django-notification 0.1.5 notification http://pypi.python.org/packages/source/d/django-notification/
 download_and_uncompress django-mailer 0.1.0 mailer http://pypi.python.org/packages/source/d/django-mailer/
-
+download_jstree jstree v.0.9.9a2 http://jstree.googlecode.com/files jsTree
 #some ideas on a WYSIWYG template editor
 #download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/
 #tinymce
