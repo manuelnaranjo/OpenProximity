@@ -128,7 +128,7 @@ function tinymce(){
 }
 echo "Creating installer for version" `cat latest-version`
 
-OP2=`pwd`/distrib/
+OP2=`pwd`/distrib
 LIB_TARGET="${OP2}"/openproximity2/libs
 CWD=`pwd`
 
@@ -186,6 +186,7 @@ done
 rm -rf "$OP2"/tmp
 
 PYTHONPATH=$OP2/openproximity2/libs
+export PYTHONPATH
 #update messages
 cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py makemessages -a
 
