@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
-#    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+#    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -25,87 +26,10 @@ from net.aircable.utils import *
 from net.aircable.wrappers import Adapter
 from threading import Thread
 from rpyc.utils.lib import ByValWrapper
+import async
 
 MEDIA_ROOT = os.environ.get('MEDIA_ROOT', '/tmp/aircable/media')
 TIMEOUT = os.environ.get('TIMEOUT', '20')
-
-# TODO add hci connection handling for detecting real timeout or out of range
-def doWork(dongle_path, bt_address, files, target, service, uuid, out, semaphore): #, manager):
-    logger.debug('UploaderAdapter doWork')
-    bus = dbus.SystemBus(private=True)
-    adapter = dbus.Interface( bus.get_object(const.BLUEZ, dongle_path), const.BLUEZ_ADAPTER )
-
-    semaphore.acquire()
-    logger.debug("Uploader resolving channel for %s, %s" % (target, service))
-    try:
-	port=sdp.resolve(target, uuid, adapter, bus)
-    except Exception, err:
-	semaphore.release()
-	logger.debug("Uploader failed to resolve service %s" % (target))
-	logger.exception(err)
-	out.put({
-	    'signal':SDP_NORECORD,
-	    'dongle':bt_address, 
-	    'address':str(target)
-	    })
-	return
-    semaphore.release()
-    logger.debug("Uploader resolved service %s, %s" % (target, port))
-    out.put(
-	{
-	 'signal':SDP_RESOLVED, 
-	 'dongle':bt_address,
-	 'address':str(target),
-	 'port':port
-	}
-    )
-
-    arguments = list()
-    arguments += ('/usr/bin/obexftp', '-d', bt_address )
-    arguments += ('-r', '1' )
-    if service == 'opp':
-	arguments += ('-U', 'none', '-H', '-S' )
-    arguments += ('-T', str(TIMEOUT) )
-    arguments += ('-b', target )
-    arguments += ('-B', str(port) )
-    for f, fk in files:
-	arguments += ('-p', os.path.join(MEDIA_ROOT, f) )
-    proc = subprocess.Popen(arguments, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    logger.debug("Uploader calling obexftp for %s on channel %s" % (target, port))
-    (stdout, stderr) = proc.communicate()
-    logger.debug(stdout)
-    logger.debug(stderr)
-    retcode = proc.returncode
-    logger.debug("Uploader obexftp completed for %s, result %s" % (target, retcode))
-
-    if retcode==0 or retcode==255: # bug in my patch, it gives negative ret code
-	out.put({
-	    'signal': FILE_UPLOADED, 
-	    'dongle': bt_address,
-	    'address': str(target), 
-	    'port': port,
-	    'files': ByValWrapper(files)
-	    })
-    else:
-	out.put({
-	    'signal': FILE_FAILED,
-	    'address': str(target),
-	    'dongle': bt_address,
-	    'port': port,
-	    'ret': retcode,
-	    'files': ByValWrapper(files), 
-	    'stdout': stdout, 
-	    'stderr': stderr
-	})
-    logger.debug("Uploader dowork finished")
-
-def proxy_messages(manager, queue):
-    logger.debug("message proxy started")
-    while [ 1 ]:
-	kwargs = queue.get(True)
-	logger.debug('got a message from queue, sending over rpyc')
-	manager.tellListeners(**kwargs)
 
 class UploadAdapter(Adapter):
 	queue = None
@@ -120,35 +44,94 @@ class UploadAdapter(Adapter):
 
 	    self.max_uploads = max_uploads
 	    self.current_connections = 0
-
-	    self.worker = procworker.Manager(max_uploads)
-	    self.worker.start()
-#	    self.semaphore = procworker.Lock()
+	    self.slots = dict( [ (i, None) for i in range(max_uploads) ] )
 	    self.manager = manager
-	    self.proxy=Thread(target=proxy_messages, 
-		kwargs={
-		    'manager': manager, 
-		    'queue': self.worker.out})
-	    self.proxy.daemon=True
-	    self.proxy.start()
-
 	    logger.debug("Initializated UploaderDongle")
-	    
+
+	def completed(self, target):
+	  self.slots[target.slot] = None
+	  logger.info("slot %s is now free" % target.slot)
+
+	def FileUploaded(self, target, *args, **kwargs):
+	  logger.info("File uploaded %s" % target.target)
+
+	  self.manager.tellListeners(
+	    signal = FILE_UPLOADED,
+	    dongle = self.bt_address,
+	    address = str(target.target),
+	    port = target.channel,
+	    files = ByValWrapper(target.files)
+	  )
+	  self.completed(target)
+
+	def FileFailed(self, target, retcode, stdout, stderr, *args, **kwargs):
+	  logger.info("File Failed %s" % target.target)
+	  self.manager.tellListeners(
+	    signal=FILE_FAILED,
+	    address=str(target.target),
+	    dongle=self.bt_address,
+	    port=target.channel,
+	    ret = retcode,
+	    files = ByValWrapper(target.files), 
+	    stdout = stdout, 
+	    stderr = stderr,
+	    timeout = TIMEOUT
+	  )
+
+	  self.completed(target)
+
+	def ChannelResolved(self, target, channel):
+	  logger.info("ChannelResolved %s -> %s" % ( target.target, channel ))
+	  self.manager.tellListeners(
+	    signal = SDP_RESOLVED,
+	    dongle = self.bt_address,
+	    address = str(target.target),
+	    port = channel
+	  )
+	  target.channel = channel
+
+	  target.SendFiles(channel=channel, 
+	    files=[ os.path.join(MEDIA_ROOT, f[0]) for f in target.files ],
+	    service = target.service,
+	    reply_callback=self.FileUploaded,
+	    error_callback=self.FileFailed)
+	
+	def ServiceNotProvided(self, target, error, state, connected):
+	  logger.info("ServiceNotProvided %s %s %s" % (target.target, error, connected))
+	  signal = SDP_NORECORD if connected else SDP_TIMEOUT 
+	  
+	  self.manager.tellListeners(
+	    signal = signal,
+	    dongle = self.bt_address,
+	    address = str(target.target)
+	  )
+
+	  self.completed(target)
+	  
+	def getSlot(self):
+	    for slot in self.slots:
+		if not self.slots[slot]:
+		    logger.debug("found slot %s" % slot)
+		    return slot
+	    raise Exception("No slot available")
+
+
 	def upload(self, files, target, uuid, service):
-	    logger.debug("Adding to upload queue %s" % target)
-
-	    self.worker.put ( doWork,
-		dongle_path=self.dbus_path,
-		bt_address=self.bt_address,
-		files=files,
-		target=target,
-		uuid=uuid,
-#		port=port,
-		service=service,
-#		manager=self.manager
-#		semaphore=self.semaphore
-	    )
-
+	    logger.debug("got an upload request %s" % target)
+	    sl = self.getSlot()
+	
+	    target = async.UploadTarget(self.dbus_interface, target, self.bus)
+	    self.slots[sl]
+	
+	    target.files = files
+	    target.slot = sl
+	    target.service = service
+	    target.uuid = uuid
+	
+	    target.ResolveChannel(uuid, 
+		    self.ChannelResolved, 
+		    self.ServiceNotProvided)
+  
 class UploadManager:
 	__dongles = dict()
 	bus = None
