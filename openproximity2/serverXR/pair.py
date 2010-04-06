@@ -116,7 +116,16 @@ class Agent(dbus.service.Object):
 					in_signature="ou", out_signature="")
 	def RequestConfirmation(self, device, passkey):
 	    logger.info("RequestConfirmation (%s, %d)" % (device, passkey))
-	    if passkey == PIN:
+	    device = dbus.Interface(bus.get_object("org.bluez", device),
+							"org.bluez.Device")
+	    dongle = dbus.Interface(bus.get_object("org.bluez", 
+					      device.GetProperties()['Adapter']),
+					"org.bluez.Adapter")
+	    device=str(device.GetProperties()['Address'])
+	    dongle=str(dongle.GetProperties()['Address'])
+	    print device, dongle
+	    pin=getPIN(device, dongle)
+	    if passkey == pin:
 		logger.info("passkey matches")
 		return
 	    logger.info("passkey doesn't match")
