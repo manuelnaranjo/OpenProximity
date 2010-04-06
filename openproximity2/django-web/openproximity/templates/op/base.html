@@ -39,13 +39,14 @@
 var roundedCornersOnLoad = function(){
     roundClass(null, "wrapper", null);
     roundClass(null, 'nav_button');
-    roundClass(null, 'footer', null);
+    roundClass(null, 'footer', {corners: 'tl tr'});
     roundClass(null, 'btn', {bgColor: "#e4e4e4", color: "#A6D5E9"});
     
     if (/MSIE/.test(navigator.userAgent))
 	return;
     roundClass(null, 'nav_button_grey', {bgColor: '#e4e4e4'});
     roundClass(null, 'userinfo', {corners: 'bl br'});
+    roundClass(null, 'plugins', {corners: 'bl br'});
     roundClass(null, 'content-main', null);
     roundClass(null, 'rounded-white', {bgColor: "#e4e4e4", color: "white"});
 }
@@ -57,6 +58,8 @@ addLoadEvent(roundedCornersOnLoad);
 <body id="{% block bodyid %}page{% endblock %}">
 
     {% include "op/imports/userinfo.html" %} <!-- login information -->
+    {% include "op/imports/plugins.html" %} <!-- plugins information -->
+
 
     <fieldset id="navigation" class="navigation"> 
 	<object class="logo">&nbsp;</object>
@@ -72,22 +75,8 @@ addLoadEvent(roundedCornersOnLoad);
 		{% createNavButton "/admin/translate/" "nav_trans" _("Translate") %}
 	    {% endif %}
 	{% endblock%}
-        {% if plugins %}
-	    <div id="plugins" class="nav_button" style="width: 220px">
-		<div style="height: 55px"><!-- stupid trick to get mochikit doing round corners right -->
-		{% trans "PLUGINS" %}
-		<br/>
-		<select onchange="window.location.href=this.value" id="plugins_list">
-        	    <option value="/">----------------------</option>
-        	    {% for plugin in plugins %}
-        		<option value="/{{ plugin.provides.urls.0 }}" >{{ plugin.name }}</option>
-        	    {% endfor %}
-		</select>
-		</div>
-	    </div>
-	{% endif %}
     </fieldset>
-
+    
     <div class="{% block content_class %}content{% endblock %}"> <!-- user content -->
 	{% block content %}{% endblock %}
     </div>
@@ -101,3 +90,4 @@ addLoadEvent(roundedCornersOnLoad);
     </div>
 </body>
 </html>
+

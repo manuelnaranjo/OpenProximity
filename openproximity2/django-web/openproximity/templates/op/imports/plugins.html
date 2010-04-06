@@ -1,0 +1,18 @@
+{% load i18n openproximity %}
+{% plugins %}
+
+{% if plugins %}
+    <div id="plugins" class="plugins">
+	<div class="inner" style="padding: 0em 2em"><!-- stupid trick to get mochikit doing round corners right -->
+	    {% trans "Plugins" %}
+
+	    <select style="border: none" onchange="window.location.href=this.value" id="plugins_list">
+        	<option value="/">----------------------</option>
+            	{% for plugin in plugins %}
+        		<option value="/{{ plugin.provides.urls.0 }}" >{{ plugin.name }}</option>
+            	{% endfor %}
+	    </select>
+	</div>
+    </div>
+{% endif %}
+

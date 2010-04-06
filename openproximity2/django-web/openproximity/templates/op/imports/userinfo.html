@@ -1,6 +1,6 @@
 {% load i18n %}
 <div id="login" class="userinfo">
-    <span class="inner"> <!-- little trick to get Mochikit round correctly-->
+    <span class="inner" style="padding: 0 2em"> <!-- little trick to get Mochikit round correctly-->
     {% if user.is_authenticated %}
         {% trans 'Welcome,' %}
         <strong>{% firstof user.first_name user.username %}</strong>
