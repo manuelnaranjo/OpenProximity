@@ -1,5 +1,5 @@
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
-#    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+#    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -45,8 +45,8 @@ urlpatterns = patterns ('',
     (r'^admin/', include(admin.site.urls),{},"admin"),
     
     (r'^site_media/(?P<path>.*)$', 'django.views.static.serve',
-	{	'document_root': os.path.join(os.path.dirname(__file__), 'media')},
-	"site-media"
+        {       'document_root': os.path.join(os.path.dirname(__file__), 'media')},
+        "site-media"
     ),
     
     (r'^notification/', include('notification.urls'),{},"notification"),
@@ -57,11 +57,12 @@ for plugin in pluginsystem.get_plugins('urls'):
     url, path = plugin.provides.get('urls')
     urlpatterns += patterns( '', 
         (r'^%s/' % url, 
-    	    include('%s.%s' % ( plugin.__name__, path)),
-	    {},
-	    plugin.__name__ # allow url to be reverse resolved
+            include('%s.%s' % ( plugin.__name__, path)),
+            {},
+            plugin.__name__ # allow url to be reverse resolved
     ))
 
 urlpatterns += patterns('', 
     (r'', include('openproximity.urls'),{},"openproximity")
 )
+
