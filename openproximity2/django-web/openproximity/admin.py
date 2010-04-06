@@ -1,5 +1,5 @@
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
-#    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+#    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -49,56 +49,57 @@ class CampaignFileAdmin(admin.StackedInline):
 
 class MarketingCampaignAdmin(admin.ModelAdmin):
     fieldsets = (
-	(None, {
-	    'fields': ('name', 'enabled', 'service', 'pin_code'),
-	}),
-	('Times filter',{
-	    'fields': ('rejected_count', 'rejected_timeout', 
-			'tries_count', 'tries_timeout',
-			'accepted_count')
-	}),
+    (None, {
+        'fields': ('name', 'enabled', 'service', 'pin_code'),
+    }),
+    ('Times filter',{
+        'fields': ('rejected_count', 'rejected_timeout', 
+            'tries_count', 'tries_timeout',
+            'accepted_count')
+    }),
         ('RSSI filter', {
-	    'fields': ('rssi_min', 'rssi_max'),
-	}), 
-	('Dongles settings',{
-	    'fields': ('dongle_name',),
-	}),
-	('Timing Filters', {
-	    'classes': ('collapse', ),
-	    'fields': ('start', 'end')
-	}),
-	('Extra Filter Settings', {
-	    'classes': ('collapse', ),
-	    'fields': ('name_filter', 'addr_filter', 'devclass_filter')
-	}),
+        'fields': ('rssi_min', 'rssi_max'),
+    }), 
+    ('Dongles settings',{
+        'fields': ('dongle_name',),
+    }),
+    ('Timing Filters', {
+        'classes': ('collapse', ),
+        'fields': ('start', 'end')
+    }),
+    ('Extra Filter Settings', {
+        'classes': ('collapse', ),
+        'fields': ('name_filter', 'addr_filter', 'devclass_filter')
+    }),
     )
     
     inlines = [ CampaignFileAdmin, ]
     
     list_display = ( 'name', 
-			'service',
-			'pin_code',
-			'start',
-			'end',
-			'rssi_min',
-			'rssi_max',
-			'name_filter', 
-			'addr_filter', 
-			'devclass_filter',
-			'enabled'
-		)
+        'service',
+        'pin_code',
+        'start',
+        'end',
+        'rssi_min',
+        'rssi_max',
+        'name_filter', 
+        'addr_filter', 
+        'devclass_filter',
+        'enabled'
+    )
     list_filter = ( 'service', 
-			'start', 
-			'end', 
-			'rssi_min',
-			'rssi_max',
-			'name_filter', 
-			'addr_filter',
-			'devclass_filter',
-			'enabled'
-		)
-			
+        'start', 
+        'end', 
+        'rssi_min',
+        'rssi_max',
+        'name_filter', 
+        'addr_filter',
+        'devclass_filter',
+        'enabled'
+    )
+            
     ordering = [ 'name', 'service', 'start', 'end', 'rssi_min', 'rssi_max' ]
 
 
 admin.site.register(MarketingCampaign, MarketingCampaignAdmin)
+

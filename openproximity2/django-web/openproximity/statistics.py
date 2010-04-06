@@ -1,5 +1,5 @@
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
-#    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+#    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
