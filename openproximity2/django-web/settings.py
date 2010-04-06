@@ -1,5 +1,5 @@
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
-#    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+#    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -34,21 +34,21 @@ OPENPROXIMITY_CONFIG_FILE=os.environ.get('OPENPROXIMITY_CONFIG_FILE', "/etc/open
 
 if os.path.isfile(OPENPROXIMITY_CONFIG_FILE):
     for line in file(OPENPROXIMITY_CONFIG_FILE).readlines():
-	line=line.strip()
-	if len(line) == 0 or line.startswith("#"):
-	    continue
-	key, val = line.split("=", 1)
-	try:
-	    val = eval(val.strip())
-	
-	    # hack it a bit!
-	    if val=="yes":
-		val=True
-	    elif val=="no":
-		val=False
-	except:
-	    pass
-	locals()[key]=val
+        line=line.strip()
+        if len(line) == 0 or line.startswith("#"):
+            continue
+        key, val = line.split("=", 1)
+        try:
+            val = eval(val.strip())
+        
+            # hack it a bit!
+            if val=="yes":
+                val=True
+            elif val=="no":
+                val=False
+        except:
+            pass
+        locals()[key]=val
 
 AIRCABLE_PATH=AIRCABLE_PATH or os.environ.get('AIRCABLE_PATH', '/tmp')
 
@@ -164,16 +164,16 @@ logger.info("starting up plugins")
 pluginsystem.find_plugins()
 for plugin in pluginsystem.get_plugins('django'):
     if plugin.provides.get('TEMPLATE_DIRS', None) is not None :
-	TEMPLATE_DIRS += ( os.path.join(plugin.__path__[0], plugin.provides['TEMPLATE_DIRS']), )
+        TEMPLATE_DIRS += ( os.path.join(plugin.__path__[0], plugin.provides['TEMPLATE_DIRS']), )
     if plugin.provides.get('LOCALE_PATHS', None) is not None:
-	LOCALE_PATHS += ( os.path.join(plugin.__path__[0], plugin.provides['LOCALE_PATHS']), )
+        LOCALE_PATHS += ( os.path.join(plugin.__path__[0], plugin.provides['LOCALE_PATHS']), )
     if plugin.provides.get('django_app', False):
-	INSTALLED_APPS += (plugin.module_name,)
+        INSTALLED_APPS += (plugin.module_name,)
 
 logger.info("starting up plugin providers")
 for plugin in pluginsystem.get_plugins('plugin_provider'):
     for plug in plugin.provides['find_plugins']():
-	INSTALLED_APPS += (plug.module_name, )
+        INSTALLED_APPS += (plug.module_name, )
 
 logger.info("plugin system initied")
 

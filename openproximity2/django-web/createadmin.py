@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
-#    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+#    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -25,7 +25,11 @@ from django.core.management import call_command
 try:
     import settings # Assumed to be in the same directory.
 except ImportError:
-    sys.stderr.write("Error: Can't find the file 'settings.py' in the directory containing %r. It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n(If the file settings.py does indeed exist, it's causing an ImportError somehow.)\n" % __file__)
+    sys.stderr.write("Error: Can't find the file 'settings.py' in the directory" 
+            " containing %r. It appears you've customized things.\nYou'll have" 
+            " to run django-admin.py, passing it your settings module.\n(If the"
+            " file settings.py does indeed exist, it's causing an ImportError"
+            " somehow.)\n" % __file__)
     sys.exit(1)
 
 if __name__ == "__main__":
@@ -39,3 +43,4 @@ if __name__ == "__main__":
     logger.info("admin password: %s" % passw)
     logger.info("admin mail: %s" % mail)
     User.objects.create_superuser(user, mail, passw).save()
+

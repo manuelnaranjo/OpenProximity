@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
-#    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+#    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -26,7 +26,11 @@ try:
     setup_environ(settings)
 except ImportError, e:
     import sys, traceback
-    logger.error("Error: Can't find the file 'settings.py' in the directory containing %r. It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n(If the file settings.py does indeed exist, it's causing an ImportError somehow.)\n" % __file__)
+    logger.error("Error: Can't find the file 'settings.py' in the directory "
+            "containing %r. It appears you've customized things.\nYou'll have "
+            "to run django-admin.py, passing it your settings module.\n(If the "
+            "file settings.py does indeed exist, it's causing an ImportError "
+            "somehow.)\n" % __file__)
     logger.exception(e)
     sys.exit(1)
 
@@ -35,3 +39,4 @@ pluginsystem.post_environ()
 
 if __name__ == "__main__":
     execute_manager(settings)
+    
