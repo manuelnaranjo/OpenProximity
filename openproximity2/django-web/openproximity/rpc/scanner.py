@@ -72,21 +72,34 @@ def started(scanner, address):
     record.dongle = dongle
     record.save()
 
-def create_new_discovered_dongle(address):
-    logger.info("going to setup as scanner")
-    priority = settings['scanner'].get('priority', 1)
-    enabled = settings['scanner'].get('enable', True)
-    name = settings['scanner'].get('name', _("Auto Discovered Dongle"))
-    obj, created = ScannerBluetoothDongle.objects.get_or_create(
-        address=address, 
-        defaults={
-            'priority': priority,
-            'enabled': enabled,
-            'name': name
-        })
-    logger.debug("%s %s[%s]" % (address, name, priority))
-
 def get_dongles(dongles):
+    def create_new_discovered_dongle(address):
+        logger.info("going to setup as scanner")
+        priority = settings['scanner'].get('priority', 1)
+        enabled = settings['scanner'].get('enable', True)
+        name = settings['scanner'].get('name', _("Auto Discovered Dongle"))
+        obj, created = ScannerBluetoothDongle.objects.get_or_create(
+            address=address, 
+            defaults={
+                'priority': priority,
+                'enabled': enabled,
+                'name': name
+            })
+        logger.debug("%s %s[%s]" % (address, name, priority))
+
+    def internal_get_dongles(address):
+        dongle = ScannerBluetoothDongle.objects.get(address=address)
+        logger.info("%s is a scanner dongle" % address)
+	    
+        if dongle.enabled:
+            yield (address, dongle.priority, dongle.name)
+	    	
+        if dongle.remote_dongles.count() > 0:
+            logger.info("We have remote dongles available")
+            for remote in dongle.remote_dongles.all():
+                if remote.enabled:
+                    yield ( remote.address, remote.priority, dongle.address )
+
     out = list()
     
     for address in dongles:
@@ -96,27 +109,9 @@ def get_dongles(dongles):
                 settings = SET.getSettingsByAddress(address)
                 if 'scanner' in settings:
                     create_new_discovered_dongle(address, settings)
-                    
-	        dongle = ScannerBluetoothDongle.objects.get(address=address)
-	        logger.info("%s is a scanner dongle" % address)
-	    
-	        if dongle.enabled:
-	            out.append( (address, dongle.priority, dongle.name) )
-	    	
-	        if dongle.remote_dongles.count() > 0:
-	            logger.info("We have remote dongles available")
-	            for remote in dongle.remote_dongles.all():
-	                if remote.enabled:
-	                    out.append( 
-	                        (
-	                            remote.address, 
-	                            remote.priority, 
-	                            dongle.address
-                            )
-                        )
-
-	    except Exception, err:
-	        logger.exception(err)
+            out.extend(internal_get_dongles(address))
+        except Exception, err:
+            logger.exception(err)
     return out
 
 def do_scan(scanner):

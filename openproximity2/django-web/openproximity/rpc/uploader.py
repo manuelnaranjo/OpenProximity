@@ -83,24 +83,27 @@ def get_dongles(dongles):
     for address in dongles:
         print address
         try:
-            if not is_known_dongle(address, UploaderBluetoothDongle) and isAIRcable(address):
-            logger.info('not known uploader %s' % address)
+            if not is_known_dongle(address, UploaderBluetoothDongle) and \
+                                                            isAIRcable(address):
+                logger.info('not known uploader %s' % address)
                 settings = SET.getSettingsByAddress(address)
-                if 'uploader' in settings:
-                    logger.info('default settings where found')
-                    logger.debug(settings['uploader'])
-                    max_conn = settings['uploader'].get('max_conn', 1)
-                    enabled = settings['uploader'].get('enable', True)
-                    name = settings['uploader'].get('name', _("Autodiscovered Bluetooth dongle"))
+                if not 'uploader' in settings:
+                   logger.info('no settings for uploaders')
+                   continue
                     
-                    UploaderBluetoothDongle.objects.get_or_create(address=address, 
-                        defaults={
+                logger.info('default settings where found')
+                logger.debug(settings['uploader'])
+                max_conn = settings['uploader'].get('max_conn', 1)
+                enabled = settings['uploader'].get('enable', True)
+                name = settings['uploader'].get('name', _("Autodiscovered Bluetooth dongle"))
+                    
+                UploaderBluetoothDongle.objects.get_or_create(address=address, 
+                    defaults={
                         'name': name,
                         'enabled': enabled,
                         'max_conn': max_conn
-                        }
-                    )
-        
+                    }
+                )
             dongle = UploaderBluetoothDongle.objects.get(address=address, enabled=True)
             out.append( (address, dongle.max_conn, dongle.name) )
         except Exception, err:
@@ -120,7 +123,7 @@ def handle_sdp_resolved(dongle, remote, channel):
 
 def handle_sdp_norecord(dongle, remote, pending):
     logger.info("No SDP: %s" % remote)
-    pending.remove(remote)
+    pending.pop(remote)
     remote=RemoteDevice.objects.filter(address=remote).get()
     if RemoteBluetoothDeviceNoSDP.objects.filter(remote=remote).count() == 0:
         record = RemoteBluetoothDeviceNoSDP()
@@ -130,7 +133,7 @@ def handle_sdp_norecord(dongle, remote, pending):
     
 def handle_sdp_timeout(dongle, remote, pending):
     logger.info("SDP timeout: %s" % remote )
-    pending.remove(remote)
+    pending.pop(remote)
     record = RemoteBluetoothDeviceSDPTimeout()
     record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
     record.setRemoteDevice(remote)
@@ -138,7 +141,7 @@ def handle_sdp_timeout(dongle, remote, pending):
 
 def handle_file_uploaded(dongle, remote, pending, channel, files):
     logger.info("files uploaded: %s[%s]: %s" % ( remote, channel, files) )
-    pending.remove(remote)
+    pending.pop(remote)
     record = RemoteBluetoothDeviceFilesSuccess()
     record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
     record.campaign = get_campaign_rule(files)
@@ -172,9 +175,9 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
             else:
                 logger.info("no uploader registered")
         else:
-            pending.remove(remote)
+            pending.pop(remote)
     except Exception, err:
         logger.error("OOOPS!!!")
         logger.exception(err)
-        pending.remove(remote)
+        pending.pop(remote)
 

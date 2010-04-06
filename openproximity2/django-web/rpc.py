@@ -50,7 +50,7 @@ from rpyc import Service, async
 from rpyc.utils.server import ThreadedServer, ForkingServer
 
 services = set()
-pending = set()
+pending = dict()
 enabled = True # useful when tables are been drop
 all_dongles = set()
 
@@ -62,6 +62,11 @@ class OpenProximityService(Service):
             services.add(self)
 
         def on_disconnect(self):
+            a = [ p for p in pending if pending[p]==self]
+            if len(a) > 0:
+               logger.info("a client disconnected, clearing %s pending transactions" % len(a))
+               for p in a:
+                   pending.pop(p)
             services.remove(self)
 
         def exit(self, exit):
@@ -211,7 +216,8 @@ class OpenProximityService(Service):
                     if ser.dongles is not None:
                         for d in ser.dongles:
                             yield d
-            return list(self.getDongles_internal())
+
+            return set(getDongles_internal(self))
 
         def __str__(self):
             return str(dir(self))

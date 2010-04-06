@@ -63,8 +63,9 @@ def get_files_from_campaign(camp, record):
         if not try_ : raise StopIteration
             
     files__ = camp.campaignfile_set
-    files__ = files__.filter(chance__isnull=True) | 
-                            files__.filter(chance__gte=str(random()))
+    files__ = files__.filter(chance__isnull=True) | files__.filter(
+                                        chance__gte=str(random())
+    )
     for f in files__:
         logger.debug('going to upload %s' % f.file)
         yield str(f.file.name), camp.pk
@@ -74,14 +75,13 @@ def found_action(services, address, record, pending):
     line.content="Found action for: %s" % address
     try:
         for plugin in pluginsystem.get_plugins('found_action'):
-            if plugin.provides['found_action'](
-                    services=services, 
-                    record=record):
+            service = plugin.provides['found_action'](services=services, record=record)
+            if service:
                 logger.info("plugin has handled")
                 line.content+=" %s is handling" % getattr(plugin, 'name', 
                                                                     'plugin')
                 line.save()
-                pending.add(record.remote.address)
+                pending[record.remote.address]=service
                 return True
     except Exception, err:
         logger.error("plugin do_action")
@@ -121,7 +121,7 @@ def found_action(services, address, record, pending):
 
     logger.info("going to upload %s files" % len(files))
     if len(files) > 0:
-        pending.add(record.remote.address)
+        pending[record.remote.address]=uploader
         do_upload(uploader, files, record.remote.address, service, name)
         line.content+=" uploading files"
     else:
