@@ -27,7 +27,7 @@ import treeview
 
 class RemoteRecordForm(forms.ModelForm):
     class Meta:
-    model = DeviceRecord
+        model = DeviceRecord
     
 databrowse_root = databrowse.DatabrowseSite()
 databrowse_root.register(BluetoothDongle)
