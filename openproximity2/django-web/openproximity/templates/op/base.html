@@ -58,7 +58,7 @@ addLoadEvent(roundedCornersOnLoad);
 
     {% include "op/imports/userinfo.html" %} <!-- login information -->
 
-    <div id="navigation" class="navigation"> 
+    <fieldset id="navigation" class="navigation"> 
 	<object class="logo">&nbsp;</object>
         {% block navbar %}
 	    {% createNavButton "/" "nav_index" _("Index") %}
@@ -86,7 +86,7 @@ addLoadEvent(roundedCornersOnLoad);
 		</div>
 	    </div>
 	{% endif %}
-    </div>
+    </fieldset>
 
     <div class="{% block content_class %}content{% endblock %}"> <!-- user content -->
 	{% block content %}{% endblock %}
