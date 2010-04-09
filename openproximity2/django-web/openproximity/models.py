@@ -22,7 +22,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.dispatch.dispatcher import Signal
-import rpyc
+import rpyc, time, os.path
 
 import net.aircable.openproximity.signals.scanner as scanner
 
@@ -140,7 +140,7 @@ class Campaign(models.Model):
 			    help_text=_("if you set this parameter then "
 		  "OpenProximity will never try to resolve sdp records and "
 		  "use only this channel, leave it empty unless you know "
-		  "what you're doing."
+		  "what you're doing.")
     )
     
     
@@ -242,6 +242,13 @@ class MarketingCampaign(Campaign):
                                             return True
         return False
 
+def campaign_file_upload_to(field, instance, filename):
+  return os.path.join(
+	    field.get_directory_name(),
+	    'campaign',
+	    time.strftime("%Y_%m_%d__%H_%M_%S"),
+	    field.get_filename(filename)
+  )
 
 class CampaignFile(models.Model):
     chance = models.DecimalField(
@@ -254,7 +261,7 @@ class CampaignFile(models.Model):
                 "the user is lucky enough to get this file")
     )
     file = models.FileField(
-            upload_to='campaign',
+            upload_to=campaign_file_upload_to,
             help_text=_("campaign file itself")
     )
     

@@ -74,7 +74,7 @@ class MarketingCampaignAdmin(admin.ModelAdmin):
       }),
       ('Expert Settings', {
         'classes': ('collapse', ),
-        'fields': ('fixed_channel')
+        'fields': ('fixed_channel', )
       }),
     )
     
