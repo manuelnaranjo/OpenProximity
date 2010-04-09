@@ -39,10 +39,19 @@ def get_uploader(services):
             return i
     return None
 
-def do_upload(uploader, files, remote, service='opp', dongle_name=None):
+def do_upload(uploader, 
+		    files, 
+		    remote, 
+		    service='opp', 
+		    dongle_name=None, 
+		    channel=None):
     logger.info("do_upload")
     logger.debug("About to call upload")
-    uploader.upload(ByValWrapper(files), remote, service, dongle_name=dongle_name)
+    uploader.upload(ByValWrapper(files), 
+	remote, 
+	service, 
+	dongle_name=dongle_name, 
+	channel=channel)
     logger.debug("upload called async")
     
 def get_files_from_campaign(camp, record):
@@ -120,7 +129,7 @@ def found_action(services, address, record, pending):
         if camp.dongle_name:
             name = camp.dongle_name
         service = camp.get_service_display()
-	if camp.fixed_chanel > -1:
+	if camp.fixed_channel and camp.fixed_channel > -1:
 	  channel = camp.fixed_channel
 
     logger.info("going to upload %s files" % len(files))

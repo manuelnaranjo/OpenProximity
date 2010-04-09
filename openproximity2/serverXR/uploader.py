@@ -237,7 +237,7 @@ class UploadManager:
             if dongle_name:
                 dongle.dbus_interface.SetProperty('Name', dongle_name)
             
-            logger.debug("uploading %s %s %s" % ( files, target, uuid ) )
+            logger.debug("uploading %s %s %s %s" % ( files, target, uuid, channel ) )
             
             for file_, fk in files:
                 f = os.path.join(MEDIA_ROOT, file_)
@@ -250,7 +250,7 @@ class UploadManager:
                     A.close()
             
             logger.debug('adding to queue')
-            dongle.upload( files, target, uuid, service )
+            dongle.upload( files, target, uuid, service, channel )
             self.__rotate_dongle()
             logger.debug("upload in queue")
         except Exception, err:
