@@ -311,7 +311,7 @@ class SpawnAplication(gobject.GObject):
 	    t.close()
 	    return out
 	
-	def get_retcode(status)
+	def get_retcode(status):
 	    if os.WIFEXITED(status):
 		# completed correctly calling exit
 		return os.WEXITSTATUS(status)
