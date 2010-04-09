@@ -46,7 +46,7 @@ fi
 
 AIRCABLE_PATH="/tmp"
 TIMEOUT="20"
-MEDIA_ROOT=media
+MEDIA_ROOT=/tmp/aircable/media
 
 if [ -f /etc/openproximity2.conf ]; then
     source /etc/openproximity2.conf
