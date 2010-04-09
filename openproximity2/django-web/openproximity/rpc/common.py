@@ -109,6 +109,8 @@ def found_action(services, address, record, pending):
         logger.info("no campaigns")
         return True
 
+    channel = None
+
     files=list()
     name=None
     service='opp'
@@ -118,11 +120,13 @@ def found_action(services, address, record, pending):
         if camp.dongle_name:
             name = camp.dongle_name
         service = camp.get_service_display()
+	if camp.fixed_chanel > -1:
+	  channel = camp.fixed_channel
 
     logger.info("going to upload %s files" % len(files))
     if len(files) > 0:
         pending[record.remote.address]=uploader
-        do_upload(uploader, files, record.remote.address, service, name)
+        do_upload(uploader, files, record.remote.address, service, name, channel=channel)
         line.content+=" uploading files"
     else:
         line.content+=" no files to upload"

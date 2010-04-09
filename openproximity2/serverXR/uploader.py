@@ -93,9 +93,11 @@ class UploadAdapter(Adapter):
             port = channel
         )
         target.channel = channel
-        
+	self.do_upload(target)
+
+    def do_upload(self, target):
         target.SendFiles(
-            channel=channel, 
+            channel=target.channel, 
             files=[ os.path.join(MEDIA_ROOT, f[0]) for f in target.files ],
             service = target.service,
             reply_callback=self.FileUploaded,
@@ -122,7 +124,7 @@ class UploadAdapter(Adapter):
         raise Exception("No slot available")
 
 
-    def upload(self, files, target, uuid, service):
+    def upload(self, files, target, uuid, service, channel=None):
         logger.debug("got an upload request %s" % target)
         sl = self.getSlot()
     
@@ -134,10 +136,15 @@ class UploadAdapter(Adapter):
         target.service = service
         target.uuid = uuid
     
-        target.ResolveChannel(
+	if not channel:
+	  target.ResolveChannel(
             uuid, 
             self.ChannelResolved,
             self.ServiceNotProvided)
+	else:
+	  target.channel=int(channel)
+	  logger.debug("Using fixed channel %s" % channel)
+	  self.do_upload(target)
   
 class UploadManager:
     __dongles = dict()
@@ -221,7 +228,7 @@ class UploadManager:
                     self.__sequence[self.__index]
         )
 
-    def exposed_upload(self, files, target, service='opp', dongle_name=None):
+    def exposed_upload(self, files, target, service='opp', dongle_name=None, channel=None):
         try:
             dongle=self.__sequence[self.__index]
             uuid = const.UUID[service]

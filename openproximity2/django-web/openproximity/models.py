@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
 #    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
@@ -132,6 +133,15 @@ class Campaign(models.Model):
                             help_text=_("certain target devices require pairing"
                                 ", this is the pin code going to be used")
     )
+    fixed_channel=models.IntegerField(
+			    null=True,
+			    blank=True,
+			    default = None,
+			    help_text=_("if you set this parameter then "
+		  "OpenProximity will never try to resolve sdp records and "
+		  "use only this channel, leave it empty unless you know "
+		  "what you're doing."
+    )
     
     
     def matches(self, remote, *args, **kwargs):
@@ -189,6 +199,7 @@ class MarketingCampaign(Campaign):
                                 "take into account rssi is negative, range -255"
                                 " 0")
     )
+
 
     def __unicode__(self):
         return "MarketingCampaign: %s" % self.name

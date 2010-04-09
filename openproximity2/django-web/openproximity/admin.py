@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
 #    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
@@ -49,28 +50,32 @@ class CampaignFileAdmin(admin.StackedInline):
 
 class MarketingCampaignAdmin(admin.ModelAdmin):
     fieldsets = (
-    (None, {
+      (None, {
         'fields': ('name', 'enabled', 'service', 'pin_code'),
-    }),
-    ('Times filter',{
+      }),
+      ('Times filter',{
         'fields': ('rejected_count', 'rejected_timeout', 
             'tries_count', 'tries_timeout',
             'accepted_count')
-    }),
-        ('RSSI filter', {
+      }),
+      ('RSSI filter', {
         'fields': ('rssi_min', 'rssi_max'),
-    }), 
-    ('Dongles settings',{
+      }), 
+      ('Dongles settings',{
         'fields': ('dongle_name',),
-    }),
-    ('Timing Filters', {
+      }),
+      ('Timing Filters', {
         'classes': ('collapse', ),
         'fields': ('start', 'end')
-    }),
-    ('Extra Filter Settings', {
+      }),
+      ('Extra Filter Settings', {
         'classes': ('collapse', ),
         'fields': ('name_filter', 'addr_filter', 'devclass_filter')
-    }),
+      }),
+      ('Expert Settings', {
+        'classes': ('collapse', ),
+        'fields': ('fixed_channel')
+      }),
     )
     
     inlines = [ CampaignFileAdmin, ]
