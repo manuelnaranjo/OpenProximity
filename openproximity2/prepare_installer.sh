@@ -5,6 +5,8 @@ if [ -n "$DEBUG" ]; then
     set -x
 fi
 
+UPDATE_LOCALES=$UPDATE_LOCALES
+
 # exit script if we try to use an uninitialised variable
 set -u
 
@@ -191,8 +193,10 @@ export PYTHONPATH
 cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py makemessages -a
 
 #copy messages back to original code
-cp -r "$OP2/openproximity2/django-web/locale" "$CWD/django-web/"
-rm -f `find $CWD/django-web/locale | grep "\.mo$"`
+if [ -n "$UPDATE_LOCALES" ]; then
+    cp -r "$OP2/openproximity2/django-web/locale" "$CWD/django-web/"
+    rm -f `find $CWD/django-web/locale | grep "\.mo$"`
+fi
 
 #now compile messages
 cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py makemessages -a
