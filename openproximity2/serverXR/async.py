@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
 #    Copyright (C) 2010 Naranjo Manuel Francisco <manuel@aircable.net>
@@ -18,7 +19,7 @@
 #
 # -*- coding: utf-8 -*-
 
-import dbus, sys, gobject
+import dbus, sys, gobject, os
 from lxml import etree
 import logging
 
@@ -54,7 +55,7 @@ def generate_arguments(*args, **kwargs):
     yield '-U'
     yield 'none'
     yield '-H'
-    yield '-S'
+  yield '-S'
   yield '-T'
   yield str(kwargs['timeout'])
   yield '-b'
@@ -234,7 +235,7 @@ class UploadTarget(object):
     def SendFiles(self, 
                     files, 
                     retries=1, 
-                    timeout=10, 
+                    timeout=30, 
                     channel=None,
                     service='opp', 
                     uuid=OBEX_UUID, 
@@ -246,7 +247,7 @@ class UploadTarget(object):
     
         logger.debug("SendFiles %s %s" % (service, channel) )
         
-        arguments = generate_arguments(
+        arguments = list(generate_arguments(
                                 dongle=self.dongle.GetProperties()['Address'],
                                 retries = retries, 
                                 timeout = timeout, 
@@ -254,15 +255,12 @@ class UploadTarget(object):
                                 channel =  channel, 
                                 files = files, 
                                 service = service
-                    )
-        b = SpawnAplication(list(arguments))
+                    ))
+        logger.debug("Running: %s" % ' '.join(arguments))
+        b = SpawnAplication(arguments)
         b.connect("program-completed", self.send_files_cb)
     
-
-    
     def send_files_cb(self, sender, pid, retcode, stdout, stderr):
-        if retcode >= 256:
-            retcode = retcode / 256
         logger.debug("send_files_cb %s" % retcode)
         
         if retcode==0 or retcode==255:
@@ -306,15 +304,33 @@ class SpawnAplication(gobject.GObject):
                                 )   
         gobject.child_watch_add(self.pid, self.__HandleExit)
     
-    def __HandleExit(self, pid, retcode):
+    def __HandleExit(self, pid, status):
+	def read_and_close(io):
+	    t = gobject.IOChannel(io)
+	    out = t.read()
+	    t.close()
+	    return out
+	
+	def get_retcode(status)
+	    if os.WIFEXITED(status):
+		# completed correctly calling exit
+		return os.WEXITSTATUS(status)
+	    elif os.WIFSIGNALED(status):
+		logger.debug("exited with a signal")
+		return 0xff00 + os.WTERMSIG(status)
+	    else:
+		logger.debug("unknown return condition")
+		return 0xffff
+	
+	retcode = get_retcode(status)
         logger.debug("HandleExit pid: %s, recode: %s" % (pid, retcode) )
-    
-        stdout = gobject.IOChannel(self.stdout).read()
-        stderr = gobject.IOChannel(self.stderr).read()
-    
+
+        stdout = read_and_close(self.stdout)
+        stderr = read_and_close(self.stderr)
+
         self.emit("program-completed", self.pid, retcode, stdout, stderr)
         return False
-        
+
 gobject.signal_new(
     "program-completed", 
     SpawnAplication,
