@@ -323,7 +323,7 @@ class SpawnAplication(gobject.GObject):
 		return 0xffff
 	
 	retcode = get_retcode(status)
-        logger.debug("HandleExit pid: %s, recode: %s" % (pid, retcode) )
+        logger.debug("HandleExit pid: %s, retcode: %s" % (pid, retcode) )
 
         stdout = read_and_close(self.stdout)
         stderr = read_and_close(self.stderr)
