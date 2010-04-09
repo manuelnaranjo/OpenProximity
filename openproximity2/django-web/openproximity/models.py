@@ -242,13 +242,8 @@ class MarketingCampaign(Campaign):
                                             return True
         return False
 
-def campaign_file_upload_to(field, instance, filename):
-  return os.path.join(
-	    field.get_directory_name(),
-	    'campaign',
-	    time.strftime("%Y_%m_%d__%H_%M_%S"),
-	    field.get_filename(filename)
-  )
+def campaign_file_upload_to(instance, filename):
+  return os.path.join('campaign',time.strftime("%Y_%m_%d__%H_%M_%S"),filename)
 
 class CampaignFile(models.Model):
     chance = models.DecimalField(
