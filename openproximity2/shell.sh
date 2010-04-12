@@ -5,4 +5,4 @@
 source common.sh
 
 cd django-web
-python manage.py shell
+DEBUG=yes python manage.py shell
