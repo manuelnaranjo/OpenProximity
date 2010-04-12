@@ -55,21 +55,18 @@ def do_upload(uploader,
     logger.debug("upload called async")
     
 def get_files_from_campaign(camp, record):
-    rec = RemoteBluetoothDeviceFilesSuccess.objects.filter( 
-                                            campaign=camp, 
-                                            remote=record.remote)
-    if rec.count() > 0:
+    if camp.hasAccepted(record.remote):
         logger.info("Allready accepted")
         raise StopIteration
+        
+    c = camp.getRejectedCount(record.remote)
 
-    rec = RemoteBluetoothDeviceFilesRejected.objects.filter(
-                                            campaign=camp, 
-                                            remote=record.remote)\
-                                        .order_by('time')
-    if rec.count() > 0:
-        try_ = camp.tryAgain(rec.latest(field_name='time'))
-        logger.info("Allready rejected, try again: %s" % try_)
-        if not try_ : raise StopIteration
+    if c>0:
+	print "All ready rejected %s times" % c
+        try_ = camp.tryAgain(remote=record.remote, record=None)
+        logger.info("try again: %s" % try_)
+        if not try_ :
+	    raise StopIteration
             
     files__ = camp.campaignfile_set
     files__ = files__.filter(chance__isnull=True) | files__.filter(

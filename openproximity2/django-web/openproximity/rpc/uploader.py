@@ -171,13 +171,12 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
             uploader = get_uploader(services)
             if uploader:
                 logger.info("trying again")
-                do_upload(uploader, files, remote)
+                return do_upload(uploader, files, remote)
             else:
                 logger.info("no uploader registered")
-        else:
-            pending.pop(remote)
     except Exception, err:
         logger.error("OOOPS!!!")
         logger.exception(err)
-        pending.pop(remote)
+    logger.info("taking out of pending list")
+    pending.pop(remote)
 
