@@ -204,43 +204,128 @@ class MarketingCampaign(Campaign):
     def __unicode__(self):
         return "MarketingCampaign: %s" % self.name
 
-    def tryAgain(self, record):
+    def getTimeoutCount(self, remote):
+	''' this function will count how many times a certain devices did a
+	    timeout
+	'''
+	return RemoteBluetoothDeviceFilesRejected.objects.\
+                filter(remote=remote, campaign=self).\
+                filter(ret_value__in=TIMEOUT_RET).count()
+
+    def getRejectedCount(self, remote):
+	''' this function will count how many time the user has rejected'''
+	return RemoteBluetoothDeviceFilesRejected.objects.\
+                filter(remote=remote, campaign=self).\
+                exclude(ret_value__in=TIMEOUT_RET).count()
+                
+    def getTriesCount(self, remote):
+	return RemoteBluetoothDeviceFileTry.\
+                objects.filter(remote=record.remote, campaign=self).\
+                    count()
+
+    def hasAccepted(self, remote):
+	return RemoteBluetoothDeviceFilesSuccess.objects.filter(
+                campaign=self,
+                remote=remote).count()>0
+                
+    def getAcceptedCount(self):
+	return RemoteBluetoothDeviceFilesSuccess.\
+	    objects.\
+		filter(campaign=self).\
+		    count()
+
+    def tryAgain(self, record=None, remote=None):
+	assert record or remote, "Can't pass both record and remote as none"
+	
+	if not record:
+	    record = RemoteBluetoothDeviceFilesRejected.\
+		    objects.\
+			filter(
+			    campaign=self,
+			    remote=remote
+			).\
+		    order_by('time').\
+		    latest(field_name='time')
+	    logger.debug("got record")
+	
         delta = time.time()-time.mktime(record.time.timetuple())
+        logger.info("delta: %s" % delta)
 
         if record.isTimeout():
             logger.info("record timeout")
-            return delta >= self.tries_timeout and (self.tries_count==-1 or \
-                self.tries_count > RemoteBluetoothDeviceFileTry.\
-                objects.filter(remote=record.remote, campaign=record.campaign).\
-                    count())
+            return delta >= self.tries_timeout and (
+		self.tries_count==-1 or \
+		self.tries_count > self.getTriesCount(record.remote)
+	    )
         else:
             logger.info("record rejected")
             return delta >= self.rejected_timeout and \
-                (self.rejected_count==-1 or self.rejected_count > \
-                            RemoteBluetoothDeviceFilesRejected.objects.\
-                                filter(remote=record.remote).count()
-                )
+                (self.rejected_count==-1 or 
+		    self.rejected_count > self.getRejectedCount(record.remote)
+		)
     
     def matches(self, remote, record=None, *args, **kwargs):
-        if self.name_filter is None or \
-            remote.name is None or \
-            remote.name.startswith(self.name_filter):
-                if self.addr_filter is None or \
-                    remote.address.startswith(self.addr_filter):
-                        if self.devclass_filter is None or \
-                            (remote.devclass & self.devclass_filter)>0:
-                                # do RSSI check
-                                if record is None or not hasattr(record, 
-                                                            'getAverageRSSI'):
-                                    return True
+	'''
+	    This function will get called to ask the campaign
+	    if it matches the definition rules
+	'''
+	logger.info("matches %s", self.pk)
+	
+	# test is we reached the rejected count
+	rejected_pass = remote is None or (
+	    self.rejected_count == 1 or 
+	    self.getRejectedCount(remote) < self.rejected_count
+	)
+	
+	logger.debug("rejected_pass %s" % rejected_pass)
+	if not rejected_pass:
+	    return False
+	
+	# test for successful uploads
+	accepted_pass = self.accepted_count == -1 or (
+	    self.accepted_count < self.getAcceptedCount()
+	)
+	logger.debug("accepted_pass %s" % accepted_pass)
+	if not accepted_pass:
+	    return False
+
+	name_pass = self.name_filter is None or \
+	    remote.name is None or \
+            remote.name.startswith(self.name_filter)
+        logger.debug("name_pass: %s" % name_pass)
+        if not name_pass:
+    	    return False
+
+	addr_pass = self.addr_filter is None or \
+	    remote.address.startswith(self.addr_filter)
+	logger.debug("addr_pass: %s" % addr_pass)
+        if not addr_pass:
+	    return False
+	
+	class_pass = self.devclass_filter is None or \
+            (remote.devclass & self.devclass_filter)>0
             
-                                rssi = record.getAverageRSSI()
-                                if self.rssi_min is None or \
-                                        rssi > self.rssi_min:
-                                    if self.rssi_max is None or \
-                                        rssi < self.rssi_max:
-                                            return True
-        return False
+        logger.debug("class_pass: %s" % class_pass)
+        if not class_pass:
+	    return False
+
+	rssi_test = record is None or not hasattr(record, 'getAverageRSSI')
+	logger.debug("rssi_test: %s" % rssi_test)
+	
+	if rssi_test:
+	    rssi = record.getAverageRSSI()
+	    rssi_pass = \
+		(self.rssi_min is None or rssi > self.rssi_min ) \
+		    or \
+                (self.rssi_max is None or rssi < self.rssi_max )
+            logger.info("rssi_pass %s, average: %s, min: %s, max: %s" %
+        	    (rssi_pass, rssi, self.rssi_min, self.rssi_max)
+	    )
+	    if not rssi_pass:
+		return False
+
+	logger.info("passed all tests")
+	return True
 
 def campaign_file_upload_to(instance, filename):
   return os.path.join('campaign',time.strftime("%Y_%m_%d__%H_%M_%S"),filename)
@@ -416,23 +501,21 @@ class RemoteBluetoothDeviceFilesRejected(RemoteBluetoothDeviceFileTry):
         return self.ret_value is not None and self.ret_value in TIMEOUT_RET
     
     def __unicode__(self):
-        return "%s %s" % (
+        return "%s %s, timeout:%s" % (
                         RemoteBluetoothDeviceFileTry.__unicode__(self), 
-                        self.ret_value
+                        self.ret_value, self.isTimeout()
         )
 
 class RemoteBluetoothDeviceFilesSuccess(RemoteBluetoothDeviceFileTry):
 
     def save(self, *args, **kwargs):
         super(RemoteBluetoothDeviceFilesSuccess, self).save(*args, **kwargs)
-        
+
         if self.campaign.accepted_count > -1:
-            qs = RemoteBluetoothDeviceFilesSuccess.objects.filter(
-                        campaign=self.campaign
-            )
+            c = self.campaign.getAcceptedCount()
             logger.info("accepted filter: %s, count: %s" % 
-                ( self.campaign.accepted_count, qs.count() ) )
-            if qs.count() >= self.campaign.accepted_count:
+                ( self.campaign.accepted_count, c ) )
+            if c >= self.campaign.accepted_count:
                 self.campaign.enabled = False
                 self.campaign.no_restart = True
                 self.campaign.save()
