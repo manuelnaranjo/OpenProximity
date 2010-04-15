@@ -73,7 +73,7 @@ def started(scanner, address):
     record.save()
 
 def get_dongles(dongles):
-    def create_new_discovered_dongle(address):
+    def create_new_discovered_dongle(address, settings):
         logger.info("going to setup as scanner")
         priority = settings['scanner'].get('priority', 1)
         enabled = settings['scanner'].get('enable', True)

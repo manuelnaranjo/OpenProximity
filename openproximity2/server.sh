@@ -22,6 +22,7 @@ if [ -z "$DEBUG" ]; then
     exec python manage.py runcpserver \
 	port=80 \
 	host=0.0.0.0 \
+	threads=5 \
 	server_name=OpenProximity \
 	server_user=root \
 	server_group=root \
@@ -33,6 +34,7 @@ else
     exec python manage.py runcpserver \
 	port=80 \
 	host=0.0.0.0 \
+	threads=5 \
 	server_name=OpenProximity \
 	server_user=root \
 	server_group=root \

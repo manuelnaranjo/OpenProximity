@@ -19,8 +19,8 @@ from net.aircable.openproximity.pluginsystem import pluginsystem
 from lxmltool import XMLTool
 from net.aircable.utils import logger
 
-DEBUG = True
-TEMPLATE_DEBUG = True
+DEBUG = False
+TEMPLATE_DEBUG = False
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
