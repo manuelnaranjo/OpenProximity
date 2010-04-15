@@ -3,7 +3,6 @@
 # this script will launch all the needed parts for an OpenProximity2.0 stand
 # alone server
 
-PID_FILE=/var/run/openproximity.pid
 LOG_DIR=/var/log/aircable
 RPC="scanner uploader"
 CWD=$(pwd)
@@ -16,15 +15,12 @@ fi
 
 if [ -n $PAIR_MANAGER ]; then
     . pair.sh
-    echo $! > $PID_FILE
 fi
 
 . rpc.sh
-echo $! > $PID_FILE
 cd $CWD
 
 . server.sh
-echo $! >> $PID_FILE
 cd $CWD
 
 # wait until rpc is ready
