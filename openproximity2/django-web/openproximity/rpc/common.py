@@ -81,7 +81,7 @@ def found_action(services, address, record, pending):
     line.content="Found action for: %s" % address
     try:
         for plugin in pluginsystem.get_plugins('found_action'):
-    	     logger.info("found action trying with %s" % plugin.name)
+            logger.info("found action trying with %s" % plugin.name)
             service = plugin.rpc['found_action'](services=services, record=record)
             if service:
                 logger.info("plugin has handled")
