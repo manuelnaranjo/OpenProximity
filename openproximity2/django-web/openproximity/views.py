@@ -257,7 +257,7 @@ def stats_restart(request):
 
     for plugin in pluginsystem.get_plugins('statistics_reset'):
         try:
-            plugin.provides['statistics_reset'](connection)
+            getattr(plugin.module,'statistics_reset')(connection)
         except Exception, err:
             logger.error("plugin failed to reset statistics %s" % plugin)
             logger.exception(err)

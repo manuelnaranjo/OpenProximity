@@ -57,9 +57,9 @@ for plugin in pluginsystem.get_plugins('urls'):
     url, path = plugin.provides.get('urls')
     urlpatterns += patterns( '', 
         (r'^%s/' % url, 
-            include('%s.%s' % ( plugin.__name__, path)),
+            include('%s.%s' % ( plugin.name, path)),
             {},
-            plugin.__name__ # allow url to be reverse resolved
+            plugin.name # allow url to be reverse resolved
     ))
 
 urlpatterns += patterns('', 

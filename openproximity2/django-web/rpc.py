@@ -93,7 +93,7 @@ class OpenProximityService(Service):
             
             try:
                 for plugin in pluginsystem.get_plugins('rpc'):
-                    plugin.provides['rpc'](signal=signal, services=services, manager=self, *args, **kwargs)
+            	     plugin.rpc['handle'](signal=signal, services=services, manager=self, *args, **kwargs)
                 transaction.commit() # commit only after all the plugins have handled
             except Exception, err:
                 logger.error("rpc listener while doing plugins")
@@ -125,8 +125,8 @@ class OpenProximityService(Service):
             all_dongles.update(dongles)
             try:
                 for plugin in pluginsystem.get_plugins('rpc_register'):
-                        logger.debug("plugin %s provides rpc register" % plugin.name )
-                        if plugin.provides['rpc_register'](dongles=dongles, client=client):
+                        logger.debug("plugin %s provides rpc register" % plugin.name)
+                        if plugin.rpc['register'](dongles=dongles, client=client):
                             # wrap all calls as async, to avoid collitions
                             self.remote_quit = async(remote_quit)
                             self.ping = ping

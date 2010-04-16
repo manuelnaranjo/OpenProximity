@@ -151,7 +151,11 @@ def run(server_, port, type_):
             for i in pluginsystem.get_plugins('serverxr'):
                 if type_==i.provides['serverxr_type']:
                     logger.info("init %s" % i.provides['serverxr_type'])
-                    manager = i.provides['serverxr_manager'](bus, rpc=server)
+                    module = __import__("%s.serverxr" % i.name, fromlist=[i.provides['serverxr_manager'],])
+                    manager = getattr(module, i.provides['serverxr_manager'])
+                    print dir(manager)
+                    manager.__class__=lambda x: manager
+                    manager = manager(bus, rpc=server)
                     break
         if manager is None:
             raise Exception ("Not valid type")

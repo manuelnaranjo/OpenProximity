@@ -138,7 +138,7 @@ LOCALE_PATHS=(
     os.path.join(my_path, 'openproximity', 'locale'),
 )
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -151,7 +151,7 @@ INSTALLED_APPS = (
     'rosetta',
     'microblog',
     'openproximity',
-)
+]
 
 SERIALIZATION_MODULES = {
     'json': 'wadofstuff.django.serializers.json'
@@ -164,16 +164,16 @@ logger.info("starting up plugins")
 pluginsystem.find_plugins()
 for plugin in pluginsystem.get_plugins('django'):
     if plugin.provides.get('TEMPLATE_DIRS', None) is not None :
-        TEMPLATE_DIRS += ( os.path.join(plugin.__path__[0], plugin.provides['TEMPLATE_DIRS']), )
+        TEMPLATE_DIRS += ( os.path.join(plugin.path, plugin.provides['TEMPLATE_DIRS']), )
     if plugin.provides.get('LOCALE_PATHS', None) is not None:
-        LOCALE_PATHS += ( os.path.join(plugin.__path__[0], plugin.provides['LOCALE_PATHS']), )
+        LOCALE_PATHS += ( os.path.join(plugin.path, plugin.provides['LOCALE_PATHS']), )
     if plugin.provides.get('django_app', False):
-        INSTALLED_APPS += (plugin.module_name,)
+        INSTALLED_APPS += (plugin.name,)
 
 logger.info("starting up plugin providers")
 for plugin in pluginsystem.get_plugins('plugin_provider'):
-    for plug in plugin.provides['find_plugins']():
-        INSTALLED_APPS += (plug.module_name, )
+    for plug in pluginsystem.get_plugins(plugin.provides['plugin_provider_name']):
+        INSTALLED_APPS += (plug.name, )
 
 logger.info("plugin system initied")
-
+logger.info("settings.py loaded")
