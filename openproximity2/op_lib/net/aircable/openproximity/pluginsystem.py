@@ -21,6 +21,7 @@ import ConfigParser, pkgutil, traceback
 import sys,functools
 from net.aircable.utils import logger
 
+
 try:
     import plugins
 except Exception, err:
@@ -40,33 +41,91 @@ plugins.__path__ = pkgutil.extend_path(plugins.__path__,
 plugins.__path__ = find_plugin_dirs() + plugins.__path__
 
 class Plugin(object):
-        def __init__(self, path, name, load, egg):
-                self.path = path
-                self.name = name
-		_module = load()
-		for i in dir(_module):
-		    setattr(self, i, getattr(_module, i))
-		self._module = _module
-		self.provides = getattr(_module, 'provides')
-		self.post_environ = getattr(_module, 'post_environ', None)
-		self.enabled = self.provides.get('enabled', True)
-		self.egg = egg
-		if not self.egg:
-		    self.module_name='plugins.%s' % name
-		else:
-		    self.module_name=name
-		logger.info("Plugin: %s loaded" % self.name)
+	def __loadFromFile(self, path):
+		p = os.path.join(path, 'plugin.py')
+	        if not os.path.isfile(p):
+	    	    raise Exception("plugin not suported %s" % path)
+	        A=file(p, 'r')
+                content = A.read()
+                A.close()
+                content=compile(content, p, 'exec')
+                glob = dict()
+                loc = dict()
+                eval(content, glob, loc)
+                self.provides = loc
+                if "post_environ" in self.provides:
+                   self.post_environ=self.provides['post_environ']
+
+
+        def __init__(self, path=None, name=None, egg=None):#, load, egg):
+    		if not egg:
+            	    self.path = os.path.join(path, name)
+            	else:
+            	    self.path = path
+            	if not egg:
+            	    self.name = 'plugins.%s' % name
+            	else:
+            	    self.name = name
+                self.egg = egg
+                if not self.egg:
+                      self.__loadFromFile(self.path)
+                else:
+                     raise Exception("plugin not suported %s" % path)
+                self.enabled = self.provides.get('enabled', False)
+                self.__module = None
+                self.__version = None
+                self.__version_info = None
+                self.__rpc = None
+                logger.info("Plugin: %s registered" % self.name)
+
+	@property
+	def module(self):
+	    if self.__module is None:
+		self.__import_plugin()
+	    return self.__module
+
+	@property
+	def __version__(self):
+	    if self.__version is None:
+		self.__version=getattr(self.module, '__version__', 'ND')
+	    return self.__version
+
+	@property
+	def __version_info__(self):
+	    if self.__version_info is None:
+		self.__version_info=getattr(self.module, '__version_info__', 'ND')
+	    return self.__version_info
+
+	@property
+	def rpc(self):
+	    if self.__rpc is None:
+		rpc = __import__("%s.rpc" % self.name, {}, {}, ['handle', 'register'])
+		self.__rpc = {}
+		self.__rpc['handle'] = getattr(rpc, 'handle', None)
+		self.__rpc['register'] = getattr(rpc, 'register', None)
+		self.__rpc['found_action'] = getattr(rpc, 'found_action', None)
+	    return self.__rpc
+
+        def __import_plugin(self):
+            plugin=__import__(self.name, {}, {}, [], 0)
+            try:
+                plugin=getattr(plugins, self.name.split('.',1)[-1])
+            except Exception, err:
+            	logger.error('plugin was not part of plugins.*')
+    		logger.exception(err)
+            self.__module=plugin
+
 
 class PluginSystem(object):
         def __init__(self):
                 self.plugin_infos = None
 
         def get_plugins(self, provides=None):
-		for i in self.plugin_infos.itervalues():
-		    if not provides or i.provides.get(provides, None):
-			yield i
-			
-	def _find_plugins_for_egg(self, egg_name):
+                for i in self.plugin_infos.itervalues():
+                     if not provides or i.provides.get(provides, None):
+                          yield i
+
+        def _find_plugins_for_egg(self, egg_name):
 	    b=zipfile.PyZipFile(egg_name)
 	    for a in b.namelist():
 		if not a.startswith('EGG-INFO') and a.endswith('__init__.py'):
@@ -96,7 +155,6 @@ class PluginSystem(object):
                                                 self.load_info(path, entry.split('.')[0])
                                         except Exception, err:
                                                 logger.error("Failed to load info %s" % entry)
-                                                logger.exception(err)
 				if entry.endswith('.egg'):
 				    self._find_plugins_for_egg(os.path.join(path, entry))
 
@@ -106,28 +164,23 @@ class PluginSystem(object):
 		else:
 		    _name=name
 		logger.info("Plugin: load_info %s" % name)
-                plugin = Plugin(path, name,
-                                lambda:self.import_plugin(_name), egg)
+                plugin = Plugin(path, name, egg)
 		if plugin.enabled:
 		    self.plugin_infos[name]=plugin
-		logger.info("Plugin: %s ready" % name)
+		logger.info("Plugin: %s ready" % _name)
 
-        def import_plugin(self, name):
-                plugin=__import__(name, {}, {}, [], 0)
-                try:
-            	    plugin=getattr(plugins, name.split('.',1)[-1])
-            	except:
-            	    pass
-                return plugin
 
 	def post_environ(self):
+	    from django.db.models.loading import load_app
 	    for plugin in self.get_plugins():
 		if plugin.provides.get('post_environ', False):
-		    plugin.post_environ()
+		    plugin.module.post_environ()
+	    for plugin in self.get_plugins():
+		load_app(plugin.name)
 
 pluginsystem = PluginSystem()
 
 if __name__=='__main__':
     pluginsystem.find_plugins()
     for plug in pluginsystem.get_plugins():
-	print plug.provides
+        print plug.provides
