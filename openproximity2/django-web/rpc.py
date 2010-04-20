@@ -120,7 +120,10 @@ class OpenProximityService(Service):
             gc.collect()
             logger.debug("done: %s" % len(gc.garbage))
 
-        def exposed_generic_register(self, remote_quit, dongles, ping, client):
+        def exposed_generic_register(self, remote_quit=None, 
+    						dongles=None, 
+    						ping=None, 
+    						client=None):
             logger.info("generic register")
             all_dongles.update(dongles)
             try:
@@ -135,17 +138,20 @@ class OpenProximityService(Service):
             except Exception, err:
                 logger.exception(err)
 
-        def exposed_scanner_register(self, remote_quit, scanner, dongles, ping):
+        def exposed_scanner_register(self,  client = None,
+    					    remote_quit=None, 
+    					    dongles=None, 
+    					    ping=None):
             global enabled
             all_dongles.update(dongles)
             self.dongles = set()
             # wrap all calls as async, to avoid collitions
-            self.add_dongle = async(scanner.add_dongle)
-            self.scanner = scanner
-            self.setConcurrent = async(scanner.setConcurrent)
-            self.refreshScanners = async(scanner.refreshScanners)
-            self.doScan = async(scanner.doScan)
-            self.startScanningCycle = async(scanner.startScanningCycle)
+            self.add_dongle = async(client.add_dongle)
+            self.scanner = client
+            self.setConcurrent = async(client.setConcurrent)
+            self.refreshScanners = async(client.refreshScanners)
+            self.doScan = async(client.doScan)
+            self.startScanningCycle = async(client.startScanningCycle)
             self.remote_quit = async(remote_quit)
             self.ping = ping
 
@@ -168,17 +174,20 @@ class OpenProximityService(Service):
             self.scanner.setConcurrent(concurrent)
             self.refreshScanners()
 
-        def exposed_uploader_register(self, remote_quit, uploader, dongles, ping):
+        def exposed_uploader_register(self, client = None,
+    					    remote_quit=None, 
+    					    dongles=None, 
+    					    ping=None):
             global enabled
             all_dongles.update(dongles)
             self.dongles = set()
-            self.add_dongle = async(uploader.add_dongle)
-            self.upload = async(uploader.upload)
+            self.add_dongle = async(client.add_dongle)
+            self.upload = async(client.upload)
             self.ping = ping
             self.remote_quit = async(remote_quit)
-            self.refreshUploaders = async(uploader.refreshUploaders)
+            self.refreshUploaders = async(client.refreshUploaders)
 
-            self.uploader = uploader
+            self.uploader = client
 
             if not enabled:
                 return
