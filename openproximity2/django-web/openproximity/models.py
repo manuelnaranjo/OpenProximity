@@ -99,7 +99,7 @@ class Campaign(models.Model):
     )
     addr_filter = models.CharField(
                             null=True, 
-                            max_length=10, 
+                            max_length=20, 
                             blank=True,
                             verbose_name=_("address filter")
     )
