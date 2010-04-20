@@ -92,8 +92,8 @@ class Campaign(models.Model):
     name = models.CharField(max_length=100)    
     enabled = models.BooleanField(default=True)
     name_filter = models.CharField(
-                            null=True, 
-                            max_length=10, 
+                            null=True,
+                            max_length=30,
                             blank=True,
                             verbose_name=_("name filter")
     )
