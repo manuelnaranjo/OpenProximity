@@ -34,6 +34,15 @@ manager = None
 bus = None
 loop = None
 
+def poll():
+    try:
+	server.poll()
+	return True
+    except Exception, err:
+	logger.error("error during poll %s" % err)
+	logger.exception(err)
+    return False
+
 def ping():
     try:
         server.ping(timeout=10000)
@@ -73,7 +82,7 @@ def init():
     
     logger.info("init")
     
-    type = sys.argv[3].lower()
+    type__ = sys.argv[3].lower()
 
     a=list()
     for b in manager.manager.ListAdapters():
@@ -81,18 +90,17 @@ def init():
         adapter = dbus.Interface(obj, 'org.bluez.Adapter')
         a.append(str(adapter.GetProperties()['Address']))
     logger.info("Connected dongles: %s" % a)
+    register={
+	'scanner': async(server.root.scanner_register),
+	'uploader': async(server.root.uploader_register),
+    }.get(type__, async(server.root.generic_register))
 
-    if type == 'scanner':
-        server.root.scanner_register(stop, manager, a, exposed_ping)
-    elif type == 'uploader':
-        server.root.uploader_register(stop, manager, a, exposed_ping)
-    else:
-        server.root.generic_register(
-            remote_quit=stop, 
-            client=manager, 
-            dongles=a, 
-            ping=exposed_ping
-        )
+    register(
+        remote_quit=stop, 
+        client=manager, 
+        dongles=a, 
+        ping=exposed_ping
+    )
     logger.info("exiting init")
 
     # stupid way to make rpyc do something
@@ -152,19 +160,18 @@ def run(server_, port, type_):
                 if type_==i.provides['serverxr_type']:
                     logger.info("init %s" % i.provides['serverxr_type'])
                     module = __import__("%s.serverxr" % i.name, fromlist=[i.provides['serverxr_manager'],])
-                    manager = getattr(module, i.provides['serverxr_manager'])
-                    print dir(manager)
-                    manager.__class__=lambda x: manager
-                    manager = manager(bus, rpc=server)
+                    klass = getattr(module, i.provides['serverxr_manager'])
+                    manager = klass (bus, rpc=server)
                     break
         if manager is None:
             raise Exception ("Not valid type")
         gobject.timeout_add(100, init) # delay initialization 'til loop is running
     except dbus.DBusException, err:
         logger.info("bluez isn't ready, delaying init")
-    
+
     # start our loop and setup ping
     gobject.timeout_add(1000, ping)
+    gobject.timeout_add(1, poll, priority=gobject.PRIORITY_LOW)
     loop=gobject.MainLoop()
     loop.run()
 
