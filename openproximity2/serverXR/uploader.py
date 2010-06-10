@@ -19,12 +19,9 @@ import net.aircable.const as const
 import net.aircable.utils as utils
 import net.aircable.openproximity.signals as signals
 import net.aircable.sdp as sdp
-import subprocess
-import net.aircable.procworker as procworker
 from net.aircable.openproximity.signals.uploader import *
 from net.aircable.utils import *
 from net.aircable.wrappers import Adapter
-from threading import Thread
 from rpyc.utils.lib import ByValWrapper
 import async
 
