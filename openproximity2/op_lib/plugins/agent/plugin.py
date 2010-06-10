@@ -14,14 +14,15 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from django.conf.urls.defaults import patterns
+# A data collector plugin
+name='Agent plugin'				# friendly name
+enabled=False                  	# disable me please
+django=True                     # expose me as a django enabled plugin
 
-from admin import myadmin
+TEMPLATE_DIRS='templates'       # static media I give to django
+LOCALE_PATHS='locale'
+django_app=True                 # we provide an application so we can
+								# define models
 
-import views
-
-urlpatterns = patterns( '',
-					(r'^admin/', myadmin.urls),
-					(r'^configure', views.configure),
-					(r'(.*)', views.index ),
-    )
+statistics_reset=True			# mark we will want to handle rpc reset
+urls=( 'agent', 'urls' )		# urls I give to django

@@ -14,15 +14,12 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
 
-
-
-# test plugin
 # adds stuff to the admin page
 
-from models import *
 from django.contrib import admin
+import models
 
 myadmin = admin.AdminSite()
-myadmin.register(AgentRecord)
-myadmin.register(AgentMarketingCampaign)
-myadmin.register(AgentDeviceRecord)
+myadmin.register(models.AgentRecord)
+myadmin.register(models.AgentMarketingCampaign)
+myadmin.register(models.AgentDeviceRecord)
