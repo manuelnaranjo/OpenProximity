@@ -60,9 +60,10 @@ def get_files_from_campaign(camp, record):
         raise StopIteration
         
     c = camp.getRejectedCount(record.remote)
+    d = camp.getTimeoutCount(record.remote)
 
-    if c>0:
-	print "All ready rejected %s times" % c
+    if c>0 or d>0:
+	logger.debug("All ready rejected %s times, and timedout %s" % (c, d))
         try_ = camp.tryAgain(remote=record.remote, record=None)
         logger.info("try again: %s" % try_)
         if not try_ :

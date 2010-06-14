@@ -236,18 +236,22 @@ class MarketingCampaign(Campaign):
 
     def tryAgain(self, record=None, remote=None):
 	assert record or remote, "Can't pass both record and remote as none"
-	
+
 	if not record:
-	    record = RemoteBluetoothDeviceFilesRejected.\
+	    qs = RemoteBluetoothDeviceFilesRejected.\
 		    objects.\
 			filter(
 			    campaign=self,
 			    remote=remote
 			).\
-		    order_by('time').\
-		    latest(field_name='time')
-	    logger.debug("got record")
-	
+		    order_by('-time')
+	    if qs.count() == 0:
+		logger.info("first time ever")
+		return True
+
+	    record=qs.all()[0]
+	    logger.debug("got record, %s" % record)
+
         delta = time.time()-time.mktime(record.time.timetuple())
         logger.info("delta: %s" % delta)
 
@@ -416,7 +420,7 @@ class DeviceRecord(models.Model):
 
     def save(self, force_insert=False, force_update=False):
         if self.time is None:
-            self.time = datetime.now()
+            self.time = datetime.utcnow()
         super(DeviceRecord, self).save(force_insert, force_update)
 
 
@@ -528,7 +532,7 @@ def getMatchingCampaigns(
         record=None):
     out  = list()
     classes = classes or Campaign.__subclasses__()
-    time_ = time_ or datetime(*time.localtime()[:-2])
+    time_ = time_ or datetime(*time.gmtime()[:-2])
     logger.info("getMatchingCampaigns %s %s %s %s %s" % 
                         ( remote, 
                             time_, 

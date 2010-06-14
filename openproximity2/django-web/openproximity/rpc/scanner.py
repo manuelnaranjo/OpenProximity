@@ -159,7 +159,7 @@ def handle_addrecord(services, remote_, dongle, pending):
     logger.debug(record)
     logger.debug(record.remote)
 
-    record.save()
+    record.save() # this will set the time field to now
     
     logl = LogLine()
     logl.content="Found: %s %s %s" % (
