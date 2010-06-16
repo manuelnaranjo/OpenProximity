@@ -188,9 +188,11 @@ done
 rm -rf "$OP2"/tmp
 
 PYTHONPATH=$OP2/openproximity2/libs
+DEBUG="yes"
 export PYTHONPATH
+export DEBUG
 #update messages
-cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py makemessages -a
+cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py  makemessages --traceback -a
 
 #copy messages back to original code
 if [ -n "$UPDATE_LOCALES" ]; then
@@ -199,7 +201,7 @@ if [ -n "$UPDATE_LOCALES" ]; then
 fi
 
 #now compile messages
-cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py makemessages -a
+cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py  makemessages --traceback -a
 
 #clean up compiled python files
 rm -f `find . | grep "\.pyc$"`
