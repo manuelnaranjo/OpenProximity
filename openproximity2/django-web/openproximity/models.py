@@ -252,7 +252,7 @@ class MarketingCampaign(Campaign):
 	    record=qs.all()[0]
 	    logger.debug("got record, %s" % record)
 
-        delta = time.time()-time.mktime(record.time.timetuple())
+        delta = time.mktime(time.gmtime())-time.mktime(record.time.timetuple())
         logger.info("delta: %s" % delta)
 
         if record.isTimeout():
