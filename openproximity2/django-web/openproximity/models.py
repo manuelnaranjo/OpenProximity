@@ -287,7 +287,7 @@ class MarketingCampaign(Campaign):
 	
 	# test for successful uploads
 	accepted_pass = self.accepted_count == -1 or (
-	    self.accepted_count < self.getAcceptedCount()
+	    self.accepted_count > self.getAcceptedCount()
 	)
 	logger.debug("accepted_pass %s" % accepted_pass)
 	if not accepted_pass:
