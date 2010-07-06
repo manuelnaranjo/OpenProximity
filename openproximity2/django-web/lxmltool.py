@@ -66,7 +66,7 @@ class XMLTool:
         try:
             if self.tree is None:
                 self.__getXmlTree()
-        except IOError, err:
+        except Exception, err:
             logger.info("failed while loading file settings, trying to simulate"
                     " config file")
             logger.exception(err)
