@@ -93,6 +93,25 @@ function git_download(){
     cp -r "$CWD"/libs/$PACKAGE-$VERSION/$PACKAGE "$LIB_TARGET"
 }
 
+function svn_download(){
+    PACKAGE=$1
+    VERSION=$2
+    SVN=$3
+    COMMIT=$4
+
+    echo "processing $PACKAGE"
+
+    if [ ! -d "$CWD"/libs/$PACKAGE-$VERSION ]; then
+        echo "Downloading"
+        pushd "$CWD"/libs
+        svn checkout -r $COMMIT $SVN $PACKAGE
+        svn export $PACKAGE $PACKAGE-$VERSION
+        rm -rf $PACKAGE
+        popd
+    fi
+    cp -r "$CWD"/libs/$PACKAGE-$VERSION/$PACKAGE "$LIB_TARGET"
+}
+
 function git_egg(){
     PACKAGE=$1
     VERSION=$2
@@ -175,6 +194,8 @@ download_and_uncompress PyOFC2 0.1.1dev pyofc2 http://pypi.python.org/packages/s
 download_and_uncompress django-notification 0.1.5 notification http://pypi.python.org/packages/source/d/django-notification/
 download_and_uncompress django-mailer 0.1.0 mailer http://pypi.python.org/packages/source/d/django-mailer/
 download_jstree jstree v.0.9.9a2 http://jstree.googlecode.com/files jsTree
+svn_download django_restapi 81 http://django-rest-interface.googlecode.com/svn/trunk/ 81
+
 #some ideas on a WYSIWYG template editor
 #download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/
 #tinymce

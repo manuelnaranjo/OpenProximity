@@ -1,0 +1,30 @@
+diff -urpN django_restapi.orig/model_resource.py django_restapi/model_resource.py
+--- django_restapi.orig/model_resource.py	2010-07-05 23:01:47.000000000 -0300
++++ django_restapi/model_resource.py	2010-07-05 23:03:16.000000000 -0300
+@@ -141,7 +141,11 @@ class Collection(ResourceBase):
+         # Create form filled with POST data
+         ResourceForm = models.modelform_factory(self.queryset.model, form=self.form_class)
+         data = self.receiver.get_post_data(request)
+-        form = ResourceForm(data)
++        try:
++    	    files = self.receiver.get_data(request, 'FILES')
++    	except:
++    	    files = {}
++        form = ResourceForm(data, files)
+         
+         # If the data contains no errors, save the model,
+         # return a "201 Created" response with the model's
+@@ -212,8 +216,12 @@ class Entry(object):
+         # Create a form from the model/PUT data
+         ResourceForm = models.modelform_factory(self.model.__class__, form=self.collection.form_class)
+         data = self.collection.receiver.get_put_data(request)
++        try:
++    	    files = self.receiver.get_data(request, 'FILES')
++    	except:
++    	    files = {}
+ 
+-        form = ResourceForm(data, instance=self.model)
++        form = ResourceForm(data, files, instance=self.model)
+         
+         
+         # If the data contains no errors, save the model,

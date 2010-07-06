@@ -273,8 +273,8 @@ def stats_restart(request):
         pass
     
     logger.info("database unlocked")
-
-    return HttpResponseRedirect('/')
+    
+    return HttpResponse("DELETE COMPLETE")
     
 def dongle_information(dongle):
     a=dict()
@@ -407,10 +407,10 @@ def rpc_last_seen(request):
     return HttpResponse(
         simplejson.dumps({}),
         content_type="application/json")
-    
+
 def rpc_device_info(request):
     addr=request.GET.get('address')
-    
+
     out=dict()
     out['accepted'] = RemoteBluetoothDeviceFilesSuccess.objects.\
                         filter(remote__address=addr).count()
@@ -420,7 +420,7 @@ def rpc_device_info(request):
     a=RemoteBluetoothDeviceFilesRejected.objects.filter(remote__address=addr)
     for ret in TIMEOUT_RET:
         a=a.exclude(ret_value=ret)
-        
+
     out['rejected'] = a.count()
     out['timeout'] = non_accepted-out['rejected']
     out['tries'] = out['accepted']+non_accepted
@@ -432,11 +432,176 @@ def rpc_device_info(request):
 
     return HttpResponse( simplejson.dumps(out), content_type="application/json")
 
+# changes from Manuel Coli
+def rpc_campaign_info(request):
+    id=request.GET.get('campaign')
+
+    out=dict()
+    out['accepted'] = RemoteBluetoothDeviceFilesSuccess.objects.filter(campaign=id).count()
+
+    non_accepted = RemoteBluetoothDeviceFilesRejected.objects.filter(campaign=id).count()
+    a=RemoteBluetoothDeviceFilesRejected.objects.filter(campaign=id)
+    for ret in TIMEOUT_RET:
+        a=a.exclude(ret_value=ret)
+
+    out['rejected'] = a.count()
+    out['timeout'] = non_accepted-out['rejected']
+    out['tries'] = out['accepted']+non_accepted
+
+    return HttpResponse(
+	simplejson.dumps(out),
+        content_type="application/json"
+    )
+
+def rpc_campaign_device(request):
+    id=request.GET.get('campaign')
+    out=dict()
+    objs= RemoteBluetoothDeviceFileTry.objects.filter(campaign=id) 
+    device = RemoteDevice.objects.filter(id__in=objs.values('remote'))
+
+    if device.count() > 0:
+	return HttpResponse(
+	    simplejson.dumps(
+		list(smart_group(
+		    device.values(
+			'id',
+			'address', 
+			'name', 
+			'last_seen', 
+			'devclass')
+		    )
+		)),
+	    content_type="application/json"
+	)
+
+    return HttpResponse(
+	simplejson.dumps(out),
+        content_type="application/json"
+    )
+
+def rpc_campaign_tot(request):
+
+    out=dict()
+    out['accepted'] = RemoteBluetoothDeviceFilesSuccess.objects.count()
+
+    non_accepted = RemoteBluetoothDeviceFilesRejected.objects.count()
+    a=RemoteBluetoothDeviceFilesRejected.objects.all()
+    for ret in TIMEOUT_RET:
+        a=a.exclude(ret_value=ret)
+
+    out['rejected'] = a.count()
+    out['timeout'] = non_accepted-out['rejected']
+    out['tries'] = out['accepted']+non_accepted
+
+    return HttpResponse(
+	simplejson.dumps(out),
+        content_type="application/json"
+    )
+
+def rpc_campaign_device_accepted(request):
+    id=request.GET.get('campaign')
+
+    out=dict()
+    objs= RemoteBluetoothDeviceFilesSuccess.objects.filter(campaign=id)
+    device = RemoteDevice.objects.filter(id__in=objs.values('remote'))
+    
+    if device.count() > 0:
+	return HttpResponse(
+	    simplejson.dumps(
+		list(smart_group(
+		    device.values(
+			'id',
+			'address', 
+			'name', 
+			'last_seen', 
+			'devclass')
+		    )
+		)),
+	    content_type="application/json"
+	)
+
+    return HttpResponse(
+	simplejson.dumps(out),
+        content_type="application/json"
+    )
+
+def rpc_campaign_device_rejected(request):
+    id=request.GET.get('campaign')
+    out=dict()
+    objs= RemoteBluetoothDeviceFilesRejected.objects.filter(campaign=id)
+    device = RemoteDevice.objects.filter(id__in=objs.values('remote'))
+
+    if device.count() > 0:
+	return HttpResponse(
+	    simplejson.dumps(
+		list(smart_group(
+		    device.values(
+			'id',
+			'address', 
+			'name', 
+			'last_seen', 
+			'devclass')
+		    )
+		)),
+	    content_type="application/json"
+	)
+
+    return HttpResponse(
+	simplejson.dumps(out),
+        content_type="application/json"
+    )
+
+def rpc_campaign_device_ignored(request):
+    id=request.GET.get('campaign')
+    out=dict()
+    objs= RemoteBluetoothDeviceSDPTimeout.objects.filter(campaign=id)
+    device = RemoteDevice.objects.filter(id__in=objs.values('remote'))
+
+    if device.count() > 0:
+	return HttpResponse(
+	    simplejson.dumps(
+		list(smart_group(
+		    device.values(
+			'id',
+			'address', 
+			'name', 
+			'last_seen', 
+			'devclass')
+		    )
+		)),
+	    content_type="application/json"
+	)
+
+    return HttpResponse(
+	simplejson.dumps(out),
+        content_type="application/json"
+    )
+
+def stats_restart_campaign(request):
+    # this method is still not complete
+    id=request.GET.get('campaign')
+    
+    out=dict()
+
+    objs= RemoteBluetoothDeviceFileTry.objects.filter(campaign=id).delete() 
+    
+    return HttpResponse("DELETE CAMPAIGN COMPLETE")
+# end of changes from Coli
+
 RPC_COMMANDS={
-    'stats':        rpc_stats,
-    'info':     rpc_info,
-    'last-seen':    rpc_last_seen,
-    'device-info':  rpc_device_info, 
+    'stats':			rpc_stats,
+    'info':			rpc_info,
+    'last-seen':		rpc_last_seen,
+    'device-info':		rpc_device_info, 
+    # methods from Coli
+    'campaign-info':		rpc_campaign_info,
+    'campaign-tot':		rpc_campaign_tot,
+    'campaign-device':		rpc_campaign_device,
+    'campaign-device-accepted':	rpc_campaign_device_accepted,
+    'campaign-device-rejected': rpc_campaign_device_rejected,
+    'campaign-device-ignored': 	rpc_campaign_device_ignored,
+#    'delete-statistics': 	stats_restart,
+    'delete-statistics-campaign':stats_restart_campaign,
 }
 
 def rpc_command(request, command):
@@ -445,6 +610,8 @@ def rpc_command(request, command):
     return f(request) if f else HttpResponse("Non Valid Command")
 
 def last_seen(request):
-    return render_to_response("op/last_seen.html", {}, 
-        context_instance=RequestContext(request))
-
+    return render_to_response(
+	"op/last_seen.html", 
+	{}, 
+        context_instance=RequestContext(request)
+    )
