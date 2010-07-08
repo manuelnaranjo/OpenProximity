@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
 #    Copyright (C) 2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
@@ -62,6 +63,36 @@ def logmain(app):
 
 # some shared variables
 logger = __initLog()
+
+def trace():
+    try:
+#	from pydbgr.api import debug as set_trace
+	from pudb import set_trace
+        import urwid
+        def t(*args, **kwargs):
+	    pass
+	urwid.raw_display.Screen.signal_init=t
+	urwid.raw_display.Screen.signal_restore=t
+    except Exception, err:
+	logger.warning("Using non multithreaded pdb")
+    	from pdb import set_trace 
+    set_trace()
+
+def register_debug_shell():
+  ''' 
+    a helper function that will allow to start pdb or pudb
+    when CTRL-C is received
+  '''
+  if 'PDB' not in os.environ:
+      return
+
+  logger.debug("Registering PDB debugger")
+  def signal_handler(signal, frame):
+	trace()
+  import signal
+  signal.signal(signal.SIGINT, signal_handler)
+
+register_debug_shell()
 
 def get_subclass(object):
     for related in object._meta.get_all_related_objects():
