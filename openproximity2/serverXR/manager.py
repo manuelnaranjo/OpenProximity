@@ -48,18 +48,6 @@ def poll(fd, condition):
 	logger.exception(err)
     return True
 
-def ping():
-    try:
-        server.ping(timeout=10000)
-        return True
-    except select.error:
-	logger.warn("select.error")
-	return True
-    except Exception, err:
-        logger.info("ping lost connection, cause: %s, %s" % (err, type(err)))
-        logger.exception(err)
-        stop()
-    
 def stop():
     global manager
     from uploader import UploadManager
@@ -67,9 +55,6 @@ def stop():
         manager.exposed_stop()
     loop.quit()
 
-def exposed_ping():
-    return "hi"
-    
 def handle_name_owner_changed(own, old, new):
     if own.startswith('org.bluez'):
         if new is None or len(str(new))==0:
@@ -104,7 +89,6 @@ def init():
         remote_quit=stop, 
         client=manager, 
         dongles=a, 
-        ping=exposed_ping
     )
     logger.info("exiting init")
 

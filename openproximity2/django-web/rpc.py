@@ -122,7 +122,6 @@ class OpenProximityService(Service):
 
         def exposed_generic_register(self, remote_quit=None, 
     						dongles=None, 
-    						ping=None, 
     						client=None):
             logger.info("generic register")
             all_dongles.update(dongles)
@@ -132,7 +131,6 @@ class OpenProximityService(Service):
                         if plugin.rpc['register'](dongles=dongles, client=client):
                             # wrap all calls as async, to avoid collitions
                             self.remote_quit = async(remote_quit)
-                            self.ping = ping
                             logger.info("plugin %s handled rpc_register" % plugin.name)
                             return
             except Exception, err:
@@ -140,8 +138,7 @@ class OpenProximityService(Service):
 
         def exposed_scanner_register(self,  client = None,
     					    remote_quit=None, 
-    					    dongles=None, 
-    					    ping=None):
+    					    dongles=None):
             global enabled
             all_dongles.update(dongles)
             self.dongles = set()
@@ -153,7 +150,6 @@ class OpenProximityService(Service):
             self.doScan = async(client.doScan)
             self.startScanningCycle = async(client.startScanningCycle)
             self.remote_quit = async(remote_quit)
-            self.ping = ping
 
             if not enabled:
                 return
@@ -176,14 +172,12 @@ class OpenProximityService(Service):
 
         def exposed_uploader_register(self, client = None,
     					    remote_quit=None, 
-    					    dongles=None, 
-    					    ping=None):
+    					    dongles=None):
             global enabled
             all_dongles.update(dongles)
             self.dongles = set()
             self.add_dongle = async(client.add_dongle)
             self.upload = async(client.upload)
-            self.ping = ping
             self.remote_quit = async(remote_quit)
             self.refreshUploaders = async(client.refreshUploaders)
 
