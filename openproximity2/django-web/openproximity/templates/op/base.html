@@ -65,6 +65,7 @@ addLoadEvent(roundedCornersOnLoad);
 	<object class="logo">&nbsp;</object>
         {% block navbar %}
 	    {% createNavButton "/" "nav_index" _("Index") %}
+	    {% createNavButton "javascript: popitup('http://wiki.openproximity.org/userdocumentation', '')" "nav_help" _("Documentation") %}
 	    {% createNavButton "javascript: popitup('/last-seen/')" "nav_seen" _("Last Seen") %}
 	    {% if settings.debug %}
 		{% createNavButton "/data/" "nav_data" _("Data Browse") %}
