@@ -144,7 +144,7 @@ addLoadEvent(check_version);
 </script>
 
 {% comment %} field line content refresh 'amount to show' 'first read' {% endcomment %}
-{% Tweet 'messages' 'fields.time' './microblog' 'post.fields.time.split(\' \')[1] + " " + post.fields.content + "<br/>"' 5 17 %}
+{% Tweet 'messages' 'fields.time' './microblog' 'post.fields.time.split(\' \')[1] + " " + post.fields.content + "<br/>"' 5 15 %}
 
 {% endblock %}
 
@@ -157,13 +157,37 @@ addLoadEvent(check_version);
 	    <div class="content-main" style="float:bottom;"><div class="inner">{% include "op/imports/server_status.html" %}</div></div>
 	</div>
 	<div style="width: 49%; float:right;">
-	    <div class="log content-main">
+	    <fieldset style="margin: 0px; padding: 0px; border: none">
+	    <div class="log content-main" style="float:left; width: 70%">
 		<div class="inner">
 		    <h1>{% trans "Server Log" %}</h1>
 		    <div id="messages"></div>
 		</div>
 	    </div>
-	</div>
+	    <div  style="float:right; width: 29%">
+	      <script src="http://widgets.twimg.com/j/2/widget.js"></script>
+	      <script>
+	      new TWTR.Widget({
+		version: 2,
+		type: 'profile',
+		rpp: 5,
+		interval: 6000,
+		width: '29%',
+		height: 335,
+		features: {
+		  scrollbar: true,
+		  loop: false,
+		  live: true,
+		  hashtags: true,
+		  timestamp: true,
+		  avatars: false,
+		  behavior: 'all'
+		}
+	      }).render().setUser('aircable_manuel').start();
+	      </script>
+	    </div>
+	    </fieldset>
+
     </fieldset>
     <div class="content-main" style="float: none">
 	<div class="inner">
