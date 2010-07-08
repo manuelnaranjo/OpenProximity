@@ -34,14 +34,19 @@ manager = None
 bus = None
 loop = None
 
-def poll():
+def poll(fd, condition):
     try:
 	server.poll()
 	return True
+    except EOFError, eof:
+	logger.error("EOF while polling %s" % eof)
+        logger.exception(eof)
+        stop()
+        return False 
     except Exception, err:
 	logger.error("error during poll %s" % err)
 	logger.exception(err)
-    return False
+    return True
 
 def ping():
     try:
@@ -170,8 +175,8 @@ def run(server_, port, type_):
         logger.info("bluez isn't ready, delaying init")
 
     # start our loop and setup ping
-    gobject.timeout_add(1000, ping)
-    gobject.timeout_add(1, poll, priority=gobject.PRIORITY_LOW)
+    flags = gobject.IO_IN | gobject.IO_ERR | gobject.IO_HUP
+    gobject.io_add_watch(server.fileno(), flags, poll)
     loop=gobject.MainLoop()
     loop.run()
 
