@@ -220,7 +220,7 @@ class MarketingCampaign(Campaign):
                 
     def getTriesCount(self, remote):
 	return RemoteBluetoothDeviceFileTry.\
-                objects.filter(remote=record.remote, campaign=self).\
+                objects.filter(remote=remote, campaign=self).\
                     count()
 
     def hasAccepted(self, remote):
