@@ -15,6 +15,7 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from django.conf import settings
+from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext as _
 from net.aircable.openproximity.signals import scanner as signals
 from net.aircable.utils import logger
@@ -133,11 +134,12 @@ uploaded = set()
 
 def handle_addrecord(services, remote_, dongle, pending):
     address = remote_['address']
+    name = smart_unicode(remote_['name']) if remote_['name'] else None
 
     logger.info("handle_addrecord %s" % address)
     remote=RemoteDevice.getRemoteDevice(
                     address=address, 
-					name=remote_['name'], 
+					name=name, 
 					devclass=remote_['devclass']
             )
     record = RemoteBluetoothDeviceFoundRecord()
@@ -148,8 +150,8 @@ def handle_addrecord(services, remote_, dongle, pending):
     record.setRSSI(remote_['rssi'])
     
     if not isinstance(dongle, RemoteScannerBluetoothDongle):
-        if remote_['name'] is not None and record.remote.name!=remote_['name']:
-            record.remote.name = remote_['name']
+        if name is not None and record.remote.name!=name:
+            record.remote.name = name
             record.remote.save()
         if remote_['devclass'] != -1 and \
                     record.remote.devclass!=remote_['devclass']:
