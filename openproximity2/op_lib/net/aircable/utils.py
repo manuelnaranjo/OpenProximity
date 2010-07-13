@@ -76,7 +76,7 @@ def trace():
     except Exception, err:
 	logger.warning("Using non multithreaded pdb")
     	from pdb import set_trace 
-    set_trace()
+    return set_trace()
 
 def register_debug_shell():
   ''' 
