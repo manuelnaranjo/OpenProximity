@@ -21,7 +21,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.template.loader import get_template
 from django.utils import simplejson
-from django.utils.encoding import smart_str
+from django.utils.encoding import smart_unicode
 from django.views.generic import list_detail
 from django.contrib.admin.views import decorators
 
@@ -381,7 +381,7 @@ def smart_group(group):
     for g in group:
         line=dict()
         for key,val in g.iteritems():
-            line[key]=str(val)
+            line[key]=smart_unicode(val)
         yield line
 
 def rpc_last_seen(request):
