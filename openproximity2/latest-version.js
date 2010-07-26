@@ -1,7 +1,7 @@
 var message_show = 0
 
 function compare_version(CURRENT_VERSION) {
-    var LATEST_VERSION="beta-10062009";
+    var LATEST_VERSION="rc1";
     var a = new Array();
     a.new_available=false
     if (CURRENT_VERSION.toLowerCase().indexOf('devel') == -1){
