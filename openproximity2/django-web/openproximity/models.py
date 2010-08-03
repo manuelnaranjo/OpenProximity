@@ -22,6 +22,9 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.dispatch.dispatcher import Signal
+from django.contrib.auth.models import User
+from timezones.fields import TimeZoneField
+
 import rpyc, time, os.path
 
 import net.aircable.openproximity.signals.scanner as scanner
@@ -29,7 +32,12 @@ import net.aircable.openproximity.signals.scanner as scanner
 from net.aircable.fields import PickledField
 from net.aircable.utils import logger
 
-TIMEOUT_RET = [ 22 ]
+
+TIMEOUT_RET = [ 22, 111 ]
+
+class UserProfile(models.Model):
+    user = models.ForeignKey(User, unique=True)
+    timezone = TimeZoneField()
 
 class LogLine(models.Model):
     time = models.DateTimeField(auto_now=True, verbose_name=_("time"))

@@ -157,6 +157,9 @@ SERIALIZATION_MODULES = {
     'json': 'wadofstuff.django.serializers.json'
 }
 
+# register our time zone aware user
+AUTH_PROFILE_MODULE = "openproximity.UserProfile"
+
 # load xml settings
 OPENPROXIMITY = XMLTool('/etc/openproximity2/settings.xml')
 

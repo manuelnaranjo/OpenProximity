@@ -27,7 +27,7 @@ from net.aircable.openproximity.pluginsystem import pluginsystem
 admin.autodiscover()
 
 urlpatterns = patterns ('',
-    (r'accounts/login', login),
+    (r'accounts/login', login, {'template_name': 'op/login.html'}),
     (r'accounts/logout', logout),
 
     # include needed interfaces    

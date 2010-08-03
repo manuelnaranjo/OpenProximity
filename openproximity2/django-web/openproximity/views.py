@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
 #    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
@@ -36,7 +37,7 @@ from mimetypes import guess_type as guess_mime
 
 from models import *
 from forms import *
-import rpyc, os, time
+import rpyc, os, time, setup
 
 SET = settings.OPENPROXIMITY.getAllSettings()
 
@@ -345,6 +346,10 @@ def generate_stats():
     return stats
 
 def index(request):
+    # check if DB needs to be created
+    if not setup.db_ready():
+	return setup.index(request)
+
     # generate rpc information
     rpc = generate_rpc_information()
     
