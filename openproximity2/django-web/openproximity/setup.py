@@ -104,7 +104,23 @@ def db_ready():
 
 def CreateDB():
     from django.core import management
+    import rpyc
+    try:
+        server=rpyc.connect('localhost', 8010)
+        server.root.Lock()
+        logger.info("database locked")
+    except:
+        pass
+
     management.call_command("syncdb", interactive=False)
+    
+    try:
+        server=rpyc.connect('localhost', 8010)
+        server.root.Unlock()
+        server.root.restart()
+    except:
+        pass
+
 
 def CreateAdmin(username, password, email, time_zone):
     from django.contrib.auth.models import User
