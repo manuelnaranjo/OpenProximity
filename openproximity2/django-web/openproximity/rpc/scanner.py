@@ -124,6 +124,9 @@ def cycle_completed(scanner):
     camps = getMatchingCampaigns(enabled=True)
     if len(camps)==0:
         logger.info("no campaigns, no more scanning")
+        # tell the rpc scanner to ping us periodically until there's
+        # a new campaign available
+        scanner.noCampaigns()
         return
     
     logger.info("starting scan cycle")

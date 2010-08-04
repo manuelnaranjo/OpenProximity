@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-import dbus, rpyc, time, traceback
+import dbus, rpyc, time, traceback, gobject
 from net.aircable.utils import logger
 from net.aircable.openproximity.signals.scanner import *
 from net.aircable.wrappers import Adapter
@@ -272,6 +272,17 @@ class ScanManager:
         if self.concurrent:
             self.pending=list()
     
+    def exposed_noCampaigns(self):
+	'''
+	    this method gets called when there was no matching campaigns on the
+	    server, so we tell the server until it's ready
+	'''
+	def request_server(self):
+	    self.tellListenersAsync(CYCLE_COMPLETE)
+	    return False
+	logger.info("no campaigns, scheduling request")
+        gobject.timeout_add(60*1000, request_server, self)
+
     def exposed_getDongles(self):
         out = set()
         for d in self.manager.ListAdapters():
