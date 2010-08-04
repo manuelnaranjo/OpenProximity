@@ -1,0 +1,5 @@
+RC2:
+    * User setup
+    * Time filters are now timezone aware so they don't conflict with the server
+      time filters are stored in GMT time. And then converted to user timezone
+      when displaying
