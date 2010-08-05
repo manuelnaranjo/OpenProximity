@@ -593,7 +593,7 @@ def get_campaign_rule(files):
         return None
 
     logger.info("found camp")
-    return list(out)[0]
+    return list(out)
 
 def __restart_server():
     logger.info("restarting server")
