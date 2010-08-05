@@ -163,6 +163,9 @@ AUTH_PROFILE_MODULE = "openproximity.UserProfile"
 # load xml settings
 OPENPROXIMITY = XMLTool('/etc/openproximity2/settings.xml')
 
+# when logged in just send the user back to the main page
+LOGIN_REDIRECT_URL = "/"
+
 logger.info("starting up plugins")
 pluginsystem.find_plugins()
 for plugin in pluginsystem.get_plugins('django'):
