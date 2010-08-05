@@ -27,9 +27,25 @@ import async
 
 MEDIA_ROOT = os.environ.get('MEDIA_ROOT', '/tmp/aircable/media')
 TIMEOUT = os.environ.get('TIMEOUT', '20')
-
+     
 class UploadAdapter(Adapter):
+    '''
+    Class to wrap an uploader. All the process is done async, this means we
+    tell the upload process to start and then wait (active) until it gives us
+    back some callbacks.
+    '''
+    
     queue = None
+    # not used ?
+    
+    max_uploads = None
+    # max aumount of simultaneous uploads
+    
+    slots = None
+    # upload slots
+    
+    manager = None
+    # instance of our Uploader Manager
 
     def __init__(self,
                     manager, 
@@ -44,17 +60,22 @@ class UploadAdapter(Adapter):
                 raise Exception("Can't use non AIRcable dongle as uploaders")
 
         self.max_uploads = max_uploads
-        self.current_connections = 0
         self.slots = dict( [ (i, None) for i in range(max_uploads) ] )
         self.manager = manager
         logger.debug("Initializated UploaderDongle")
 
     def completed(self, target):
+	''' 
+	free up our uploading slot
+	'''
 	#target.cleanup()
         self.slots[target.slot] = None
         logger.info("slot %s is now free" % target.slot)
 
     def FileUploaded(self, target, *args, **kwargs):
+	'''
+	Callback that lets us know when an upload process completed succesfully.
+	'''
         logger.info("File uploaded %s" % target.target)
         
         self.manager.tellListeners(
@@ -67,6 +88,9 @@ class UploadAdapter(Adapter):
         self.completed(target)
 
     def FileFailed(self, target, retcode, stdout, stderr, *args, **kwargs):
+	'''
+	Callback that lets us know when an upload process completed with a failure.
+	'''
         logger.info("File Failed %s" % target.target)
         self.manager.tellListeners(
             signal=FILE_FAILED,
@@ -82,6 +106,10 @@ class UploadAdapter(Adapter):
         self.completed(target)
 
     def ChannelResolved(self, target, channel):
+	'''
+	Callback that let us know when the channel for the remote deivce has 
+	been resolved correctly.
+	'''
         logger.info("ChannelResolved %s -> %s" % ( target.target, channel ))
         self.manager.tellListeners(
             signal = SDP_RESOLVED,
@@ -93,6 +121,10 @@ class UploadAdapter(Adapter):
 	self.do_upload(target)
 
     def do_upload(self, target):
+	'''
+	This function is called once we have resolved the channel.
+	Is public available so we can force upload to a certain channel.
+	'''
         target.SendFiles(
             channel=target.channel, 
             files=[ os.path.join(MEDIA_ROOT, f[0]) for f in target.files ],
@@ -102,6 +134,9 @@ class UploadAdapter(Adapter):
         )
     
     def ServiceNotProvided(self, target, error, state, connected):
+	'''
+	Callback that will get call when channel resolving failed.
+	'''
         logger.info("ServiceNotProvided %s %s %s" % (target.target, error, connected))
         signal = SDP_NORECORD if connected else SDP_TIMEOUT 
         
@@ -114,6 +149,10 @@ class UploadAdapter(Adapter):
         self.completed(target)
 
     def getSlot(self):
+	'''
+	Function that will get called when a new upload needs an upload slot.
+	If none is available we raise an Exception.
+	'''
         for slot in self.slots:
             if not self.slots[slot]:
                 logger.debug("found slot %s" % slot)
@@ -122,6 +161,11 @@ class UploadAdapter(Adapter):
 
 
     def upload(self, files, target, uuid, service, channel=None):
+	'''
+	Function that gets called by the manager when it wants to do an upload.
+	If no channel is provided then it will start an sdp resolving for the 
+	service uuid.
+	'''
         logger.debug("got an upload request %s" % target)
         sl = self.getSlot()
     
@@ -144,14 +188,29 @@ class UploadAdapter(Adapter):
 	  self.do_upload(target)
   
 class UploadManager:
+    '''
+    A manager that will handle the work for the different dongles we have 
+    connected.
+    '''
+
     __dongles = dict()
+    # dongles we're working with (UploadAdapter instances)
+
     bus = None
+    # a connection to dbus
+
     manager = None
-    __listener_sync = list()
-    __listener_async = list()
+    # an instance of the BlueZ manager
+
     __sequence = list()
+    # when multiple dongles are available then we try to do balance loading
+    # by sending requests to each the dongles one at the time.
+
     __index = None
+    # an index to know which dongle we used last.
+
     uploaders = dict()
+    # dongles the server told us to use, this dict has address and priority
 
     def __init__(self, bus, rpc=None):
         logger.debug("UploadManager created")
@@ -162,6 +221,10 @@ class UploadManager:
             self.remote_listener=rpyc.async(self.rpc.root.listener)
 
     def exposed_refreshUploaders(self):
+	'''
+	Exposed method that lets the server tell us when it sent us all the 
+	dongles so we can create a sequence of them.
+	'''
         logger.debug("UploadManager refresh uploaders %s" % self.uploaders)
         if self.uploaders is None or len(self.uploaders) == 0:
             self.__dongles = dict()
@@ -183,6 +246,9 @@ class UploadManager:
         return True
     
     def __generateSequence(self):
+	'''
+	Internal method to generate a sequence of dongles.
+	'''
         logger.debug('uploaders generating sequence')
         priority=dict()
         slots = 0
@@ -193,13 +259,20 @@ class UploadManager:
         self.__sequence=__sequence
         self.__index = 0
 
-        def exposed_getDongles(self):
-            def internal_getDongles(self):
-                for d in self.manager.ListAdapters():
-                    yield str(d.GetProperties()['Address'])    
-            return list(internal_getDongles(self))
+    def exposed_getDongles(self):
+	'''
+	Exposed method that lets the server know which dongles we handle.
+	(not used)
+	'''
+        def internal_getDongles(self):
+            for d in self.manager.ListAdapters():
+                yield str(d.GetProperties()['Address'])    
+        return list(internal_getDongles(self))
 
     def tellListeners(self, *args, **kwargs):
+	'''
+	Tell our listener we have a signal with some arguments
+	'''
         logger.debug(
             "UploadManager telling listener: %s, %s" %  (
                                                             str(args), 
@@ -210,6 +283,10 @@ class UploadManager:
         logger.debug("UploadManager signal dispatched")
 
     def __rotate_dongle(self):
+	'''
+	Once each upload request gets into our queue we have to go to the next 
+	dongle in the sequence.
+	'''
         if len(self.__sequence) == 1:
             return
             
@@ -226,6 +303,10 @@ class UploadManager:
         )
 
     def exposed_upload(self, files, target, service='opp', dongle_name=None, channel=None):
+	'''
+	Exposed method that lets the server tell us it has an upload request for 
+	us.
+	'''
         try:
             dongle=self.__sequence[self.__index]
             uuid = const.UUID[service]
@@ -256,9 +337,16 @@ class UploadManager:
             raise err
         
     def exposed_add_dongle(self, address, conns, name):
+	'''
+	This method gets called by the server during
+	'''
         self.uploaders[address]=(conns, name)
         
     def exposed_stop(self):
+	'''
+	Exposed method to force upload stopping.
+	(not used or valid at all!)
+	'''
         logger.info("stop called")
         for k in self.__sequence:
             try:

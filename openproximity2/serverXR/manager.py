@@ -35,6 +35,10 @@ bus = None
 loop = None
 
 def poll(fd, condition):
+    '''
+    This function gets called whenever there's data waiting in the incomming 
+    socket, so we can flush the data from the server.
+    '''
     try:
 	server.poll()
 	return True
@@ -49,6 +53,9 @@ def poll(fd, condition):
     return True
 
 def stop():
+    '''
+    Safe stop function
+    '''
     global manager
     from uploader import UploadManager
     if getattr(manager, 'exposed_stop', None):
@@ -56,6 +63,11 @@ def stop():
     loop.quit()
 
 def handle_name_owner_changed(own, old, new):
+    '''
+    Will get called whenever a name owner changes in dbus.
+    If the change is with the BlueZ name (either it started or ended) then
+    we stop the rpc client so it restarts.
+    '''
     if own.startswith('org.bluez'):
         if new is None or len(str(new))==0:
             logger.info( "bluez has gone down, time to get out")
@@ -64,22 +76,33 @@ def handle_name_owner_changed(own, old, new):
         stop()
 
 def handle_adapter_added_or_removed(path, signal):
+    '''
+    When ever a dongle is added or removed this function gets called, so we can
+    restart the rpc client.
+    '''
     logger.info("bluez.%s: %s" % (signal, path))
     stop()
 
 def init():
+    '''
+    Gets called from inside the gobject loop once dbus is accessible so we can
+    complete the init process.
+    '''
     global manager, bus, loop, server
     
     logger.info("init")
     
     type__ = sys.argv[3].lower()
 
+    # get the list of connected dongles
     a=list()
     for b in manager.manager.ListAdapters():
         obj = bus.get_object('org.bluez', b)
         adapter = dbus.Interface(obj, 'org.bluez.Adapter')
         a.append(str(adapter.GetProperties()['Address']))
     logger.info("Connected dongles: %s" % a)
+
+    # do the remote registration.
     register={
 	'scanner': async(server.root.scanner_register),
 	'uploader': async(server.root.uploader_register),
@@ -98,8 +121,13 @@ def init():
     return False
 
 def run(server_, port, type_):
+    '''
+	Will get called from a child process once the autoreload system is ready
+	everything will be setup so the rpc client can work.
+    '''
     global server, manager, bus, loop
     
+    # first connect to the server, we can't do much without it
     try:
         server = rpyc.connect(server_, int(port))
     except:
@@ -109,10 +137,12 @@ def run(server_, port, type_):
         autoreload.RELOAD = True
         sys.exit(3)
 
+    # now try to get into dbus and init gobject
     bus=dbus.SystemBus()
     gobject.threads_init()
     dbus.glib.init_threads()
-    
+
+    # register for a few signals
     bus.add_signal_receiver(
         handle_name_owner_changed,
         'NameOwnerChanged',
@@ -135,6 +165,7 @@ def run(server_, port, type_):
         member_keyword='signal'
     )
 
+    # create the manager and register for init
     try:
         if type_ == 'scanner':
             from scanner import ScanManager
@@ -162,16 +193,19 @@ def run(server_, port, type_):
     flags = gobject.IO_IN | gobject.IO_ERR | gobject.IO_HUP
     gobject.io_add_watch(server.fileno(), flags, poll)
     loop=gobject.MainLoop()
+    # give control to the mainloop
     loop.run()
 
     # if we get here by any how then it's time to restart
     autoreload.RELOAD = True
 
 if __name__ == '__main__':
-    # connect to server
+    # setup autoreload
     if autoreload.isParent() and len(sys.argv) < 4:
         print "usage: %s server-ip port type" % sys.argv[0]
         sys.exit(0)
+    
+    # get a list of valid modes
     valid_modes=['scanner', 'uploader']
 
     pluginsystem.find_plugins()
@@ -183,5 +217,6 @@ if __name__ == '__main__':
         print "not valid type, you can use any of", valid_modes
         sys.exit(0)
 
+    # register for autoreload
     autoreload.main(run, tuple(sys.argv[1:4]),{})
 
