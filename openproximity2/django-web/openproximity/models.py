@@ -399,6 +399,8 @@ class RemoteDevice(models.Model):
             for i in qs[:1]:
                 i.delete()
         return qs[0]
+RemoteDevice.deletable = True # needed for treeview
+
 
 class DeviceRecord(models.Model):
     time = models.DateTimeField(
@@ -430,6 +432,7 @@ class DeviceRecord(models.Model):
         if self.time is None:
             self.time = datetime.utcnow()
         super(DeviceRecord, self).save(force_insert, force_update)
+DeviceRecord.deletable = True # needed for treeview
 
 
 class RemoteBluetoothDeviceRecord(DeviceRecord):

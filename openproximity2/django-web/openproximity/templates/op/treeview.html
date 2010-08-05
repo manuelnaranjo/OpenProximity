@@ -37,7 +37,36 @@
 				icon:  "refresh",
 				visible: function(node, tree){ return node.hasClass('leaf') != true },
 				action: function(node, tree){ tree.refresh(node) }
-			    }
+			    },
+			    delete: {
+				label: "{% trans "Delete" %}",
+				icon:  "remove",
+				visible: function(node, tree){ return node.hasClass('deletable') },
+				action: function(node, tree){
+				    var answer = confirm (
+					"{% trans "You sure you want to delete?"%}"
+				    );
+				    if ( answer ){
+					var id = node[0].id;
+					$("*").css("cursor", "progress");
+					$.post("delete",
+					    { id: id },
+					    function(json){
+						$("*").css("cursor", "auto");
+						if (json.need_login){
+						    alert("{% trans "You need to be loged as admin first"%}");
+						    return
+						}
+						if (json.deleted){
+						    tree.remove(node[0]);
+						}
+				    	    }
+					);
+				    }
+				}
+			    },
+
+
 			}
 		    }
 		}

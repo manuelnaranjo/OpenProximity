@@ -46,10 +46,11 @@ class Node(object):
     '''
     A wrapper class for easily creating an ajax node.
     '''
-    def __init__(self, id, data, state="closed"):
+    def __init__(self, id, data, state="closed", klass=None):
         self.id = id
         self.data = data
         self.state = state
+        self.klass = klass
     
     def getDict(self):
         out = {
@@ -58,8 +59,8 @@ class Node(object):
             },
             "data": self.data
         }
-        if self.state:
-            out['state'] = self.state
+        if self.state: out['state'] = self.state
+        if self.klass: out["attributes"]['class'] = self.klass
         return out
 
 # urls or ids can be of two forms:
@@ -81,9 +82,10 @@ class ModelNode(object):
     def __init__(self, obj):
         self.node = Node( 
             URL(obj), 
-            "%s: %s" %(obj._meta.object_name, str(obj)) 
+            "%s: %s" %(obj._meta.object_name, str(obj)),
+            klass="deletable" if getattr(obj, 'deletable', None) else None
         ).getDict()
-    
+
         self.node['children'] = [ 
             Node( 
                 URL(obj)+"_"+o.name, 
@@ -92,7 +94,7 @@ class ModelNode(object):
             ).getDict() 
             for o in obj._meta.fields if not o.rel
         ]
-    
+
         self.node['children'].extend([ 
                 Node( URL(getattr(obj, o.name)), o.name ).getDict() 
                 for o in obj._meta.fields if o.rel
@@ -156,10 +158,14 @@ class RelatedNode(object):
 
 
 def modelList(request, klass, subclass=False):
+    kl = None
+    if getattr(klass, 'deletable', False):
+        kl = "deletable"
+
     for o in klass.objects.all():
         o = get_subclass(o) if subclass else o
-        yield Node( URL(o), str(o) ).getDict()
-        
+        yield Node( URL(o), str(o), klass=kl ).getDict()
+
 def modelDetail(request, app, model, pk):
     o = mod.get_model(app, model).objects.get(pk=pk)
     return HttpResponse( 
@@ -236,10 +242,36 @@ def data(request):
 
     return initialData(request)
 
+def delete(request):
+    if request.method != 'POST':
+	raise Exception("Expected a POST")
+
+    if not request.user.is_authenticated() or not request.user.is_staff:
+	return HttpResponse(
+    	    simplejson.dumps(
+    		{
+    		    'need_login': True, 
+    		}),
+    	    content_type="application/json")
+
+    app, model, pk = request.POST.get('id').split('_')
+    o = mod.get_model(app, model).objects.get(pk=pk)
+    o.delete()
+    return HttpResponse(
+        simplejson.dumps(
+    	    {
+    		'deleted': True, 
+    		'pk': pk, 
+    		'app': app,
+    		'model': model
+    	    }),
+        content_type="application/json")
+
 def index(request):
     return render_to_response("op/treeview.html")
 
 urlpatterns = urls.patterns('',
+    (r'delete', delete),
     (r'data', data),
     (r'', index),
 )
