@@ -93,7 +93,7 @@ def registerAgent(path):
   '''
   adapter = dbus.Interface(bus.get_object("org.bluez", path),
 						"org.bluez.Adapter")
-  adapter.RegisterAgent(PATH, "DisplayYesNo") 
+  adapter.RegisterAgent(PATH, "NoInputNoOutput") 
   # should we change this to NoInputNoOutput?
   logger.info("adapter registered for path %s" % path)
 
