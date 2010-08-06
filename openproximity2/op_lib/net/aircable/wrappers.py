@@ -47,4 +47,3 @@ if __name__=='__main__':
   import gobject
   adapter = Adapter( dbus.SystemBus(),'/org/bluez/hci0')
   print adapter, adapter.aircable
- 
