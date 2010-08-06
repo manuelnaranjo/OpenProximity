@@ -25,6 +25,8 @@ import ConfigParser, pkgutil, traceback
 import sys,functools
 from net.aircable.utils import logger
 
+__all__=['pluginsystem']
+
 # try getting the plugins dir from the PYTHON_PATH otherwise create a fake one
 try:
     import plugins
@@ -48,7 +50,14 @@ plugins.__path__ = pkgutil.extend_path(plugins.__path__,
 plugins.__path__ = find_plugin_dirs() + plugins.__path__
 
 class Plugin(object):
+  '''
+  A plugin instance.
+  '''
+  
   def __loadFromFile(self, path):
+    '''
+    internal method, load plugin from the file system
+    '''
     p = os.path.join(path, 'plugin.py')
     if not os.path.isfile(p):
 	raise Exception("plugin not suported %s" % path)
@@ -64,20 +73,27 @@ class Plugin(object):
 	self.post_environ=self.provides['post_environ']
 
 
-  def __init__(self, path=None, name=None, egg=None):#, load, egg):
+  def __init__(self, path=None, name=None, egg=None):
+    '''
+    Try to register a new plugin.
+    
+    @path=Path to the plugin
+    @name=Name of the plugin it self
+    @egg=True if the plugin is stored into an egg file
+    '''
     if not egg:
-	self.path = os.path.join(path, name)
+      self.path = os.path.join(path, name)
     else:
-	self.path = path
+      self.path = path
     if not egg:
-	self.name = 'plugins.%s' % name
+      self.name = 'plugins.%s' % name
     else:
-	self.name = name
+      self.name = name
     self.egg = egg
     if not self.egg:
-	  self.__loadFromFile(self.path)
+      self.__loadFromFile(self.path)
     else:
-	  raise Exception("plugin not suported %s" % path)
+      raise Exception("plugin not suported %s" % path)
     self.enabled = self.provides.get('enabled', False)
     self.__module = None
     self.__version = None
@@ -87,24 +103,36 @@ class Plugin(object):
 
   @property
   def module(self):
+    '''
+    The module it self
+    '''
     if self.__module is None:
       self.__import_plugin()
     return self.__module
 
   @property
   def __version__(self):
+    '''
+    Version number of the plugin
+    '''
     if self.__version is None:
       self.__version=getattr(self.module, '__version__', 'ND')
     return self.__version
 
   @property
   def __version_info__(self):
+    '''
+    Version info for this plugin
+    '''
     if self.__version_info is None:
       self.__version_info=getattr(self.module, '__version_info__', 'ND')
     return self.__version_info
 
   @property
   def rpc(self):
+    '''
+    Information regarding RPC.
+    '''
     if self.__rpc is None:
       rpc = __import__("%s.rpc" % self.name, {}, {}, ['handle', 'register'])
       self.__rpc = {}
@@ -114,6 +142,9 @@ class Plugin(object):
     return self.__rpc
 
   def __import_plugin(self):
+    '''
+    Try to import the plugin, if it fails then it wasn't available.
+    '''
     plugin=__import__(self.name, {}, {}, [], 0)
     try:
       plugin=getattr(plugins, self.name.split('.',1)[-1])
@@ -124,15 +155,24 @@ class Plugin(object):
 
 
 class PluginSystem(object):
+  '''
+  The plugins manager it self
+  '''
   def __init__(self):
     self.plugin_infos = None
 
   def get_plugins(self, provides=None):
+    '''
+    Get plugins, if provide is defined then you can filter by provided features.
+    '''
     for i in self.plugin_infos.itervalues():
       if not provides or i.provides.get(provides, None):
 	yield i
 
   def _find_plugins_for_egg(self, egg_name):
+    '''
+    Find plugin in egg file
+    '''
     b=zipfile.PyZipFile(egg_name)
     for a in b.namelist():
       if not a.startswith('EGG-INFO') and a.endswith('__init__.py'):
@@ -147,6 +187,10 @@ class PluginSystem(object):
     logger.info("no plugin in egg %s" % egg_name)
 
   def find_plugins(self):
+    '''
+    Init the plugin system, look for available plugins. This can only be done 
+    once.
+    '''
     if self.plugin_infos is not None:
       return
     logger.info("looking for plugins")
@@ -166,6 +210,10 @@ class PluginSystem(object):
 	    self._find_plugins_for_egg(os.path.join(path, entry))
 
   def load_info(self, path, name, egg=False):
+    '''
+    Try to create a Plugin instance for the given plugin. If it works then 
+    register the plugin in our database.
+    '''
     if not egg:
       _name='plugins.%s' % name
     else:
@@ -178,6 +226,10 @@ class PluginSystem(object):
 
 
   def post_environ(self):
+    '''
+    Call this method once django environ has been setup. This will tell the 
+    plugins it's time to complete with the setup process.
+    '''
     from django.db.models.loading import load_app
     for plugin in self.get_plugins():
       if plugin.provides.get('post_environ', False):
