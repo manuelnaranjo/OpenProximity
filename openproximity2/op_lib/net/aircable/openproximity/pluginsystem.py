@@ -72,6 +72,24 @@ class Plugin(object):
     if "post_environ" in self.provides:
 	self.post_environ=self.provides['post_environ']
 
+  def __loadFromEgg(self, path):
+    '''
+    internal method, load plugin from an egg file
+    '''
+    b=zipfile.PyZipFile(path)
+    path=os.path.join(self.name, 'plugin.py')
+    if not path  in b.namelist():
+	raise Exception("plugin not suported %s" % path)
+    A=b.open(path)
+    content = A.read()
+    A.close()
+    content=compile(content, path, 'exec')
+    glob = dict()
+    loc = dict()
+    eval(content, glob, loc)
+    self.provides = loc
+    if "post_environ" in self.provides:
+	self.post_environ=self.provides['post_environ']
 
   def __init__(self, path=None, name=None, egg=None):
     '''
@@ -93,7 +111,7 @@ class Plugin(object):
     if not self.egg:
       self.__loadFromFile(self.path)
     else:
-      raise Exception("plugin not suported %s" % path)
+      self.__loadFromEgg(self.path)
     self.enabled = self.provides.get('enabled', False)
     self.__module = None
     self.__version = None
