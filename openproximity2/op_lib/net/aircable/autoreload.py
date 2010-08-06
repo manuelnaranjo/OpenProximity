@@ -61,19 +61,36 @@ _mtimes = {}
 _win = (sys.platform == "win32")
 
 def isParent():
+    '''
+    This method will let the running process if it's the one that forked, or the
+    forked one.
+    '''
     if os.environ.get('DEBUG', None) is None:
 	return os.getpid() == int(os.environ.get('RUN_PARENT', os.getpid()))
     else:
 	return True
 
 def handle_child(signum, frame):
+    '''
+    Gets called when a signal is received, by default we kill the child. The 
+    parent will detect this and start a new child (when the return value was 3)
+    '''
     sys.exit(3)
     
 def handle_parent(signum, frame):
+    '''
+    When the parent gets the kill signal it will stop it self no forking more
+    childrens.
+    '''
     logger.info("Parent killed, doing exit")
     sys.exit(0)
 
 def code_changed():
+    '''
+    An utility method that will check if there are any code changes in the inuse
+    modules. When there's a change this method will return TRUE. Based on django
+    code.
+    '''
     global _mtimes, _win
     for filename in filter(lambda v: v, map(lambda m: getattr(m, "__file__", None), sys.modules.values())):
         if filename.endswith(".pyc") or filename.endswith(".pyo"):
@@ -93,6 +110,9 @@ def code_changed():
     return False
 
 def isRunning(pid):
+    '''
+    This method will inquiry PID to know if it's running.
+    '''
     try:
 	os.kill(pid, 0)
 	return True
@@ -100,6 +120,13 @@ def isRunning(pid):
 	return False
 
 def reloader_thread(t):
+    '''
+    This thread runs in the child. It will check if the parent is running, if
+    so it will continue. If there's a change in the code, or if the worker 
+    thread ended it will kill it self with signal 3.
+    If no parent is available it will kill it self with error 0 (no parent, no
+    way to restart)
+    '''
     parent_pid=int(os.environ.get('RUN_PARENT'))
     while RUN_RELOADER:
 	
@@ -113,6 +140,9 @@ def reloader_thread(t):
         time.sleep(1)
 
 def restart_with_reloader():
+    '''
+    This method will spawn a new child when the exit code is 3.
+    '''
     while True:
         args = [sys.executable] + sys.argv
         if sys.platform == "win32":
@@ -125,6 +155,11 @@ def restart_with_reloader():
     sys.exit(exit_code)
 
 def python_reloader(main_func, args, kwargs):
+    '''
+    Internal method that will setup the forking process. If it's the parent
+    then it will do the forks, otherwise it will start a new worker thread and
+    setup a reloader thread.
+    '''
     if os.environ.get("RUN_MAIN") == "true":
 	signal.signal(signal.SIGUSR1, handle_child)
 	t = threading.Thread(target=main_func, args=args, kwargs=kwargs)
@@ -145,6 +180,11 @@ def python_reloader(main_func, args, kwargs):
             pass
 
 def main(main_func, args=(), kwargs={}):
+    '''
+    The only method you want to use from the outside, it will decide to use 
+    either a forking schema when DEBUG is not defined. Or it will just call your
+    method and don't fork at all, when you want to DEBUG.
+    '''
     if os.environ.get('DEBUG', None) is None:
 	python_reloader(main_func, args, kwargs)
     else:

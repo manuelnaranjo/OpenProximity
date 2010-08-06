@@ -16,6 +16,10 @@
 from django.db import models
 from pickle import loads, dumps
 
+'''
+Some helper django db fields used by OpenProximity and it's plugins.
+'''
+
 class PickledField(models.CharField):
     '''
 	A simple class that can be used to store settings in django db

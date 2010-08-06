@@ -14,6 +14,12 @@
 #   with this program; if not, write to the Free Software Foundation, Inc.,
 #   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.   
 
+'''
+A few useful constants.
+
+Note: We should move return codes here!
+'''
+
 BLUEZ='org.bluez'
 BLUEZ_PATH='/'
 BLUEZ_ADAPTER='org.bluez.Adapter'
