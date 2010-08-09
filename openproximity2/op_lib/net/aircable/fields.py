@@ -45,3 +45,6 @@ class PickledField(models.CharField):
 	except:
 	    pass
 	return ''.join(value)
+
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([], ["^net\.aircable\.fields\.PickledField"])
