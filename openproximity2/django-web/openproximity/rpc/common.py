@@ -21,7 +21,7 @@ from re import compile
 from rpyc import async
 from rpyc.utils.lib import ByValWrapper
 from net.aircable.openproximity.pluginsystem import pluginsystem
-from net.aircable.utils import logger
+from net.aircable.utils import logger, trace
 import traceback, sys
 
 def is_known_dongle(address, klass):
@@ -48,12 +48,13 @@ def do_upload(uploader,
 		    dongle=None):
     logger.info("do_upload")
     logger.debug("About to call upload")
+
     uploader.upload(ByValWrapper(files), 
 	remote, 
 	service, 
 	dongle_name=dongle_name, 
 	channel=channel,
-	uploader=dongle)
+	uploader=dongle.address if dongle else None)
     logger.debug("upload called async")
     
 def get_files_from_campaign(camp, record):
@@ -106,12 +107,14 @@ def found_action(services, address, record, pending, dongle):
         return True
 
     logger.info("found uploader")
+
     camps = getMatchingCampaigns(
             record.remote, 
             enabled=True, 
             record=record, 
             classes=[MarketingCampaign,]
     )
+
 
     if len(camps)==0:
         line.content+=" no matching campaings, not handling"

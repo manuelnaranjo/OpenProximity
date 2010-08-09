@@ -311,9 +311,11 @@ class UploadManager:
         try:
     	    dongle = None
     	    if uploader:
+    		logger.info("forcing dongle %s" % uploader)
     		for d in self.__sequence:
-    		    if d.address.bt_address.lower() == uploader.lower():
+    		    if d.bt_address.lower() == uploader.lower():
     			dongle = d
+    			logger.info("found dongle %s" % dongle)
     			break
 
     	    if not dongle:
