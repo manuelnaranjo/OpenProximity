@@ -156,7 +156,7 @@ def get_files_from_campaign(camp):
 	logger.debug('going to upload %s' % f.file)
         yield str(f.file.name), camp.pk 
 
-def upload_after_rejected(rules, services):
+def upload_after_rejected(rules, services, dongle=None):
     if len(rules) == 0:
 	raise Exception("no need to try again")
     
@@ -167,10 +167,13 @@ def upload_after_rejected(rules, services):
     logger.info("trying again")
     files = set()
     
+    use_same = False
     for rule in rules:
 	files.extend( list(get_files_from_campaign(rule, record)) )
-    
-    do_upload(uploader, files, remote)
+	if rule.upload_on_discovered:
+	    use_same=True
+
+    do_upload(uploader, files, remote, dongle=dongle if use_same else None)
     return True
 
 def save_file_failed(rule, dongle, ret, remote):
@@ -202,7 +205,7 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
 	# if we can't try again this method will raise an exception
 	# and the try/catch will make sure the remote device gets out
 	# of our pending list
-        if upload_after_rejected(try_again, services):
+        if upload_after_rejected(try_again, services, dongle=dongle):
     	    return
     except Exception, err:
         logger.error("OOOPS!!!")

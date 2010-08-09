@@ -44,14 +44,16 @@ def do_upload(uploader,
 		    remote, 
 		    service='opp', 
 		    dongle_name=None, 
-		    channel=None):
+		    channel=None,
+		    dongle=None):
     logger.info("do_upload")
     logger.debug("About to call upload")
     uploader.upload(ByValWrapper(files), 
 	remote, 
 	service, 
 	dongle_name=dongle_name, 
-	channel=channel)
+	channel=channel,
+	uploader=dongle)
     logger.debug("upload called async")
     
 def get_files_from_campaign(camp, record):
@@ -77,7 +79,7 @@ def get_files_from_campaign(camp, record):
         logger.debug('going to upload %s' % f.file)
         yield str(f.file.name), camp.pk
 
-def found_action(services, address, record, pending):
+def found_action(services, address, record, pending, dongle):
     line = LogLine()
     line.content="Found action for: %s" % address
     try:
@@ -122,6 +124,7 @@ def found_action(services, address, record, pending):
     files=list()
     name=None
     service='opp'
+    use_same = False
 
     for camp in camps:
         files.extend( list(get_files_from_campaign(camp, record)) )
@@ -130,11 +133,13 @@ def found_action(services, address, record, pending):
         service = camp.get_service_display()
 	if camp.fixed_channel and camp.fixed_channel > -1:
 	  channel = camp.fixed_channel
-
+	if camp.upload_on_discovered:
+	    use_same = True
     logger.info("going to upload %s files" % len(files))
     if len(files) > 0:
         pending[record.remote.address]=uploader
-        do_upload(uploader, files, record.remote.address, service, name, channel=channel)
+        do_upload(uploader, files, record.remote.address, service, name, 
+    		channel=channel, dongle=dongle if use_same else None)
         line.content+=" uploading files"
     else:
         line.content+=" no files to upload"

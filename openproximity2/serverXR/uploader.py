@@ -302,21 +302,30 @@ class UploadManager:
                     self.__sequence[self.__index]
         )
 
-    def exposed_upload(self, files, target, service='opp', dongle_name=None, channel=None):
+    def exposed_upload(self, files, target, service='opp', dongle_name=None, 
+	    channel=None, uploader=None):
 	'''
 	Exposed method that lets the server tell us it has an upload request for 
 	us.
 	'''
         try:
-            dongle=self.__sequence[self.__index]
+    	    dongle = None
+    	    if uploader:
+    		for d in self.__sequence:
+    		    if d.address.bt_address.lower() == uploader.lower():
+    			dongle = d
+    			break
+
+    	    if not dongle:
+        	dongle=self.__sequence[self.__index]
             uuid = const.UUID[service]
-            
+
             logger.debug("about to set dongle name to %s" % dongle_name)
             if dongle_name:
                 dongle.dbus_interface.SetProperty('Name', dongle_name)
-            
+
             logger.debug("uploading %s %s %s %s" % ( files, target, uuid, channel ) )
-            
+
             for file_, fk in files:
                 f = os.path.join(MEDIA_ROOT, file_)
                 d = os.path.dirname(f)
@@ -326,7 +335,7 @@ class UploadManager:
                     A=file(f, 'w')
                     A.write(self.rpc.root.getFile(file_))
                     A.close()
-            
+
             logger.debug('adding to queue')
             dongle.upload( files, target, uuid, service, channel )
             self.__rotate_dongle()
@@ -335,7 +344,7 @@ class UploadManager:
             logger.error("Failed on upload")
             logger.exception(err)
             raise err
-        
+
     def exposed_add_dongle(self, address, conns, name):
 	'''
 	This method gets called by the server during
