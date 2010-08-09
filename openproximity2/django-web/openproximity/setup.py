@@ -96,11 +96,13 @@ class UserForm(forms.Form):
 
 def db_ready():
     try:
-	from models import BluetoothDongle
+	from models import BluetoothDongle, UserProfile
 	BluetoothDongle.objects.count()
-	return True
+	if UserProfile.objects.count() > 0:
+	    return True
     except:
-	return False
+	pass
+    return False
 
 def CreateDB():
     from django.core import management
@@ -124,7 +126,10 @@ def CreateDB():
 
 def CreateAdmin(username, password, email, time_zone):
     from django.contrib.auth.models import User
-    admin = User.objects.create_superuser(username, email, password)
+    if len(User.objects.filter(username=username))>0:
+	admin = User.objects.get(username=username)
+    else:
+	admin = User.objects.create_superuser(username, email, password)
     admin.save()
     profile = admin.userprofile_set.create()
     profile.timezone = time_zone
