@@ -48,10 +48,16 @@ class Setting(models.Model):
     value = PickledField(max_length=200)
 
 class BluetoothDongle(models.Model):
-    address = models.CharField(max_length=17, 
-    blank=False, verbose_name=_("bluetooth address"))
-    name = models.CharField(max_length=100, blank=True,
-    verbose_name=_("identifying name"))
+    address = models.CharField(
+	    max_length=17, 
+	    blank=False, 
+	    verbose_name=_("bluetooth address")
+    )
+    name = models.CharField(
+	    max_length=100, 
+	    blank=True,
+	    verbose_name=_("identifying name")
+    )
     enabled = models.BooleanField()
 
     def enabled_display(self):
@@ -76,13 +82,16 @@ class ScannerBluetoothDongle(BluetoothDongle):
         )
         
 class RemoteScannerBluetoothDongle(ScannerBluetoothDongle):
-    local_dongle = models.ForeignKey(ScannerBluetoothDongle, 
-    related_name="remote_dongles" )
+    local_dongle = models.ForeignKey(
+	    ScannerBluetoothDongle, 
+	    related_name="remote_dongles" )
 
 class UploaderBluetoothDongle(BluetoothDongle):
-    max_conn = models.IntegerField(default=7,
-    verbose_name=_("connections"),
-    help_text=_("maximum allowed connections"))
+    max_conn = models.IntegerField(
+	default=7,
+	verbose_name=_("connections"),
+	help_text=_("maximum allowed connections")
+    )
     
     def __unicode__(self):
         return "Uploader: %s, %s" % (
@@ -96,9 +105,16 @@ SERVICE_TYPES = (
 )
 
 class Campaign(models.Model):
+    
     #name is going to change
-    name = models.CharField(max_length=100)    
-    enabled = models.BooleanField(default=True)
+    name = models.CharField(
+			    max_length=100,
+			    verbose_name=_("campaign name")
+    )
+    enabled = models.BooleanField(
+			    default=True,
+			    verbose_name=_("campaign enabled")
+    )
     name_filter = models.CharField(
                             null=True,
                             max_length=30,
@@ -111,18 +127,24 @@ class Campaign(models.Model):
                             blank=True,
                             verbose_name=_("address filter")
     )
-    devclass_filter = models.IntegerField(null=True, blank=True)
+    devclass_filter = models.IntegerField(
+			    null=True, 
+			    blank=True,
+			    verbose_name=_("devclass filter")
+    )
     start = models.DateTimeField(
                             null=True, 
                             blank=True,
                             help_text=_("starting date, or null to run for ever"
-                                " until end")
+                                " until end"),
+                            verbose_name=_("start date")
     )
     end = models.DateTimeField(
                             null=True, 
                             blank=True,
                             help_text=_("ending date, or null to run for ever " 
-                                "since start")
+                                "since start"),
+                            verbose_name=_("end date")
     )
     dongle_name=models.CharField(
                             null=True, 
@@ -131,7 +153,7 @@ class Campaign(models.Model):
                             verbose_name=_("dongles names"),
                             help_text=_("if you want your campaign to change "
                                 "the bluetooth dongles names when running then "
-                                "set this variable")
+                                "set this variable"),
     )
     pin_code=models.CharField(
                             null=True, 
@@ -139,19 +161,18 @@ class Campaign(models.Model):
                             max_length=16,
                             default="1234",
                             help_text=_("certain target devices require pairing"
-                                ", this is the pin code going to be used")
+                                ", this is the pin code going to be used"),
+                            verbose_name=_("PIN code")
     )
-    fixed_channel=models.IntegerField(
-			    null=True,
-			    blank=True,
-			    default = None,
-			    help_text=_("if you set this parameter then "
-		  "OpenProximity will never try to resolve sdp records and "
-		  "use only this channel, leave it empty unless you know "
-		  "what you're doing.")
+    concurrent_scanning=models.BooleanField(
+			    default=False,
+			    help_text=_("concurrent scanning makes all your "
+		"scanners to run simultaneous, instead of doing so in a "
+		"sequence one after the other, if you enable this scanner "
+		"priority is ignored"),
+			    verbose_name=_("concurrent scanning")
     )
-    
-    
+
     def matches(self, remote, *args, **kwargs):
         return False
 
@@ -168,44 +189,71 @@ class MarketingCampaign(Campaign):
     rejected_count = models.IntegerField(
                             default=2,
                             help_text=_("how many times it should try again "
-                                        "when rejected, -1 infinite")
+                    "when rejected, -1 infinite"),
+                            verbose_name=_("rejected count")
     )
     rejected_timeout = models.IntegerField(
                             default=-1,
                             help_text=_("how much time to wait after a certain "
-                                        "device has rejected a file before we "
-                                        "try again")
+                    "device has rejected a file before we "
+                    "try again"),
+                            verbose_name=_("rejected timeout")
     )
     tries_count = models.IntegerField(
                             default=-1,
                             help_text=_("how many times it should try to send "
-                                "when timing out, -1 infinite")
+                    "when timing out, -1 infinite"),
+                            verbose_name=_("tries count")
     )
     tries_timeout = models.IntegerField(
                             default=0,
                             help_text=_("how much time to wait after a certain "
-                                "device has made a timeout before we try again")
+                    "device has made a timeout before we try again"),
+                            verbose_name=_("tries timeout")
     )
     accepted_count = models.IntegerField(
                             default=-1,
                             help_text=_("how many times will this campaign be "
-                                "accepted before disabling, -1 means infinite")
+                    "accepted before disabling, -1 means infinite"),
+                            verbose_name=_("accepted count")
     )
     rssi_min = models.IntegerField(
                             null=True, 
                             blank=True,
                             help_text=_("if the meassured rssi is over or equal"
-                                " than this value then campaign will match, "
-                                "take into account rssi is negative, range -255 "
-                                "0")
+                    " than this value then campaign will match, "
+                    "take into account rssi is negative, range -255 "
+                    "0"),
+                            verbose_name=_("RSSI min")
     )
     rssi_max = models.IntegerField(
                             null=True, 
                             blank=True,
                             help_text=_("if the meassured rssi is less or equal"
-                                " than this value then campaign will match, "
-                                "take into account rssi is negative, range -255"
-                                " 0")
+                    " than this value then campaign will match, "
+                    "take into account rssi is negative, range -255"
+                    " 0"),
+                            verbose_name=_("RSSI max")
+    )
+    fixed_channel=models.IntegerField(
+			    null=True,
+			    blank=True,
+			    default = None,
+			    help_text=_("if you set this parameter then "
+		  "OpenProximity will never try to resolve sdp records and "
+		  "use only this channel, leave it empty unless you know "
+		  "what you're doing."),
+			    verbose_name=_("fixed channel")
+    )
+
+    upload_on_discovered = models.BooleanField(
+			    default=False,
+			    help_text=_("in some cases you may want to force "
+	    "that the same dongle that discovers a device is "
+	    "the one that's going to do the upload. Make sure "
+	    "all your dongles can work as scanner and uploaders "
+	    "otherwise you will not service some devices."),
+			    verbose_name=_("scan and upload on same dongle")
     )
 
 
