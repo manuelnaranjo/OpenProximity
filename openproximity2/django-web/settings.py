@@ -150,6 +150,7 @@ INSTALLED_APPS = [
     'notification',
     'rosetta',
     'microblog',
+    'south',
     'openproximity',
 ]
 

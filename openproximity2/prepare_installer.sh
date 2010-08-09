@@ -28,7 +28,11 @@ function download_and_uncompress(){
     
     echo "extracting $PACKAGE"
     gunzip -c "$CWD"/libs/$PACKAGE-$VERSION.tar.gz | tar -x
-    cd $PACKAGE-$VERSION; cp -r $FOLDER $LIB_TARGET
+    if [ -d $PACKAGE-$VERSION ]; then
+	cd $PACKAGE-$VERSION; cp -r $FOLDER $LIB_TARGET
+    else
+	cd $PACKAGE; cp -r $FOLDER $LIB_TARGET
+    fi
 }
 
 function download_jstree(){
@@ -197,6 +201,7 @@ download_jstree jstree v.0.9.9a2 http://jstree.googlecode.com/files jsTree
 svn_download django_restapi 81 http://django-rest-interface.googlecode.com/svn/trunk/ 81
 git_download timezones 2b903a38 git://github.com/brosner/django-timezones.git 2b903a38da1ff9df4b2aba8e4f5429d967f73881
 download_and_uncompress pytz 2010k pytz http://pypi.python.org/packages/source/p/pytz/
+download_and_uncompress south 0.7.1 south http://www.aeracode.org/releases/south/
 
 #some ideas on a WYSIWYG template editor
 #download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/
