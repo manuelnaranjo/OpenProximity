@@ -7,14 +7,6 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        
-        # Adding model 'UserProfile'
-        db.create_table('openproximity_userprofile', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], unique=True)),
-            ('timezone', self.gf('timezones.fields.TimeZoneField')(default='America/Argentina/Buenos_Aires', max_length=100)),
-        ))
-        db.send_create_signal('openproximity', ['UserProfile'])
 
         # Adding model 'LogLine'
         db.create_table('openproximity_logline', (
@@ -378,12 +370,6 @@ class Migration(SchemaMigration):
             'bluetoothdongle_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['openproximity.BluetoothDongle']", 'unique': 'True', 'primary_key': 'True'}),
             'max_conn': ('django.db.models.fields.IntegerField', [], {'default': '7'})
         },
-        'openproximity.userprofile': {
-            'Meta': {'object_name': 'UserProfile'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'timezone': ('timezones.fields.TimeZoneField', [], {'default': "'America/Argentina/Buenos_Aires'", 'max_length': '100'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'unique': 'True'})
-        }
     }
 
     complete_apps = ['openproximity']

@@ -8,6 +8,14 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         
+        # Adding model 'UserProfile'
+        db.create_table('openproximity_userprofile', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], unique=True)),
+            ('timezone', self.gf('timezones.fields.TimeZoneField')(default='America/Argentina/Buenos_Aires', max_length=100)),
+        ))
+        db.send_create_signal('openproximity', ['UserProfile'])
+
         # Adding field 'MarketingCampaign.concurrent_scanning'
         db.add_column('openproximity_marketingcampaign', 'concurrent_scanning', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True), keep_default=False)
 
@@ -17,6 +25,9 @@ class Migration(SchemaMigration):
 
     def backwards(self, orm):
         
+        # Deleting model 'UserProfile'
+        db.delete_table('openproximity_userprofile')
+
         # Deleting field 'MarketingCampaign.concurrent_scanning'
         db.delete_column('openproximity_marketingcampaign', 'concurrent_scanning')
 
