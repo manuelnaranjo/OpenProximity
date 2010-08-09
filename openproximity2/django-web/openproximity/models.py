@@ -333,7 +333,7 @@ class MarketingCampaign(Campaign):
 	
 	# test is we reached the rejected count
 	rejected_pass = remote is None or (
-	    self.rejected_count == 1 or 
+	    self.rejected_count == -1 or 
 	    self.getRejectedCount(remote) < self.rejected_count
 	)
 	
