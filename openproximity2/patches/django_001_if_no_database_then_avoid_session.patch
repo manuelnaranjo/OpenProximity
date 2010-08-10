@@ -1,6 +1,6 @@
-diff -upr Django-1.1/django//utils/translation/trans_real.py ../distrib/openproximity2-devel-20100809145432/libs/django//utils/translation/trans_real.py
---- Django-1.1/django//utils/translation/trans_real.py	2009-03-18 13:55:59.000000000 -0300
-+++ ../distrib/openproximity2-devel-20100809145432/libs/django//utils/translation/trans_real.py	2010-08-09 15:03:24.000000000 -0300
+diff -upr django.orig/utils/translation/trans_real.py django/utils/translation/trans_real.py
+--- django.orig/utils/translation/trans_real.py	2009-03-18 13:55:59.000000000 -0300
++++ django/utils/translation/trans_real.py	2010-08-09 15:03:24.000000000 -0300
 @@ -344,11 +344,14 @@ def get_language_from_request(request):
      from django.conf import settings
      globalpath = os.path.join(os.path.dirname(sys.modules[settings.__module__].__file__), 'locale')
