@@ -116,6 +116,8 @@ def CreateDB():
 
     management.call_command("syncdb", interactive=False)
     
+    management.call_command("migrate", all_apps=True, interactive=False)
+    
     try:
         server=rpyc.connect('localhost', 8010)
         server.root.Unlock()
