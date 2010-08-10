@@ -223,6 +223,7 @@ def stats_restart(request):
         'openproximity_scannerbluetoothdongle',
         'openproximity_uploaderbluetoothdongle',
         'openproximity_generalsetting',
+        'openproximity_userprofile'
         ]
     model  = models.get_app('openproximity')
     drop = ""
@@ -264,7 +265,7 @@ def stats_restart(request):
             logger.exception(err)
 
     logger.info("calling syncdb")
-    management.call_command('syncdb')
+    management.call_command('syncdb', migrate_all=True)
     
     try:
         server=rpyc.connect('localhost', 8010)
