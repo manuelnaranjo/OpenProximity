@@ -164,6 +164,14 @@ class Campaign(models.Model):
                                 ", this is the pin code going to be used"),
                             verbose_name=_("PIN code")
     )
+    concurrent_scanning=models.BooleanField(
+			    default=False,
+			    help_text=_("concurrent scanning makes all your "
+		"scanners to run simultaneous, instead of doing so in a "
+		"sequence one after the other, if you enable this scanner "
+		"priority is ignored"),
+			    verbose_name=_("concurrent scanning")
+    )
 
 
     def matches(self, remote, *args, **kwargs):
@@ -237,14 +245,6 @@ class MarketingCampaign(Campaign):
 		  "use only this channel, leave it empty unless you know "
 		  "what you're doing."),
 			    verbose_name=_("fixed channel")
-    )
-    concurrent_scanning=models.BooleanField(
-			    default=False,
-			    help_text=_("concurrent scanning makes all your "
-		"scanners to run simultaneous, instead of doing so in a "
-		"sequence one after the other, if you enable this scanner "
-		"priority is ignored"),
-			    verbose_name=_("concurrent scanning")
     )
     upload_on_discovered = models.BooleanField(
 			    default=False,
