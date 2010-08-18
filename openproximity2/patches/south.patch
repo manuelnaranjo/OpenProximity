@@ -1,0 +1,10 @@
+diff -uprN south.orig//south/db/sql_server/__init__.py south/south/db/sql_server/__init__.py
+--- south.orig//south/db/sql_server/__init__.py	2010-05-21 17:35:12.000000000 -0300
++++ south/south/db/sql_server/__init__.py	2010-08-12 12:02:03.000000000 -0300
+@@ -0,0 +1 @@
++# empty file
+diff -uprN south.orig//south/management/__init__.py south/south/management/__init__.py
+--- south.orig//south/management/__init__.py	2010-05-21 17:35:12.000000000 -0300
++++ south/south/management/__init__.py	2010-08-12 12:02:26.000000000 -0300
+@@ -0,0 +1 @@
++# empty file
