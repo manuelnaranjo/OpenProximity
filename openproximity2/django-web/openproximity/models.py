@@ -32,8 +32,11 @@ import net.aircable.openproximity.signals.scanner as scanner
 from net.aircable.fields import PickledField
 from net.aircable.utils import logger
 
+import errno
 
-TIMEOUT_RET = [ 22, 111 ]
+TIMEOUT_RET = [
+	errno.ENOTCONN, # 107
+	]
 
 class UserProfile(models.Model):
     user = models.ForeignKey(User, unique=True)
@@ -293,7 +296,7 @@ class MarketingCampaign(Campaign):
     def tryAgain(self, record=None, remote=None):
 	assert record or remote, "Can't pass both record and remote as none"
 
-	if not record:
+	if remote:
 	    qs = RemoteBluetoothDeviceFilesRejected.\
 		    objects.\
 			filter(
