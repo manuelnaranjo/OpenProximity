@@ -27,6 +27,9 @@ import dbus, sys, gobject, os
 from lxml import etree
 import logging
 
+from PyOBEX2 import common
+from PyOBEX2.asyncoop import Client
+
 logger = logging.getLogger("async_handler")
 logger.setLevel(logging.DEBUG)
 console=logging.StreamHandler()
@@ -123,11 +126,12 @@ class UploadTarget(object):
     targets = dict()
     listener = None
     
-    def __init__(self, dongle, target, bus, loop):
+    def __init__(self, dongle, target, bus, loop=None):
         self.dongle = dongle
         self.target = target
         self.bus = bus
         self.state = IDLE
+        self.loop = loop
         self.target_path = "%s/dev_%s" % (
                                 self.dongle.object_path, 
                                 self.target.replace(":", "_")
@@ -259,8 +263,8 @@ class UploadTarget(object):
 	else:
 	    logger.info("all uploads done to %s" % self.target)
 	    client.cleanup()
-	    self.reply_callback(self, stdout, stderr)
-	    self.cleanup()    
+	    self.reply_callback(self, "", "")
+	    self.cleanup()
 	return False
 
     def OppCallback(self, client, response=None):
@@ -268,14 +272,14 @@ class UploadTarget(object):
 	logger.info("connected rfcomm %s" % self.target)
 	client.connect_obex()
       elif client.state == common.CONNECTING_OBEX:
-	logger.info("connected obex" % self.target)
+	logger.info("connected obex %s" % self.target)
 	self.OppDoUpload(client)
       elif client.state == common.PUT:
 	  logger.info("upload done to %s" % self.target)
 	  self.OppDoUpload(client)
       else:
 	  logger.info("something completed %s" % common.STATES[client.state])
-	  
+
     def OppErr(self, client, error):
 	logger.info("error on uploading to %s, %s" % (self.target, error))
 	client.invalid = True
@@ -290,6 +294,7 @@ class UploadTarget(object):
     def SendFilesOpp(self, files, retries, timeout, channel):
 	client = Client(loop = self.loop)
 	client.files = files
+	client.index = 0
 	client.retries = retries
 	client.timeout = timeout
 	client.channel = channel

@@ -74,16 +74,6 @@ class BluetoothAsyncSocket(bluetooth.BluetoothSocket):
 		self.watch=list()
 
 	def __connected(self, source, condition):
-		self.remove_callbacks()
-
-		self.watch.append(
-			gobject.io_add_watch(
-				self, 
-				gobject.IO_ERR | gobject.IO_HUP, 
-				self.__connection_lost
-			)
-		)
-
 		self.watch.append(
 			gobject.io_add_watch(
 				self, 
@@ -101,9 +91,10 @@ class BluetoothAsyncSocket(bluetooth.BluetoothSocket):
 		return True
 
 	def __connection_lost(self, source, condition):
-		print "__connection_lost"
-		self.remove_callbacks()
+		print "__connection_lost", self
+		#self.remove_callbacks()
 		err = self.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+		print "__connection_lost", err
 		if err != 0:
 		    self.err_callback(err)
 		else:

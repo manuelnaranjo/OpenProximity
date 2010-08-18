@@ -138,7 +138,7 @@ class Client(object):
 		self.__callback = callback
 		self.__err_callback = err_callback
 		if bind:
-		    self.socket.bind((bind, 0))
+		    self.socket._sock.bind((bind, 0))
 		self.socket.connect_ex((address, port), 
 							callback=self.__connected_rfcomm, 
 							err_callback=self.__failed_rfcomm)

@@ -46,10 +46,14 @@ class UploadAdapter(Adapter):
     
     manager = None
     # instance of our Uploader Manager
+    
+    loop = None
+    # reference to the running gobject loop
 
     def __init__(self,
                     manager, 
-                    max_uploads = 7, 
+                    max_uploads = 7,
+                    loop = None,
                     *args, 
                     **kwargs):
         Adapter.__init__(self, *args, **kwargs)
@@ -62,6 +66,7 @@ class UploadAdapter(Adapter):
         self.max_uploads = max_uploads
         self.slots = dict( [ (i, None) for i in range(max_uploads) ] )
         self.manager = manager
+        self.loop = loop
         logger.debug("Initializated UploaderDongle")
 
     def completed(self, target):
@@ -130,7 +135,7 @@ class UploadAdapter(Adapter):
             files=[ os.path.join(MEDIA_ROOT, f[0]) for f in target.files ],
             service = target.service,
             reply_callback=self.FileUploaded,
-            error_callback=self.FileFailed
+            error_callback=self.FileFailed,
         )
     
     def ServiceNotProvided(self, target, error, state, connected):
@@ -169,7 +174,11 @@ class UploadAdapter(Adapter):
         logger.debug("got an upload request %s" % target)
         sl = self.getSlot()
     
-        target = async.UploadTarget(self.dbus_interface, target, self.bus)
+        target = async.UploadTarget(
+    			self.dbus_interface, 
+    			target, 
+    			self.bus, 
+    			loop=self.loop)
         self.slots[sl]
     
         target.files = files
@@ -212,11 +221,12 @@ class UploadManager:
     uploaders = dict()
     # dongles the server told us to use, this dict has address and priority
 
-    def __init__(self, bus, rpc=None):
+    def __init__(self, bus, rpc=None, loop=None):
         logger.debug("UploadManager created")
         self.bus = bus
         self.manager = dbus.Interface(bus.get_object(const.BLUEZ, const.BLUEZ_PATH), const.BLUEZ_MANAGER)
         self.rpc = rpc
+        self.loop = loop
         if self.rpc:
             self.remote_listener=rpyc.async(self.rpc.root.listener)
 

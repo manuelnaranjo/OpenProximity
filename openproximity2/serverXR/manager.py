@@ -127,6 +127,8 @@ def run(server_, port, type_):
     '''
     global server, manager, bus, loop
     
+    loop=gobject.MainLoop()
+    
     # first connect to the server, we can't do much without it
     try:
         server = rpyc.connect(server_, int(port))
@@ -174,7 +176,7 @@ def run(server_, port, type_):
         elif type_ == 'uploader':
             logger.info("init uploader")
             from uploader import UploadManager
-            manager = UploadManager(bus, rpc=server)
+            manager = UploadManager(bus, rpc=server, loop=loop)
         else:
             for i in pluginsystem.get_plugins('serverxr'):
                 if type_==i.provides['serverxr_type']:
@@ -192,7 +194,6 @@ def run(server_, port, type_):
     # start our loop and setup ping
     flags = gobject.IO_IN | gobject.IO_ERR | gobject.IO_HUP
     gobject.io_add_watch(server.fileno(), flags, poll)
-    loop=gobject.MainLoop()
     # give control to the mainloop
     loop.run()
 
