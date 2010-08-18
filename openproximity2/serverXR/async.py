@@ -117,12 +117,13 @@ class UploadTarget(object):
     connected = False
     reply_callback = None
     error_callback = None
+    loop = None
     
     #class variable
     targets = dict()
     listener = None
     
-    def __init__(self, dongle, target, bus):
+    def __init__(self, dongle, target, bus, loop):
         self.dongle = dongle
         self.target = target
         self.bus = bus
@@ -246,7 +247,59 @@ class UploadTarget(object):
         self.state = DONE_SDP
         if callable(self.reply_callback):
             self.reply_callback(self, channel)
+
+    def OppDoUpload(self, client):
+	if client.index < len( client.files ):
+	    path = client.files[client.index]
+	    filename = os.path.basename(path)
+	    logger.info("uploading %s to %s" % (path, self.target))
+	    client.put( filename, file(path, 'rb').read() )
+	    client.index+=1
+	    return True
+	else:
+	    logger.info("all uploads done to %s" % self.target)
+	    client.cleanup()
+	    self.reply_callback(self, stdout, stderr)
+	    self.cleanup()    
+	return False
+
+    def OppCallback(self, client, response=None):
+      if client.state == common.CONNECTING_RFCOMM:
+	logger.info("connected rfcomm %s" % self.target)
+	client.connect_obex()
+      elif client.state == common.CONNECTING_OBEX:
+	logger.info("connected obex" % self.target)
+	self.OppDoUpload(client)
+      elif client.state == common.PUT:
+	  logger.info("upload done to %s" % self.target)
+	  self.OppDoUpload(client)
+      else:
+	  logger.info("something completed %s" % common.STATES[client.state])
+	  
+    def OppErr(self, client, error):
+	logger.info("error on uploading to %s, %s" % (self.target, error))
+	client.invalid = True
+	self.error_callback(
+	    target=self, 
+	    retcode=error.code, 
+	    stdout="", 
+	    stderr="",
+	    connected=self.connected
+	)
     
+    def SendFilesOpp(self, files, retries, timeout, channel):
+	client = Client(loop = self.loop)
+	client.files = files
+	client.retries = retries
+	client.timeout = timeout
+	client.channel = channel
+	client.connect_rfcomm(self.target, 
+			    channel, 
+			    self.OppCallback, 
+			    self.OppErr, 
+			    bind=self.dongle.GetProperties()['Address']
+	)
+
     def SendFiles(self, 
                     files, 
                     retries=1, 
@@ -262,18 +315,21 @@ class UploadTarget(object):
     
         logger.debug("SendFiles %s %s" % (service, channel) )
         
-        arguments = list(generate_arguments(
-                                dongle=self.dongle.GetProperties()['Address'],
-                                retries = retries, 
-                                timeout = timeout, 
-                                target = self.target,
-                                channel =  channel, 
-                                files = files, 
-                                service = service
-                    ))
-        logger.debug("Running: %s" % ' '.join(arguments))
-        b = SpawnAplication(arguments)
-        b.connect("program-completed", self.send_files_cb)
+        if service.lower() == 'opp':
+	  self.SendFilesOpp(files, retries, timeout, channel)
+	else:
+	  arguments = list(generate_arguments(
+	    dongle=self.dongle.GetProperties()['Address'],
+	    retries = retries, 
+	    timeout = timeout, 
+	    target = self.target,
+	    channel =  channel, 
+	    files = files, 
+	    service = service
+	  ))
+	  logger.debug("Running: %s" % ' '.join(arguments))
+	  b = SpawnAplication(arguments)
+	  b.connect("program-completed", self.send_files_cb)
     
     def send_files_cb(self, sender, pid, retcode, stdout, stderr):
         logger.debug("send_files_cb %s" % retcode)
@@ -438,7 +494,7 @@ if __name__=='__main__':
 
     pending = list()
     for target in targets:
-        target = UploadTarget(adapter, target, bus)
+        target = UploadTarget(adapter, target, bus, loop=loop)
         target.ResolveChannel(OBEX_UUID, ChannelResolved, ServiceNotProvided)
         pending.append(target)
 
