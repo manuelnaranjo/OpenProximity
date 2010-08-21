@@ -1,0 +1,9 @@
+{% extends "op/base.html" %}
+{% load i18n openproximity %}
+
+{% block title %}Remote Control{% endblock %}
+
+{% block navbar %}
+    {% createNavButton "/" "nav_index" _("Index") %}
+    {% createNavButton "javascript: popitup('http://webchat.freenode.net/?channels=#openproximity2', '')" "irc" _("Chat Online") %}
+{% endblock%}
