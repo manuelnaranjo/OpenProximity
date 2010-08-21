@@ -1,0 +1,10 @@
+#!/usr/bin/python
+#	RemoteControlServer - ssh server that will only allow forwarding channels
+#	Copyright (C) 2010 Naranjo Manuel Francisco manuel@aircable.net
+#
+#
+#
+
+from RemoteControlServer import start
+
+start()

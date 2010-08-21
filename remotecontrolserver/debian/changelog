@@ -1,0 +1,11 @@
+remotecontrolserver (0.0.2-aircable1) karmic; urgency=low
+
+  * make sure this package can be built remotely
+
+ -- Manuel Francisco Naranjo <manuel@aircable.net>  Tue, 02 Mar 2010 08:13:14 -0300
+
+remotecontrolserver (0.0.1-aircable1) jaunty; urgency=low
+
+  * Initial packing
+
+ -- Manuel Francisco Naranjo <manuel@aircable.net>  Mon, 01 Mar 2010 16:27:49 -0300

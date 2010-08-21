@@ -1,0 +1,19 @@
+Source: remotecontrolclient
+Section: misc
+Priority: optional
+Maintainer: Manuel Francisco Naranjo <manuel@aircable.net>
+Build-Depends: cdbs (>=0.4.49), debhelper (>= 7), python-support, python-setuptools, python-twisted-conch
+Standards-Version: 3.8.0
+Homepage: http://code.google.com/p/aircable
+
+
+Package: remotecontrolclient
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, openssh-server, python-twisted-conch
+Description: RemoteControl Client
+ RemoteControl is an ssh based solution where there's a server that will accept
+ any client trying to connect (if allowed) and will only allow to open
+ port forwarding, there's no session access or tty level access.
+ Clients can be allowed by different rules: Limited Time annonymous login, rsa 
+ registered key.
+ This package will install the client side.
