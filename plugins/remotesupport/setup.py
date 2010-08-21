@@ -1,7 +1,7 @@
 from setuptools import setup
 from remotesupport import __version__
 
-setup(name="Remote Control Plugin",
+setup(name="RemoteControlPlugin",
     version=__version__,
     packages=['remotesupport',],
     summary="Remote Control Plugin",
