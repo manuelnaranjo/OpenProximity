@@ -175,6 +175,15 @@ function tinymce(){
     cp -r tinymce/jscripts/tiny_mce/* $OP2/openproximity2/django-web/media/js/
     rm -rf tinymce
 }
+
+function mark_emptyfiles(){
+    pushd $OP2
+    for i in $( find . -size 0 ); do
+	echo "#empty file" > $i;
+    done
+    popd
+}
+
 echo "Creating installer for version" `cat latest-version`
 
 OP2=`pwd`/distrib
@@ -260,3 +269,7 @@ cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py  makemessag
 #clean up compiled python files
 rm -f `find . | grep "\.pyc$"`
 rm -f `find . | grep "\.pyo$"`
+
+#mark empty files
+mark_emptyfiles
+
