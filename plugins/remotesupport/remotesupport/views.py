@@ -74,21 +74,21 @@ def start_and_connect(host, redirects):
 
     args = list(gen_args_list(host, redirects))
     p=os.fork()
-    print p
     if p != 0:
-	print "first parent"
 	time.sleep(2)
+	os.wait() # wait for child to end
     else:
+	os.chdir('/')
+	os.setsid()
+	os.umask(0)
+
 	p = os.fork()
-	print p
 	if p != 0:
-	    print "second parent"
 	    b=open(PID_FILE, 'w')
 	    b.write(str(p))
 	    b.close()
 	    sys.exit(0)
 	else:
-	    print "child"
 	    os.execvp('remotecontrolclient', args)
 
 def stop():
