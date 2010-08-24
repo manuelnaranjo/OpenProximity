@@ -17,6 +17,8 @@ from checker import PublicKeyCredentialsChecker
 from conf import config
 import database
 
+from twisted.python import log
+
 import os
 
 MINUTES=60
@@ -68,8 +70,10 @@ class ForwardUser(avatar.ConchUser):
         ForwardUser.loggedin[self]=time()
 
     def global_tcpip_forward(self, data):
-        hostToBind, portToBind = forwarding.unpackGlobal_tcpip_forward(data)
-        print "forward requested", hostToBind, portToBind
+        local, remote = forwarding.unpackOpen_direct_tcpip(data)
+        hostToBind, portToBind = local
+        log.msg("forward requested %s:%s" %( hostToBind, portToBind))
+        log.msg(remote)
         try: 
             listener = reactor.listenTCP( 
                     portToBind, 
@@ -78,6 +82,8 @@ class ForwardUser(avatar.ConchUser):
                                 (hostToBind, portToBind),
                                 forwarding.SSHListenServerForwardingChannel), 
                     interface = hostToBind)
+            listener.remote_host = remote[0]
+            listener.remote_port = remote[1]
         except:
             return 0
         else:
@@ -94,6 +100,7 @@ class ForwardUser(avatar.ConchUser):
                 return 1
 
     def global_cancel_tcpip_forward(self, data):
+	
         hostToBind, portToBind = forwarding.unpackGlobal_tcpip_forward(data)
         print "forward cancel requested", portToBind
         

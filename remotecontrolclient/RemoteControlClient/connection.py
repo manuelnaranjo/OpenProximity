@@ -38,9 +38,8 @@ class ForwardOnlySSHConnection(connection.SSHConnection):
         '''
         will get called when the remote forwarding request gets started
         '''
-        data = forwarding.packGlobal_tcpip_forward(('0.0.0.0', remotePort))
-        d = self.sendGlobalRequest('tcpip-forward', data, 
-                                   wantReply=1)
+        data = forwarding.packOpen_direct_tcpip(('0.0.0.0',remotePort),hostport)
+        d = self.sendGlobalRequest('tcpip-forward', data, wantReply=1)
         log.msg('requesting remote forwarding %s:%s' %(remotePort, hostport))
         d.addCallback(self._cbRemoteForwarding, remotePort, hostport)
         d.addErrback(self._ebRemoteForwarding, remotePort, hostport)
