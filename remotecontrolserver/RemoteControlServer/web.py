@@ -2,7 +2,7 @@
 # Copyright (c) 2009 Twisted Matrix Laboratories.
 # See LICENSE for details.
 
-from twisted.web import resource
+from twisted.web import resource, proxy
 from twisted.python import log
 import database
 from base64 import encodestring
@@ -10,6 +10,22 @@ from hashlib import md5
 from conf import config
 import cgi
 from user import ForwardUser
+
+from re import compile
+
+ProxyClient_original_handleResposePart = proxy.ProxyClient.handleResponsePart
+
+def ProxyClient_handleResponsePart(self, buffer):
+    host, port = self.headers['host'].split(':')
+
+    buffer = buffer.replace('href="/', 'href="/proxy_%s_%s/' % (host, port))
+    buffer = buffer.replace('src="/', 'src="/proxy_%s_%s/' % (host, port))
+    buffer = buffer.replace('url(/', 'url(/proxy_%s_%s/' % (host, port))
+    buffer = buffer.replace('value="/', 'value="/proxy_%s_%s/' % (host, port))
+    buffer = buffer.replace('popitup(\'/', 'popitup(\'/proxy_%s_%s/' % (host, port))
+    ProxyClient_original_handleResposePart(self, buffer)
+
+proxy.ProxyClient.handleResponsePart=ProxyClient_handleResponsePart
 
 REDIRECT='''
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
@@ -40,28 +56,33 @@ class MainSite(resource.Resource):
         self.putChild('status', StatusManager())
         # need to do this for resources at the root of the site
         self.putChild("", self)
+        
+    def getChild(self, name, request):
+	if 'proxy_' in name:
+	    host, port = name.split('_')[1:]
+	    b = proxy.ReverseProxyResource(host, int(port), '')
+	    return b
+	
+	return resource.Resource.getChild(self, name, request)
 
     def render_GET(self, request):
-	log.msg(request.getRootURL())
-	log.msg(dir(request))
 	StatusOutput=''
 	for user in ForwardUser.loggedin:
-	    log.msg(user)
-	    log.msg(user.listeners)
 	    for host, port in user.listeners:
 		listener = user.listeners[(host, port)]
-		log.msg(type(listener))
 		StatusOutput+='''<tr>
-		    <td>%s</td>
-		    <td>%s:%s</td>
-		    <td>%s:%s</td>
-		    <td><a href="javascript:forward(%s);">Open</a></td>
-		</tr>''' % (
-		    user.username,
-		    listener.remote_host,listener.remote_port,
-		    host,port,
-		    port
-		)
+		    <td>%(username)s</td>
+		    <td>%(rhost)s:%(rport)s</td>
+		    <td>%(host)s:%(port)s</td>
+		    <td><a href="javascript:forward(%(port)s);">Open</a></td>
+		    <td><a href="/proxy_localhost_%(port)s/">Proxy</a></td>
+		</tr>''' % {
+		    'username': user.username,
+		    'rhost': listener.remote_host,
+		    'rport': listener.remote_port,
+		    'host': host,
+		    'port':port
+		}
 
         UserOutput=''
         for user in database.getUsers():
