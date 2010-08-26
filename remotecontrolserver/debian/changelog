@@ -1,3 +1,16 @@
+remotecontrolserver (0.2.0-aircable1) jaunty; urgency=low
+
+  * Improved gui
+  * Added web proxy
+
+ -- Manuel Francisco Naranjo <manuel@aircable.net>  Thu, 26 Aug 2010 14:08:04 -0300
+
+remotecontrolserver (0.1.0-aircable1) jaunty; urgency=low
+
+  * Added web interface
+
+ -- Manuel Francisco Naranjo <manuel@aircable.net>  Tue, 09 Mar 2010 16:41:08 -0300
+
 remotecontrolserver (0.0.2-aircable1) karmic; urgency=low
 
   * make sure this package can be built remotely

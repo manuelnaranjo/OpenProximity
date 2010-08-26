@@ -8,7 +8,7 @@ Homepage: http://code.google.com/p/aircable
 
 Package: remotecontrolserver
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, openssh-server, python-twisted-conch, python-zopeinterface, python-pysqlite2
+Depends: ${shlibs:Depends}, ${misc:Depends}, openssh-server, python-twisted-conch, python-twisted-web, python-zopeinterface, python-pysqlite2
 Description: RemoteControl Server
  RemoteControl is an ssh based solution where there's a server that will accept
  any client trying to connect (if allowed) and will only allow to open
