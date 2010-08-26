@@ -58,14 +58,18 @@ def check_configuration_table(cur):
                                  create_text=create_text)
 
 def check_user_table(cur):
-    configuration={'rsa_key': ('text', True),
+    configuration={
+                   'id': ('integer', True),
+                   'rsa_key': ('text', True),
                    'user': ('text', True),
                    'lastlogin': ('integer', True),
                    'enabled': ('boolean', False),
                    'accumulated_time': ('integer', True),
                 } #coded database schema
     table="users"
-    create_text='''rsa_key text not null unique,
+    create_text='''
+                    id integer not null primary key,
+                    rsa_key text not null unique,
                     user text not null,
                     lastlogin integer not null, 
                     enabled boolean default false,
@@ -115,6 +119,8 @@ def __user_dict(value):
     value = dict(value)
     if 'key' in value:
         value['key'] = decodestring(value['key'])
+    if 'enabled' in value:
+        value['enabled'] = value['enabled']==1
     return value
 
 def isUserEnabled(key):
@@ -155,13 +161,34 @@ def getUser(username=None, key=None):
         return __user_dict(res[0])
     return [__user_dict(x) for x in res]
 
+def getUserByID(id):
+    c = conn.cursor()
+    
+    qs = '''SELECT 
+                rsa_key AS key,
+                user AS user,
+                DATETIME(lastlogin,'unixepoch') AS lastlogin,
+                lastlogin AS unix_time,
+                enabled AS enabled,
+                accumulated_time AS accumulated_time
+                FROM users WHERE id=?'''
+
+    res=c.execute(qs, (id,)).fetchone()
+    c.close()
+    
+    if not res or len(res)==0:
+        return None
+    return __user_dict(res)
+
+
 def createUser(key=None, username=None, lastlogin=None, enabled=False):
     c = conn.cursor()
     print type(key)
     lastlogin=lastlogin or time()
     key=encodestring(key)
     c.execute('''
-        INSERT INTO users values (?, ?, ?, ?, 0)''',
+        INSERT INTO users (rsa_key, user, lastlogin, enabled, accumulated_time) 
+                        values (?, ?, ?, ?, 0)''',
               (key, username, lastlogin, enabled))
     conn.commit()
     c.close()
@@ -239,6 +266,7 @@ def getUsers():
     c = conn.cursor()
     
     qs = '''SELECT 
+                id as id,
                 rsa_key AS key,
                 user AS user,
                 DATETIME(lastlogin,'unixepoch') AS lastlogin,

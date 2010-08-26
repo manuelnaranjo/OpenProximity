@@ -22,9 +22,13 @@ def start():
     from twisted.cred import portal
     from twisted.internet import reactor
     from twisted.python import components, log
+    from twisted.web import server
+    
+    import sys
+    
     from user import ForwardUser
     from conf import config
-    import sys
+    import web
     
     log.startLogging(sys.stderr)
     
@@ -39,6 +43,9 @@ def start():
                   interface=config['SSH_INTERFACE'], 
                   factory=ForwardFactory()
         )
+    reactor.listenTCP(port=config['WEB_PORT'],
+                      interface=config['WEB_INTERFACE'],
+                      factory=server.Site(web.MainSite()))
     reactor.run()
 
 if __name__=='__main__':
