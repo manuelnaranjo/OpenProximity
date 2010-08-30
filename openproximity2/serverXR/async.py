@@ -27,6 +27,7 @@ import dbus, sys, gobject, os
 from lxml import etree
 import logging
 
+from PyOBEX.responses import UnknownResponse
 from PyOBEX2 import common
 from PyOBEX2.asyncoop import Client
 
@@ -273,7 +274,10 @@ class UploadTarget(object):
 	client.connect_obex()
       elif client.state == common.CONNECTING_OBEX:
 	logger.info("connected obex %s, %s" % (self.target, response))
-	self.OppDoUpload(client)
+	if not isinstance(response, UnknownResponse):
+	    self.OppDoUpload(client)
+	else:
+	    self.OppErr(client, response)
       elif client.state == common.PUT:
 	  logger.info("upload done to %s" % self.target)
 	  self.OppDoUpload(client)
