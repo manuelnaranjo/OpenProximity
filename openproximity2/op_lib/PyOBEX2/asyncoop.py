@@ -196,18 +196,18 @@ class Client(object):
 	
 	def put_headers_done(self, response):
 		if not isinstance(response, responses.Continue):
-			return self.err_callback(common.ObexError(responses))
+			return self.err_callback(common.ObexError(response))
 		self.put_body()
 		
 	def put_body_done(self, response):
 		if not isinstance(response, responses.Continue):
-			return self.err_callback(common.ObexError(responses))
+			return self.err_callback(common.ObexError(response))
 		
 		self.put_body()
 		
 	def put_done(self, response):
 		if not isinstance(response, responses.Success):
-			return self.err_callback(common.ObexError(responses))
+			return self.err_callback(common.ObexError(response))
 		
 		self.callback(response)
 		self.state = common.CONNECTED

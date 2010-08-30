@@ -102,7 +102,7 @@ class UploadAdapter(Adapter):
             address=str(target.target),
             dongle=self.bt_address,
             port=target.channel,
-            ret = retcode,
+            ret = ByValWrapper(retcode),
             files = ByValWrapper(target.files), 
             stdout = stdout, 
             stderr = stderr,

@@ -272,7 +272,7 @@ class UploadTarget(object):
 	logger.info("connected rfcomm %s" % self.target)
 	client.connect_obex()
       elif client.state == common.CONNECTING_OBEX:
-	logger.info("connected obex %s" % self.target)
+	logger.info("connected obex %s, %s" % (self.target, response))
 	self.OppDoUpload(client)
       elif client.state == common.PUT:
 	  logger.info("upload done to %s" % self.target)
@@ -285,7 +285,7 @@ class UploadTarget(object):
 	client.invalid = True
 	self.error_callback(
 	    target=self, 
-	    retcode=error.code, 
+	    retcode=error, 
 	    stdout="", 
 	    stderr="",
 	    connected=self.connected

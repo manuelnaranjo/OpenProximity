@@ -180,7 +180,10 @@ def save_file_failed(rule, dongle, ret, remote):
     record = RemoteBluetoothDeviceFilesRejected()
     record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
     record.campaign = rule
-    record.ret_value = ret
+    if hasattr(ret, 'code'):
+	record.ret_value = ret.code
+    else:
+	record.ret_value = ret
     record.setRemoteDevice(remote)
     record.save()
     return record
