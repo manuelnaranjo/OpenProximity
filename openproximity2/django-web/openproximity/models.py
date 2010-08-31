@@ -372,7 +372,7 @@ class MarketingCampaign(Campaign):
         if not class_pass:
 	    return False
 
-	rssi_test = not ( record None or not hasattr(record, 'getAverageRSSI') )
+	rssi_test = not(record is None or not hasattr(record, 'getAverageRSSI'))
 	logger.debug("rssi_test: %s" % rssi_test)
 	
 	if rssi_test:
