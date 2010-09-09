@@ -1,0 +1,2 @@
+recursive-include camera/templates *
+recursive-include camera/media *

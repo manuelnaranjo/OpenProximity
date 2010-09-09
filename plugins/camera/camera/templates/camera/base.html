@@ -1,0 +1,14 @@
+{% extends "op/base.html" %}
+{% load i18n openproximity %}
+
+{% block title %}AIRcable Camera Manager{% endblock %}
+
+{% block navbar %}
+    {% createNavButton "/" "nav_index" _("OpenProximity<br/>Index") %}
+    {% createNavButton "/camera/" "camera_index" _("Camera<br/>Index") %}
+    {% createNavButton "/camera/admin/" "camera_admin" _("Camera<br/>Admin") %}
+{% endblock%}
+
+{% block footer %}
+    {% trans "AIRcable Camera Manager" %}
+{% endblock %}
