@@ -4,7 +4,7 @@ import sys, urllib2, json, pprint, rest
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
 
-klass = 'CampaignFile'
+klass = 'openproximity/campaignfile'
 
 usage='''
 Usage:
@@ -19,10 +19,11 @@ Commands:
 '''
 
 def list(url):
-    return json.loads(rest.list(url, klass ))
+    return json.loads(rest.list(url, klass))
 
 def get(url, pk, out, *args, **kwargs):
-    A=urllib2.urlopen("%s/REST/%s/get/%s/" % (url, klass,pk)).read()
+    url = "%s/REST/%s/get-file/%s/" % (url, klass,pk)
+    A=urllib2.urlopen(url).read()
     B=file(out, 'wb')
     B.write(A)
     B.close()
@@ -96,12 +97,12 @@ def test(url):
       }]
       print "creating test campaign"
       data=json.dumps(data)
-      data=json.loads(rest.post(url, 'MarketingCampaign', data))
+      data=json.loads(rest.post(url, 'openproximity/marketingcampaign', data))
       print "created"
       return data[0]['pk']
 
     def delete_campaign(url, pk):
-      rest.delete(url, 'MarketingCampaign', pk)
+      rest.delete(url, 'openproximity/marketingcampaign', pk)
 
     print "registered campaign files"
     pp=pprint.PrettyPrinter(indent=4)

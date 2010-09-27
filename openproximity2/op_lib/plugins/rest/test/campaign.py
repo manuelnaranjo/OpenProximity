@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys, urllib2, json, pprint, rest
 
-klass = 'MarketingCampaign'
+klass = 'openproximity/marketingcampaign'
 
 usage='''
 Usage:
@@ -24,11 +24,13 @@ def get(url, pk, *args, **kwargs):
 
 def post(url, data, *args, **kwargs):
     data=json.dumps(eval(file(data).read()))
-    return json.loads(rest.post(url, klass, data))
+    data, url = rest.post(url, klass, data)
+    return json.loads(data), url
 
 def put(url, pk, data, *args, **kwargs):
     data=json.dumps(eval(file(data).read()))
-    return json.loads(rest.put(url, klass, pk, data))
+    data, url = rest.put(url, klass, pk, data)
+    return json.loads(data), url
 
 def delete(url, pk, *args, **kwargs):
     return rest.delete(url, klass, pk)
@@ -42,6 +44,7 @@ def test(url):
 	u'fields': {
 	  u'accepted_count': -1,
 	  u'addr_filter': None,
+	  u'concurrent_scanning': False,
 	  u'devclass_filter': None,
 	  u'dongle_name': u'Test Dongle',
 	  u'enabled': True,
@@ -57,7 +60,8 @@ def test(url):
 	  u'service': 0,
 	  u'start': None,
 	  u'tries_count': -1,
-	  u'tries_timeout': 0
+	  u'tries_timeout': 0,
+	  u'upload_on_discovered': False
 	},
 	u'model': u'openproximity.marketingcampaign',
 	u'pk': 1
@@ -65,7 +69,7 @@ def test(url):
     
     print "creating campaign"
     data=json.dumps(data)
-    data=json.loads(rest.post(url, klass, data))
+    data = json.loads(rest.post(url, klass, data))
     pp.pprint(data)
     print "created"
     
@@ -73,7 +77,8 @@ def test(url):
     data[0][u'fields'][u'name']=u'Test 2'
     pk=data[0]['pk']
     data=json.dumps(data)
-    data=json.loads(rest.put(url, klass, pk, data))
+    data = rest.put(url, klass, pk, data)
+    data=json.loads(data)
     pp.pprint(data)
 
     print "deleting campaign"
