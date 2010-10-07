@@ -8,75 +8,55 @@
     src="/site_media/plugins/jquery.tree.contextmenu.js"></script>
 
 <script type="text/javascript">
-
-function create_tree(){
-  t = $('#async_tree');
-
-  data = [];
-
-  data['data'] = []
-  data['data']['type'] = 'json';
-  data['data']['async'] = true;
-  data['data']['opts'] = [];
-  data['data']['opts']['method'] = "POST";
-  data['data']['opts']['url'] = "data";
-
-  data['ui'] = []
-  data['ui']['dots'] = false;
-  data['ui']['animation'] = 100;
-
-  data['lang'] = [];
-  data['lang']['loading'] = "{% trans "Loading" %} ...";
-  data['data']['opts']['url'] = "data";
-
-  data['plugins'] = []
-  data['plugins']['contextmenu'] = [];
-  data['plugins']['contextmenu']['items'] = [];
-  data['plugins']['contextmenu']['items']['remove'] = false;
-  data['plugins']['contextmenu']['items']['rename'] = false;
-  data['plugins']['contextmenu']['items']['create'] = false;
-  data['plugins']['contextmenu']['items']['refresh'] = [];
-  data['plugins']['contextmenu']['items']['refresh']['label'] = "{% trans "Refresh" %}";
-  data['plugins']['contextmenu']['items']['refresh']['icon'] = "refresh";
-  data['plugins']['contextmenu']['items']['refresh']['visible'] = function(node, tree){ return node.hasClass('leaf') != true };
-  data['plugins']['contextmenu']['items']['refresh']['action'] = function(node, tree){ tree.refresh(node)};
-  data['plugins']['contextmenu']['items']['delete'] = [];
-  data['plugins']['contextmenu']['items']['delete']['label'] = "{% trans "Delete" %}";
-  data['plugins']['contextmenu']['items']['delete']['icon'] = "remove";
-  data['plugins']['contextmenu']['items']['delete']['visible'] = function(node, tree){ return node.hasClass('deletable') };
-  data['plugins']['contextmenu']['items']['delete']['action'] = function(node, tree){
-	  var answer = confirm ("{% trans "You sure you want to delete?"%}");
-	  if ( ! answer ){
-	      return
-	  }
-	  var id = node[0].id;
-	  $("*").css("cursor", "progress");
-	  $.post("delete",
-	    { id: id },
-	    function(json){
-	      $("*").css("cursor", "auto");
-	      if (json.need_login){
-		alert("{% trans "You need to be loged as admin first"%}");
-		return
-	      }
-	      if (json.deleted){ tree.remove(node[0]); }
+    function create_tree(){
+	t = $('#async_tree');
+	t.tree({
+		data: {
+		    type: "json",
+		    async: true,
+		    opts: {
+			method: "POST",
+			url: "data"
+		    }
+		},
+		ui:{
+		    dots: false,
+		    animation: 100
+		},
+		lang:{
+		    loading: "{% trans "Loading" %} ..."
+		},
+		plugins: {
+		    contextmenu: {
+			items: {
+			    remove: false,
+			    rename: false,
+			    create: false,
+			    refresh: {
+				label: "{% trans "Refresh" %}",
+				icon:  "refresh",
+				visible: function(node, tree){ return node.hasClass('leaf') != true },
+				action: function(node, tree){ tree.refresh(node) }
+			    }
+			}
+		    }
+		}
 	    }
-	  );
-      };
-  t.tree(data);
-}
-addLoadEvent(create_tree);
+	);
+    }
+addLoadEvent(create_tree)
 </script>
 
 {% endblock %}
 
 {% block content %}
-    <div class="content-main">
-        <fieldset style="margin: 0px; padding: 0px; border: none">
-    	    <div class="inner">
-	        <div id="async_tree"></div>
+	<div class="content-main">
+	    <fieldset style="margin: 0px; padding: 0px; border: none">
+	    <div class="inner">
+		<div id="async_tree">
+		</div>
 	    </div>
-	</fieldset>
-    </div>
+	    </fieldset>
+	</div>
 {% endblock %}
 

@@ -28,36 +28,8 @@ function download_and_uncompress(){
     
     echo "extracting $PACKAGE"
     gunzip -c "$CWD"/libs/$PACKAGE-$VERSION.tar.gz | tar -x
-    if [ -d $PACKAGE-$VERSION ]; then
-	cd $PACKAGE-$VERSION; cp -r $FOLDER $LIB_TARGET
-    else
-	cd $PACKAGE; cp -r $FOLDER $LIB_TARGET
-    fi
+    cd $PACKAGE-$VERSION; cp -r $FOLDER $LIB_TARGET
 }
-
-function download_and_uncompress_bitbucket(){
-    PACKAGE=$1
-    VERSION=$2
-    FOLDER=$3
-    URL=$4
-
-    echo "processing $PACKAGE"
-    
-    if [ ! -f "$CWD"/libs/$PACKAGE-$VERSION.tar.gz ]; then
-        echo "Downloading"
-        wget -O test.tar.gz $URL/$VERSION.tar.gz
-	mv test.tar.gz "$CWD"/libs/$PACKAGE-$VERSION.tar.gz
-    fi
-    
-    echo "extracting $PACKAGE"
-    gunzip -c "$CWD"/libs/$PACKAGE-$VERSION.tar.gz | tar -x
-    if [ -d $PACKAGE-$VERSION ]; then
-	cd $PACKAGE-$VERSION; cp -r $FOLDER $LIB_TARGET
-    else
-	cd $PACKAGE; cp -r $FOLDER $LIB_TARGET
-    fi
-}
-
 
 function download_jstree(){
     PACKAGE=$1
@@ -175,15 +147,6 @@ function tinymce(){
     cp -r tinymce/jscripts/tiny_mce/* $OP2/openproximity2/django-web/media/js/
     rm -rf tinymce
 }
-
-function mark_emptyfiles(){
-    pushd $OP2
-    for i in $( find . -size 0 ); do
-	echo "#empty file" > $i;
-    done
-    popd
-}
-
 echo "Creating installer for version" `cat latest-version`
 
 OP2=`pwd`/distrib
@@ -203,7 +166,6 @@ cp "$CWD"/LICENSE .
 cp "$CWD"/manager.sh .
 cp -r "$CWD"/op_lib/net "$LIB_TARGET"
 cp -r "$CWD"/op_lib/plugins "$LIB_TARGET"
-cp -r "$CWD"/op_lib/PyOBEX2 "$LIB_TARGET"
 cp "$CWD"/pair.sh .
 cp -r "$CWD"/remoteScanner .
 cp "$CWD"/remote_scanner.sh .
@@ -231,12 +193,8 @@ download_and_uncompress poster 0.4 poster http://pypi.python.org/packages/source
 download_and_uncompress PyOFC2 0.1.1dev pyofc2 http://pypi.python.org/packages/source/P/PyOFC2
 download_and_uncompress django-notification 0.1.5 notification http://pypi.python.org/packages/source/d/django-notification/
 download_and_uncompress django-mailer 0.1.0 mailer http://pypi.python.org/packages/source/d/django-mailer/
-download_and_uncompress_bitbucket pyobex tip PyOBEX http://bitbucket.org/dboddie/pyobex/get
 download_jstree jstree v.0.9.9a2 http://jstree.googlecode.com/files jsTree
 svn_download django_restapi 81 http://django-rest-interface.googlecode.com/svn/trunk/ 81
-git_download timezones 2b903a38 git://github.com/brosner/django-timezones.git 2b903a38da1ff9df4b2aba8e4f5429d967f73881
-#download_and_uncompress pytz 2010k pytz http://pypi.python.org/packages/source/p/pytz/
-download_and_uncompress south 0.7.1 south http://www.aeracode.org/releases/south/
 
 #some ideas on a WYSIWYG template editor
 #download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/
@@ -269,7 +227,3 @@ cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py  makemessag
 #clean up compiled python files
 rm -f `find . | grep "\.pyc$"`
 rm -f `find . | grep "\.pyo$"`
-
-#mark empty files
-mark_emptyfiles
-

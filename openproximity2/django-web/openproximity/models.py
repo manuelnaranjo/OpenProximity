@@ -22,9 +22,6 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.dispatch.dispatcher import Signal
-from django.contrib.auth.models import User
-from timezones.fields import TimeZoneField
-
 import rpyc, time, os.path
 
 import net.aircable.openproximity.signals.scanner as scanner
@@ -32,15 +29,7 @@ import net.aircable.openproximity.signals.scanner as scanner
 from net.aircable.fields import PickledField
 from net.aircable.utils import logger
 
-import errno
-
-TIMEOUT_RET = [
-	errno.ENOTCONN, # 107
-	]
-
-class UserProfile(models.Model):
-    user = models.ForeignKey(User, unique=True)
-    timezone = TimeZoneField()
+TIMEOUT_RET = [ 22 ]
 
 class LogLine(models.Model):
     time = models.DateTimeField(auto_now=True, verbose_name=_("time"))
@@ -51,16 +40,10 @@ class Setting(models.Model):
     value = PickledField(max_length=200)
 
 class BluetoothDongle(models.Model):
-    address = models.CharField(
-	    max_length=17, 
-	    blank=False, 
-	    verbose_name=_("bluetooth address")
-    )
-    name = models.CharField(
-	    max_length=100, 
-	    blank=True,
-	    verbose_name=_("identifying name")
-    )
+    address = models.CharField(max_length=17, 
+    blank=False, verbose_name=_("bluetooth address"))
+    name = models.CharField(max_length=100, blank=True,
+    verbose_name=_("identifying name"))
     enabled = models.BooleanField()
 
     def enabled_display(self):
@@ -85,16 +68,13 @@ class ScannerBluetoothDongle(BluetoothDongle):
         )
         
 class RemoteScannerBluetoothDongle(ScannerBluetoothDongle):
-    local_dongle = models.ForeignKey(
-	    ScannerBluetoothDongle, 
-	    related_name="remote_dongles" )
+    local_dongle = models.ForeignKey(ScannerBluetoothDongle, 
+    related_name="remote_dongles" )
 
 class UploaderBluetoothDongle(BluetoothDongle):
-    max_conn = models.IntegerField(
-	default=7,
-	verbose_name=_("connections"),
-	help_text=_("maximum allowed connections")
-    )
+    max_conn = models.IntegerField(default=7,
+    verbose_name=_("connections"),
+    help_text=_("maximum allowed connections"))
     
     def __unicode__(self):
         return "Uploader: %s, %s" % (
@@ -108,16 +88,9 @@ SERVICE_TYPES = (
 )
 
 class Campaign(models.Model):
-    
     #name is going to change
-    name = models.CharField(
-			    max_length=100,
-			    verbose_name=_("campaign name")
-    )
-    enabled = models.BooleanField(
-			    default=True,
-			    verbose_name=_("campaign enabled")
-    )
+    name = models.CharField(max_length=100)    
+    enabled = models.BooleanField(default=True)
     name_filter = models.CharField(
                             null=True,
                             max_length=30,
@@ -130,24 +103,18 @@ class Campaign(models.Model):
                             blank=True,
                             verbose_name=_("address filter")
     )
-    devclass_filter = models.IntegerField(
-			    null=True, 
-			    blank=True,
-			    verbose_name=_("devclass filter")
-    )
+    devclass_filter = models.IntegerField(null=True, blank=True)
     start = models.DateTimeField(
                             null=True, 
                             blank=True,
                             help_text=_("starting date, or null to run for ever"
-                                " until end"),
-                            verbose_name=_("start date")
+                                " until end")
     )
     end = models.DateTimeField(
                             null=True, 
                             blank=True,
                             help_text=_("ending date, or null to run for ever " 
-                                "since start"),
-                            verbose_name=_("end date")
+                                "since start")
     )
     dongle_name=models.CharField(
                             null=True, 
@@ -156,7 +123,7 @@ class Campaign(models.Model):
                             verbose_name=_("dongles names"),
                             help_text=_("if you want your campaign to change "
                                 "the bluetooth dongles names when running then "
-                                "set this variable"),
+                                "set this variable")
     )
     pin_code=models.CharField(
                             null=True, 
@@ -164,19 +131,19 @@ class Campaign(models.Model):
                             max_length=16,
                             default="1234",
                             help_text=_("certain target devices require pairing"
-                                ", this is the pin code going to be used"),
-                            verbose_name=_("PIN code")
+                                ", this is the pin code going to be used")
     )
-    concurrent_scanning=models.BooleanField(
-			    default=False,
-			    help_text=_("concurrent scanning makes all your "
-		"scanners to run simultaneous, instead of doing so in a "
-		"sequence one after the other, if you enable this scanner "
-		"priority is ignored"),
-			    verbose_name=_("concurrent scanning")
+    fixed_channel=models.IntegerField(
+			    null=True,
+			    blank=True,
+			    default = None,
+			    help_text=_("if you set this parameter then "
+		  "OpenProximity will never try to resolve sdp records and "
+		  "use only this channel, leave it empty unless you know "
+		  "what you're doing.")
     )
-
-
+    
+    
     def matches(self, remote, *args, **kwargs):
         return False
 
@@ -193,70 +160,44 @@ class MarketingCampaign(Campaign):
     rejected_count = models.IntegerField(
                             default=2,
                             help_text=_("how many times it should try again "
-                    "when rejected, -1 infinite"),
-                            verbose_name=_("rejected count")
+                                        "when rejected, -1 infinite")
     )
     rejected_timeout = models.IntegerField(
                             default=-1,
                             help_text=_("how much time to wait after a certain "
-                    "device has rejected a file before we "
-                    "try again"),
-                            verbose_name=_("rejected timeout")
+                                        "device has rejected a file before we "
+                                        "try again")
     )
     tries_count = models.IntegerField(
                             default=-1,
                             help_text=_("how many times it should try to send "
-                    "when timing out, -1 infinite"),
-                            verbose_name=_("tries count")
+                                "when timing out, -1 infinite")
     )
     tries_timeout = models.IntegerField(
                             default=0,
                             help_text=_("how much time to wait after a certain "
-                    "device has made a timeout before we try again"),
-                            verbose_name=_("tries timeout")
+                                "device has made a timeout before we try again")
     )
     accepted_count = models.IntegerField(
                             default=-1,
                             help_text=_("how many times will this campaign be "
-                    "accepted before disabling, -1 means infinite"),
-                            verbose_name=_("accepted count")
+                                "accepted before disabling, -1 means infinite")
     )
     rssi_min = models.IntegerField(
                             null=True, 
                             blank=True,
                             help_text=_("if the meassured rssi is over or equal"
-                    " than this value then campaign will match, "
-                    "take into account rssi is negative, range -255 "
-                    "0"),
-                            verbose_name=_("RSSI min")
+                                " than this value then campaign will match, "
+                                "take into account rssi is negative, range -255 "
+                                "0")
     )
     rssi_max = models.IntegerField(
                             null=True, 
                             blank=True,
                             help_text=_("if the meassured rssi is less or equal"
-                    " than this value then campaign will match, "
-                    "take into account rssi is negative, range -255"
-                    " 0"),
-                            verbose_name=_("RSSI max")
-    )
-    fixed_channel=models.IntegerField(
-			    null=True,
-			    blank=True,
-			    default = None,
-			    help_text=_("if you set this parameter then "
-		  "OpenProximity will never try to resolve sdp records and "
-		  "use only this channel, leave it empty unless you know "
-		  "what you're doing."),
-			    verbose_name=_("fixed channel")
-    )
-    upload_on_discovered = models.BooleanField(
-			    default=False,
-			    help_text=_("in some cases you may want to force "
-	    "that the same dongle that discovers a device is "
-	    "the one that's going to do the upload. Make sure "
-	    "all your dongles can work as scanner and uploaders "
-	    "otherwise you will not service some devices."),
-			    verbose_name=_("scan and upload on same dongle")
+                                " than this value then campaign will match, "
+                                "take into account rssi is negative, range -255"
+                                " 0")
     )
 
 
@@ -296,7 +237,7 @@ class MarketingCampaign(Campaign):
     def tryAgain(self, record=None, remote=None):
 	assert record or remote, "Can't pass both record and remote as none"
 
-	if remote:
+	if not record:
 	    qs = RemoteBluetoothDeviceFilesRejected.\
 		    objects.\
 			filter(
@@ -336,7 +277,7 @@ class MarketingCampaign(Campaign):
 	
 	# test is we reached the rejected count
 	rejected_pass = remote is None or (
-	    self.rejected_count == -1 or 
+	    self.rejected_count == 1 or 
 	    self.getRejectedCount(remote) < self.rejected_count
 	)
 	
@@ -372,7 +313,7 @@ class MarketingCampaign(Campaign):
         if not class_pass:
 	    return False
 
-	rssi_test = not(record is None or not hasattr(record, 'getAverageRSSI'))
+	rssi_test = record is None or not hasattr(record, 'getAverageRSSI')
 	logger.debug("rssi_test: %s" % rssi_test)
 	
 	if rssi_test:
@@ -450,8 +391,6 @@ class RemoteDevice(models.Model):
             for i in qs[:1]:
                 i.delete()
         return qs[0]
-RemoteDevice.deletable = True # needed for treeview
-
 
 class DeviceRecord(models.Model):
     time = models.DateTimeField(
@@ -483,7 +422,6 @@ class DeviceRecord(models.Model):
         if self.time is None:
             self.time = datetime.utcnow()
         super(DeviceRecord, self).save(force_insert, force_update)
-DeviceRecord.deletable = True # needed for treeview
 
 
 class RemoteBluetoothDeviceRecord(DeviceRecord):
@@ -644,7 +582,7 @@ def get_campaign_rule(files):
         return None
 
     logger.info("found camp")
-    return list(out)
+    return list(out)[0]
 
 def __restart_server():
     logger.info("restarting server")

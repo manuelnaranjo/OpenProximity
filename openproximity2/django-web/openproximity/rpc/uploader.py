@@ -142,74 +142,38 @@ def handle_sdp_timeout(dongle, remote, pending):
 def handle_file_uploaded(dongle, remote, pending, channel, files):
     logger.info("files uploaded: %s[%s]: %s" % ( remote, channel, files) )
     pending.pop(remote)
-    for rule in get_campaign_rule(files):
-	record = RemoteBluetoothDeviceFilesSuccess()
-	record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
-	record.campaign = rule
-	record.setRemoteDevice(remote)
-	record.save()
-
-def get_files_from_campaign(camp):
-    files__ = camp.campaignfile_set
-
-    for f in files__.all():
-	logger.debug('going to upload %s' % f.file)
-        yield str(f.file.name), camp.pk 
-
-def upload_after_rejected(rules, services, dongle=None, remote=None):
-    if len(rules) == 0:
-	return False
-
-    uploader = get_uploader(services)
-    if not uploader:
-	raise Exception("No uploader, can't try again")
-    
-    logger.info("trying again")
-    files = set()
-    
-    use_same = False
-    for rule in rules:
-	files=files.union( set(get_files_from_campaign(rule)) )
-	if rule.upload_on_discovered:
-	    use_same=True
-
-    do_upload(uploader, files, remote, dongle=dongle if use_same else None)
-    return True
-
-def save_file_failed(rule, dongle, ret, remote):
-    record = RemoteBluetoothDeviceFilesRejected()
+    record = RemoteBluetoothDeviceFilesSuccess()
     record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
-    record.campaign = rule
-    if hasattr(ret, 'code'):
-	record.ret_value = ret.code
-    else:
-	record.ret_value = ret
+    record.campaign = get_campaign_rule(files)
     record.setRemoteDevice(remote)
     record.save()
-    return record
 
 def handle_file_failed(dongle, remote, pending, channel, files, ret, err, services):
     logger.info("handle file failed %s[%s]: %s" % (remote, channel, files))
     logger.debug(err)
     try:
-        try_again = []
-	rules = get_campaign_rule(files)
-        if rules is None or len(rules)==0:
+        record = RemoteBluetoothDeviceFilesRejected()
+        record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
+        rule = get_campaign_rule(files)
+        if rule is None:
             raise Exception("Couldn't find rule")
-
-        for rule in rules:
-            record = save_file_failed(rule, dongle, ret, remote)
-
-    	    # from here we try again either on timeout or if rejected count is 
-    	    # smaller than filter
-    	    if rule.tryAgain(record=record):
-    		try_again.append(rule)
-
-	# if we can't try again this method will raise an exception
-	# and the try/catch will make sure the remote device gets out
-	# of our pending list
-    	if upload_after_rejected(try_again, services, dongle=dongle, remote=remote):
-    	    return
+        record.campaign = rule
+        record.ret_value = ret
+        record.setRemoteDevice(remote)
+        record.save()
+        
+        # from here we try again either on timeout or if rejected count is 
+        # smaller than filter
+        try_again = rule.tryAgain(record)
+        
+        logger.info("try again: %s" % try_again)
+        if try_again:
+            uploader = get_uploader(services)
+            if uploader:
+                logger.info("trying again")
+                return do_upload(uploader, files, remote)
+            else:
+                logger.info("no uploader registered")
     except Exception, err:
         logger.error("OOOPS!!!")
         logger.exception(err)

@@ -54,16 +54,6 @@ pending = dict()
 enabled = True # useful when tables are been drop
 all_dongles = set()
 
-def db_ready():
-    try:
-        from openproximity.models import BluetoothDongle
-        BluetoothDongle.objects.count()
-        return True
-    except Exception, err:
-	logger.info("Database not ready")
-	logger.exception(err)
-	return False
-
 class OpenProximityService(Service):
         dongles = None
         remote_quit = None
@@ -134,15 +124,7 @@ class OpenProximityService(Service):
     						dongles=None, 
     						client=None):
             logger.info("generic register")
-
             all_dongles.update(dongles)
-
-            if not enabled:
-                return
-
-            if not db_ready():
-        	return
-
             try:
                 for plugin in pluginsystem.get_plugins('rpc_register'):
                         logger.debug("plugin %s provides rpc register" % plugin.name)
@@ -168,13 +150,9 @@ class OpenProximityService(Service):
             self.doScan = async(client.doScan)
             self.startScanningCycle = async(client.startScanningCycle)
             self.remote_quit = async(remote_quit)
-            self.noCampaigns = async(client.noCampaigns)
 
             if not enabled:
                 return
-
-            if not db_ready():
-        	return
 
             logger.info("scanner register %s" % dongles)
             for dongle in dongles:
@@ -207,9 +185,6 @@ class OpenProximityService(Service):
 
             if not enabled:
                 return
-
-            if not db_ready():
-        	return
 
             logger.info("uploader register")
             for dongle in dongles:

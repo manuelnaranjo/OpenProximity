@@ -1,66 +1,59 @@
 {% load i18n openproximity %}
 <div class="campaigns">
-  <fieldset>
-    <legend>{% trans "Marketing Campaigns" %}</legend>
-    {% for camp in camps %}
-      <fieldset>
-	  <div class="setting">
-	    <div class="label">{% trans "Name" %}</div>
-	    <span class="value"><a href="admin/openproximity/marketingcampaign/{{camp.pk}}/" >{{ camp.name }}</a></span>
-	  </div>
-	  <div class="setting">
-	    <div class="label">{% trans "Enabled" %}</div>
-	    <span class="value">{{ camp.enabled|yesno:_("yes,no") }}</span>
-	  </div>
-	  <div class="setting">
-	    <div class="label">{% trans "Service" %}</div>
-	    <span class="value">{{ camp.get_service_display|default:"NA"}}</span>
-	  </div>
-	  <div class="setting">
-	    <div class="label">{% trans "Start" %}</div>
-	    <span class="value">{{ camp.start|default:_("Not Set") }}</span>
-	  </div>
-	  <div class="setting">
-	    <div class="label">{% trans "End" %}</div>
-	    <span class="value">{{ camp.end|default:_("Not Set") }}</span>
-	  </div>
-	  <div class="setting">
-	    <div class="label">{% trans "Name Filter" %}</div>
-	    <span class="value">{{ camp.name_filter|default:_("Not Set") }}</span>
-	  </div>
-	  <div class="setting">
-	    <div class="label">{% trans "Address Filter" %}</div>
-	    <span class="value">{{ camp.addr_filter|default:_("Not Set") }}</span>
-	  </div>
-	  <div class="setting">
-	    <div class="label">{% trans "DevClass Filter" %}</div>
-	    <span class="value">{{ camp.devclass_filter|default:_("Not Set") }}</span>
-	  </div>
-	  {% for file in camp.campaignfile_set.all %}
+    <fieldset>
+	<legend>{% trans "Marketing Campaigns" %}</legend>
+	{% for camp in camps %}
+	<fieldset>
+		<div class="setting">
+		    <div class="label">{% trans "Name" %}</div>
+		    <span class="value"><a href="admin/openproximity/marketingcampaign/{{camp.pk}}/" >{{ camp.name }}</a></span>
+		</div>
 	    <div class="setting">
-	      <div class="label">{% trans "Serving File" %}</div>
-	      <span class="value">{{ file.file.name|default:_("Not Set") }}</span>
+		<div class="label">{% trans "Enabled" %}</div>
+		<span class="value">{{ camp.enabled|yesno:_("yes,no") }}</span>
 	    </div>
 	    <div class="setting">
-	      <div class="label">{% trans "Chances" %}</div>
-	      <span class="value">{{ file.chance|default:_("Not Set") }}</span>
+		<div class="label">{% trans "Service" %}</div>
+		<span class="value">{{ camp.get_service_display|default:"NA"}}</span>
 	    </div>
-	    <div class="nav_button_grey" style="width: 20em; color: #E4E4E4">
-	      <div class="inner" style="height: 2em;">
-		<a href="file/grab/{{file.file.name}}" >{% trans "See File" %}</a>
-	      </div>
+	    <div class="setting">
+		<div class="label">{% trans "Start" %}</div>
+		<span class="value">{{ camp.start|default:_("Not Set") }}</span>
 	    </div>
-	  {% empty %}
-	      <div class="setting">
-		  <span class="value">
-		      <strong>{% trans "This campaign doesn't provide any files" %}</strong>
-		  </span>
-	      </div>
-	  {% endfor %}
-      </fieldset>
+	    <div class="setting">
+		<div class="label">{% trans "End" %}</div>
+		<span class="value">{{ camp.end|default:_("Not Set") }}</span>
+	    </div>
+	    <div class="setting">
+		<div class="label">{% trans "Name Filter" %}</div>
+		<span class="value">{{ camp.name_filter|default:_("Not Set") }}</span>
+	    </div>
+	    <div class="setting">
+		<div class="label">{% trans "Address Filter" %}</div>
+		<span class="value">{{ camp.addr_filter|default:_("Not Set") }}</span>
+	    </div>
+	    <div class="setting">
+		<div class="label">{% trans "DevClass Filter" %}</div>
+		<span class="value">{{ camp.devclass_filter|default:_("Not Set") }}</span>
+	    </div>
+	    {% for file in camp.campaignfile_set.all %}
+		<div class="setting">
+		    <div class="label">{% trans "Serving File" %}</div>
+		    <span class="value">{{ file.file.name|default:_("Not Set") }}</span>
+		</div>
+		<div class="setting">
+		    <div class="label">{% trans "Chances" %}</div>
+		    <span class="value">{{ file.chance|default:_("Not Set") }}</span>
+		</div>
+		<div class="nav_button_grey" style="width: 20em; color: #E4E4E4">
+		    <div class="inner" style="height: 2em;">
+	            <a id="reset-stats" href="file/grab/{{file.file.name}}" >{% trans "See File" %}</a>
+	        </div>
+	    {% endfor %}
+	</fieldset>
     {% empty %}
-      <strong>{% trans "There are none known campaigns" %}:</strong>
-      <a href="/admin/openproximity/marketingcampaign/add/">{% trans "Create a campaign Now" %}</a>
+	<strong>{% trans "There are none known campaigns" %}:</strong>
+	<a href="/admin/openproximity/marketingcampaign/add/">{% trans "Create a campaign Now" %}</a>
     {% endfor %} <!-- camps -->
-  </fieldset>
+    </fieldset>
 </div>

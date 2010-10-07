@@ -16,11 +16,6 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from models import *
 from django.contrib import admin
-from django.utils.translation import ugettext as _
-from timezones.utils import adjust_datetime_to_timezone
-from timezones.zones import tz as TZ
-from timezones.zones import PRETTY_TIMEZONE_CHOICES
-
 
 class SettingAdmin(admin.ModelAdmin):
     list_display = ('name', 'value')
@@ -54,12 +49,6 @@ class CampaignFileAdmin(admin.StackedInline):
 
 
 class MarketingCampaignAdmin(admin.ModelAdmin):
-    class Media:
-	js = (
-	    "/site_media/MochiKit.js",
-	    "/site_media/date.js",
-	    )
-
     fieldsets = (
       (None, {
         'fields': ('name', 'enabled', 'service', 'pin_code'),
@@ -85,17 +74,17 @@ class MarketingCampaignAdmin(admin.ModelAdmin):
       }),
       ('Expert Settings', {
         'classes': ('collapse', ),
-        'fields': ('fixed_channel', 'concurrent_scanning', 'upload_on_discovered')
+        'fields': ('fixed_channel', )
       }),
     )
-
+    
     inlines = [ CampaignFileAdmin, ]
-
+    
     list_display = ( 'name', 
         'service',
         'pin_code',
-        'format_start',
-        'format_end',
+        'start',
+        'end',
         'rssi_min',
         'rssi_max',
         'name_filter', 
@@ -113,47 +102,9 @@ class MarketingCampaignAdmin(admin.ModelAdmin):
         'devclass_filter',
         'enabled'
     )
-
+            
     ordering = [ 'name', 'service', 'start', 'end', 'rssi_min', 'rssi_max' ]
-
-    def save_model(self, request, obj, form, change):
-	utz = request.user.get_profile().timezone
-	if obj.start:
-	    obj.start = adjust_datetime_to_timezone(obj.start, utz, TZ)
-	if obj.end:
-	    obj.end = adjust_datetime_to_timezone(obj.end, utz, TZ)
-	obj.save()
-
-    def change_view(self, request, object_id, extra_context=None):
-	zone = request.user.get_profile().timezone.zone
-	time_zone = dict(PRETTY_TIMEZONE_CHOICES)[zone][:10]
-        my_context = {
-    	    'time_zone': time_zone
-    	}
-	return super(MarketingCampaignAdmin, self).\
-		change_view(request,object_id,my_context)
-
-    def changelist_view(self, request, extra_context=dict()):
-	zone = request.user.get_profile().timezone.zone
-	time_zone = dict(PRETTY_TIMEZONE_CHOICES)[zone][:10]
-        extra_context['time_zone']=time_zone
-	return super(MarketingCampaignAdmin, self).\
-		changelist_view(request,extra_context)
-    
-    def __format(self, obj):
-	return '<div class="datetimezulu">'+\
-	    obj.strftime("%Y-%m-%dT%H:%M:%SZ")+\
-	    '</div>'
-    
-    def format_start(self, obj):
-	return self.__format(obj.start)
-    format_start.short_description = _('Start')
-    format_start.allow_tags=True
-
-    def format_end(self, obj):
-	return self.__format(obj.end)
-    format_end.short_description = _('End')
-    format_end.allow_tags=True
 
 
 admin.site.register(MarketingCampaign, MarketingCampaignAdmin)
+

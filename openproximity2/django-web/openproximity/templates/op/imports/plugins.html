@@ -9,7 +9,7 @@
 	    <select style="border: none" onchange="window.location.href=this.value" id="plugins_list">
         	<option value="/">----------------------</option>
             	{% for plugin in plugins %}
-        		<option value="/{{ plugin.provides.urls.0 }}/" >{{ plugin.name }}</option>
+        		<option value="/{{ plugin.provides.urls.0 }}" >{{ plugin.name }}</option>
             	{% endfor %}
 	    </select>
 	</div>

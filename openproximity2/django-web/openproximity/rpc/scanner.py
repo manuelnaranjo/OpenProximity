@@ -124,19 +124,9 @@ def cycle_completed(scanner):
     camps = getMatchingCampaigns(enabled=True)
     if len(camps)==0:
         logger.info("no campaigns, no more scanning")
-        # tell the rpc scanner to ping us periodically until there's
-        # a new campaign available
-        scanner.noCampaigns()
         return
-
-    concurrent = False
-    for camp in camps:
-	if camp.concurrent_scanning:
-	    concurrent = True
-	    break
-
+    
     logger.info("starting scan cycle")
-    scanner.setConcurrent(concurrent)
     scanner.startScanningCycle()
     scanner.doScan()
 
@@ -181,7 +171,7 @@ def handle_addrecord(services, remote_, dongle, pending):
     logl.save()
     
     if address not in pending:
-        return found_action(services, address, record, pending, dongle=dongle)
+        return found_action(services, address, record, pending)
 
     return True
     

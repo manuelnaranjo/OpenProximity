@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-import dbus, rpyc, time, traceback, gobject
+import dbus, rpyc, time, traceback
 from net.aircable.utils import logger
 from net.aircable.openproximity.signals.scanner import *
 from net.aircable.wrappers import Adapter
@@ -27,9 +27,6 @@ import net.aircable.openproximity.signals as signals
 remotescanner_url = "net.aircable.RemoteScanner"
 
 class ScanAdapter(Adapter):
-    '''
-    Wrapper arround a BlueZ scanner
-    '''
     priority = 0
     found = None
     
@@ -46,22 +43,13 @@ class ScanAdapter(Adapter):
         return '%s, %s' % (Adapter.__str__(self), self.priority)
     
     def scan(self):
-	'''
-	Call this function to start a scan process on this dongle
-	'''
         self.found = dict()
         self.dbus_interface.StartDiscovery()
         
     def endScan(self):
-	'''
-	Force ongoing inquiry to stop
-	'''
         self.dbus_interface.StopDiscovery()
 
 class RemoteScanAdapter(ScanAdapter):
-    '''
-    Wrapper arround a scanner to which we connect over bluetooth.
-    '''
     priority = 0
     sending = False
     
@@ -105,9 +93,6 @@ class RemoteScanAdapter(ScanAdapter):
         logger.debug("Initializated RemoteScannerDongle: %s" % priority)
     
     def connected(self, local, remote):
-	'''
-	Callback that lets us know when we got connected to the remote scanner
-	'''
         if self.bt_address.lower() == remote.lower():
             logger.info("scanner connected %s" % remote)
             self.scanner_manager.property_changed(
@@ -117,10 +102,6 @@ class RemoteScanAdapter(ScanAdapter):
             )
 
     def disconnected(self, local, remote):
-	'''
-	Callback that lets us know when we got disconnected to the remote 
-	scanner
-	'''
         if self.bt_address.lower() == remote.lower():
             logger.info("scanner disconnected %s" % remote)
             self.scanner_manager.property_changed(
@@ -135,9 +116,6 @@ class RemoteScanAdapter(ScanAdapter):
             self.priority, self.local, self.bt_address)
     
     def scan(self):
-	'''
-	Start a scan in the remote scanner
-	'''
         if self.sending:
             return
         
@@ -151,43 +129,21 @@ class RemoteScanAdapter(ScanAdapter):
         logger.debug("Scan started")
 
     def endScan(self):
-	'''
-	Stop the pending inquiry (has no effect on the RemoteScanner).
-	'''
         self.sending = False
 
 class ScanManager:
-    '''
-    A scanner manager is responsible of handling all the connected scanners, 
-    handling all the logic for this and communicating with the server.
-    '''
-    
     __dongles = dict()
-    # dict that holds our in use dongles (ScanAdapter instances)
-    
     bus = None
-    # a connection to dbus
-    
     manager = None
-    # a connection to the BlueZ manager
-    
+    __listener_sync = list()
+    __listener_async = list()
     __sequence = list()
-    # a holder for our scan sequence (sequence mode)
-    
     __index = None
-    # index in the scan sequence (sequence mode)
-    
+    __repeat = False
     scanners = dict()
-    # dict that holds our known dongles (strings)
-    
     concurrent = False
-    # flag that lets us know which mode we're running
-    # concurrent = False -> sequence mode (default)
-    # concurrent = True  -> concurrent mode
-    
-    pending = None
-    # list of pending scanners to complete the process for concurrent mode.
-
+    concurrent_pending = list()
+        
     def __init__(self, bus, listener=None, rpc=None):
         logger.debug("ScanManager created")
         self.bus = bus
@@ -234,12 +190,6 @@ class ScanManager:
             self.remote_listener=rpyc.async(self.rpc.root.listener)
     
     def exposed_refreshScanners(self):
-	'''
-	When called by the server this method will create ScanAdapter or 
-	RemoteScanAdapter for each one of our scanner dongles and then will
-	create the can sequence. Letting the server know when we are ready
-	to start scanning by triggering DONGLES_ADDED
-	'''
         logger.debug("ScanManager refresh scanners %s" % self.scanners)
         if self.scanners is None or len(self.scanners) == 0:
             self.__dongles = dict()
@@ -304,71 +254,34 @@ class ScanManager:
         self.__index = 0
         
     def exposed_setConcurrent(self, val):
-	'''
-	Exposed method that lets the server tell us if we should do concurrent 
-	scanning (all the scanners work at the same time), or sequence scanning.
-	'''
         self.concurrent = val
         logger.info("setConcurrent %s" % val)
     
     def exposed_getConcurrent(self):
-	'''
-	Exposed method that lets the server know if we are in concurrent or
-	sequence mode (default)
-	'''
         return self.concurrent
 
     def tellListenersAsync(self, *args, **kwargs):
-	'''
-	Dispatch the given signal with the given arguments to our listener.
-	'''
         logger.debug("ScanManager telling listener - async: %s" % POST[args[0]])
         self.remote_listener(*args, **kwargs)
         logger.debug("ScanManager message dispatched")
 
-    def exposed_startScanningCycle(self):
-	'''
-	Exposed method that lets the server decide when we start a new scan 
-	cycle this means we restart our index for sequence mode, and we drop
-	out our pending scans for concurrent mode
-	NOTE: this isn't very reliable, we shouldn't relay this to the server
-	'''
+    def exposed_startScanningCycle(self, repeat=False):
         self.tellListenersAsync(CYCLE_START)
         self.__index = 0
+        self.__repeat = repeat
         if self.concurrent:
             self.pending=list()
     
-    def exposed_noCampaigns(self):
-	'''
-	    this method gets called when there was no matching campaigns on the
-	    server, so we tell the server until it's ready
-	'''
-	def request_server(self):
-	    self.tellListenersAsync(CYCLE_COMPLETE)
-	    return False
-	logger.info("no campaigns, scheduling request")
-        gobject.timeout_add(60*1000, request_server, self)
-
     def exposed_getDongles(self):
-	'''
-	Exposed method that lets the server know which dongles we are handling.
-	'''
         out = set()
         for d in self.manager.ListAdapters():
             out.append(str(d.GetProperties()['Address']))
         return out
 
     def exposed_add_dongle(self, address, priority, name):
-	'''
-	Exposed method that lets the server tell us which dongle use with which
-	settings (name and priority)
-	'''
         self.scanners[address]=(priority, name)
         
     def exposed_doScan(self):
-	'''
-	Exposed method that tells us to start scanning.
-	'''
         logger.debug('ScanManager scanning')
         
         if not self.concurrent:
@@ -377,9 +290,6 @@ class ScanManager:
             self.__multi_scan()
         
     def __do_scan_no_concurrent(self):
-	'''
-	internal method that starts a sequence scan
-	'''
         logger.debug("No concurrent scan")
         if self.__index < len(self.__sequence):
             try:
@@ -392,11 +302,8 @@ class ScanManager:
                 ret=self.__rotate_dongle()
                 if not ret:
                     self.tellListenersAsync(DONGLE_NOT_AVAILABLE, address=addr)
-
+                
     def __multi_scan(self):
-	'''
-	internal method that starts a concurrent scan
-	'''
         logger.debug("Concurrent scan")
         if self.pending is not None and len(self.pending) > 0:
             raise Exception("Can't do multiple concurrent scans if pending")
@@ -407,12 +314,6 @@ class ScanManager:
             self.pending.append(dongle.dbus_path)
     
     def __rotate_dongle(self):
-	'''
-	Internal method used for concurrent scan, each time each one of the
-	scanners completets it's work this method gets called until there
-	are no more dongles in the sequence.
-	When that happens we tell the server we're done.
-	'''
         self.__index += 1
         if self.__index >= len(self.__sequence):
             self.tellListenersAsync(CYCLE_COMPLETE)
@@ -421,23 +322,15 @@ class ScanManager:
             return True
         logger.debug('ScanManager dongle rotated, dongle: %s' % self.__sequence[self.__index])
         return False
-
+    
     def __getScannerForPath(self, path):
-	'''
-	Translate dbus path to scanner device
-	'''
         for dongle in self.__dongles.itervalues():
             if dongle.dbus_path == path:
                 return dongle
         raise Exception("Path not Valid")
-
+            
     # signal callbacks      
     def device_found(self, address, values, path=None):
-	'''
-	This callback gets called when ever a device has been found over dbus.
-	We add the result to our discovered buffer, so we then tell the server
-	all the results together. With real discovery time.
-	'''
         dongle = self.__getScannerForPath(path)
         if address not in dongle.found:
             dongle.found[address] = dict()
@@ -460,10 +353,6 @@ class ScanManager:
                     )
         
     def property_changed(self, name, value, path=None):
-	'''
-	Callback that will let us know when a scan cycle has been completed,
-	or started.
-	'''
         if self.__index == None:
             return
         if name=='Discovering':
@@ -481,18 +370,9 @@ class ScanManager:
         logger.debug("property_changed %s %s %s" % (name, value, path) )
     
     def exposed_cycleCompleted(self):
-	'''
-	Exposed method that lets the server know if our scan cycle is done.
-	'''
         return self.__index == len(self.__sequence) - 1
             
     def discovery_completed(self, dongle):
-	'''
-	This method gets called once the scan cycle is done, or all the 
-	concurrent scanners have done they're job. This is when we send
-	the server all our results. And tell we're done for a new scan
-	cycle
-	'''
         founds = list()
         
         if dongle.found:

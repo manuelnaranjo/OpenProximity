@@ -59,3 +59,8 @@ if [ -z "$MEDIA_ROOT" ]; then
     MEDIA_ROOT=$AIRCABLE_PATH/media
 fi
 export MEDIA_ROOT
+
+if [ ! -f $AIRCABLE_PATH/aircable.db ]; then
+    syncdb
+    createadmin
+fi
