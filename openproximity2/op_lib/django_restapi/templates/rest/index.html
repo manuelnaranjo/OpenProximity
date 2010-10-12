@@ -1,0 +1,24 @@
+{% extends "rest/base.html" %}
+
+{% load i18n %}
+{% block body %}
+
+<div class="resource_list" style="width=100%;">
+<table class="resources_list" style="width:50%">
+  <caption>{% trans "Available Resources" %}</caption>
+  <tr>
+    <td>{% trans "Name" %}</td>
+    <td>{% trans "Base Url" %}</td>
+    <td>{% trans "API Description" %}</td>
+  </tr>
+  {% for resource in resource_dict %}
+    <tr>
+      <td> {{ resource.name }} </td>
+      <td> <a href="{{ resource.rest_url }}">{{ resource.rest_url }}</a> </td>
+      <td> <a href="{{ resource.api_url }}">{{ resource.api_url }}</a></td>
+    </tr>
+  {% endfor %}
+</table>
+</div>
+
+{% endblock %}
