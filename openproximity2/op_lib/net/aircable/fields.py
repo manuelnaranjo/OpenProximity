@@ -16,6 +16,10 @@
 from django.db import models
 from pickle import loads, dumps
 
+'''
+Some helper django db fields used by OpenProximity and it's plugins.
+'''
+
 class PickledField(models.CharField):
     '''
 	A simple class that can be used to store settings in django db
@@ -41,3 +45,6 @@ class PickledField(models.CharField):
 	except:
 	    pass
 	return ''.join(value)
+
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([], ["^net\.aircable\.fields\.PickledField"])

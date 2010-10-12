@@ -150,6 +150,7 @@ INSTALLED_APPS = [
     'notification',
     'rosetta',
     'microblog',
+    'south',
     'openproximity',
 ]
 
@@ -157,8 +158,14 @@ SERIALIZATION_MODULES = {
     'json': 'wadofstuff.django.serializers.json'
 }
 
+# register our time zone aware user
+AUTH_PROFILE_MODULE = "openproximity.UserProfile"
+
 # load xml settings
 OPENPROXIMITY = XMLTool('/etc/openproximity2/settings.xml')
+
+# when logged in just send the user back to the main page
+LOGIN_REDIRECT_URL = "/"
 
 logger.info("starting up plugins")
 pluginsystem.find_plugins()

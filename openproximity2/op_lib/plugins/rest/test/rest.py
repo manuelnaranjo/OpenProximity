@@ -7,6 +7,11 @@ password='aircable'
 class RESTRequest(urllib2.Request):
     def __init__(self, method='GET', *args, **kwargs):
 	self._method=method
+	if not 'headers' in kwargs:
+	    kwargs['headers']={}
+	kwargs['headers']['Accept']='application/json'
+	if not getattr(kwargs['headers'], 'Content-type', None):
+	    kwargs['headers']['Content-type']='application/json'
         assert self._method in ['GET', 'POST', 'PUT', 'DELETE']
 	urllib2.Request.__init__(self, *args, **kwargs)
 
@@ -34,7 +39,18 @@ def login(url):
     # You must (of course) use it when fetching the page though.
 
 def __process(request):
-    return urllib2.urlopen(request).read()
+    try:
+	reply = urllib2.urlopen(request)
+	print "url", reply.headers.getheader('location', None)
+	return reply.read()
+    except urllib2.URLError, err:
+	if err.code == 404:
+	    return err.read()
+	import webbrowser
+	A = open("error.html", 'w')
+	A.write(err.read())
+	A.close()
+	webbrowser.open_new_tab("error.html")
 
 def list(url, klass):
     b = RESTRequest(url='%s/REST/%s/' % (url, klass))

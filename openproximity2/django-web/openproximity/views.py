@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
 #    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
@@ -36,7 +37,7 @@ from mimetypes import guess_type as guess_mime
 
 from models import *
 from forms import *
-import rpyc, os, time
+import rpyc, os, time, setup
 
 SET = settings.OPENPROXIMITY.getAllSettings()
 
@@ -222,6 +223,7 @@ def stats_restart(request):
         'openproximity_scannerbluetoothdongle',
         'openproximity_uploaderbluetoothdongle',
         'openproximity_generalsetting',
+        'openproximity_userprofile'
         ]
     model  = models.get_app('openproximity')
     drop = ""
@@ -263,7 +265,7 @@ def stats_restart(request):
             logger.exception(err)
 
     logger.info("calling syncdb")
-    management.call_command('syncdb')
+    management.call_command('syncdb', migrate_all=True)
     
     try:
         server=rpyc.connect('localhost', 8010)
@@ -345,6 +347,10 @@ def generate_stats():
     return stats
 
 def index(request):
+    # check if DB needs to be created
+    if not setup.db_ready():
+	return setup.index(request)
+
     # generate rpc information
     rpc = generate_rpc_information()
     
