@@ -18,6 +18,10 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # -*- coding: utf-8 -*-
+"""
+Helper classes for handling asynchronous SDP resolving and file uploading
+through OBEX.
+"""
 
 import dbus, sys, gobject, os
 from lxml import etree
@@ -67,6 +71,10 @@ def generate_arguments(*args, **kwargs):
     yield f
 
 class ServiceNotProvided(Exception):
+  '''
+  Exception used to tell the other end when a certain service is not provided by
+  the target.
+  '''
   path = None
 
   def __init__(self, path, *args, **kwargs):
@@ -77,6 +85,13 @@ class ServiceNotProvided(Exception):
     return "ServiceNotProvided(%s)" % self.path
 
 def property_changed_cb(name, value, path):
+    '''
+    Callback that will allow us to know when we get connected to the remote end.
+    This can be used to tell where in the process we loose connection. Some
+    devices don't correctly make a difference between a timeout and a rejected
+    so we can use a timer and this to know what happened (not really implemented
+    totally).
+    '''
     if name.lower() == "connected":
         if path in UploadTarget.targets:
            UploadTarget.targets[path].connected = bool(value)
@@ -102,16 +117,18 @@ class UploadTarget(object):
     connected = False
     reply_callback = None
     error_callback = None
+    loop = None
     
     #class variable
     targets = dict()
     listener = None
     
-    def __init__(self, dongle, target, bus):
+    def __init__(self, dongle, target, bus, loop=None):
         self.dongle = dongle
         self.target = target
         self.bus = bus
         self.state = IDLE
+        self.loop = loop
         self.target_path = "%s/dev_%s" % (
                                 self.dongle.object_path, 
                                 self.target.replace(":", "_")
@@ -345,6 +362,9 @@ gobject.signal_new(
 )
 
 def testSpawnApplication():
+    '''
+    A testing method for the spawn application class
+    '''
     def ProgramCompleted(sender, pid, retcode, stdout, stderr):
         import os
         print "ProgramCompleted", pid, retcode, len(stdout.split('\n'))
@@ -420,7 +440,7 @@ if __name__=='__main__':
 
     pending = list()
     for target in targets:
-        target = UploadTarget(adapter, target, bus)
+        target = UploadTarget(adapter, target, bus, loop=loop)
         target.ResolveChannel(OBEX_UUID, ChannelResolved, ServiceNotProvided)
         pending.append(target)
 
