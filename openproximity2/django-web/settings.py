@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #    OpenProximity2.0 is a proximity marketing OpenSource system.
 #    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
@@ -13,163 +14,37 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-# Django settings for openproximity2.0
-import os
-from net.aircable.openproximity.pluginsystem import pluginsystem
-from lxmltool import XMLTool
-from net.aircable.utils import logger
 
-DEBUG = False
-TEMPLATE_DEBUG = False
+from configglue.pyschema import SchemaConfigParser
+from django_configglue.utils import update_settings
+from functools import partial
+import schema, os
 
-ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
-)
-
-MANAGERS = ADMINS
-AIRCABLE_PATH = None
-
-# load settings from config file, do it the right way!
 OPENPROXIMITY_CONFIG_FILE=os.environ.get('OPENPROXIMITY_CONFIG_FILE', "/etc/openproximity2.conf")
 
-if os.path.isfile(OPENPROXIMITY_CONFIG_FILE):
-    for line in file(OPENPROXIMITY_CONFIG_FILE).readlines():
-        line=line.strip()
-        if len(line) == 0 or line.startswith("#"):
-            continue
-        key, val = line.split("=", 1)
-        try:
-            val = eval(val.strip())
-        
-            # hack it a bit!
-            if val=="yes":
-                val=True
-            elif val=="no":
-                val=False
-        except:
-            pass
-        locals()[key]=val
+# parse config files
+parser=SchemaConfigParser(schema.OpenProximitySchema())
+parser._interpolate = partial(schema._interpolate, parser)
+parser.read(['default.cfg', 'django.cfg', 'cherrypy.cfg', OPENPROXIMITY_CONFIG_FILE])
+update_settings(parser, locals())
 
-AIRCABLE_PATH=AIRCABLE_PATH or os.environ.get('AIRCABLE_PATH', '/tmp')
+# fix timeout in DATABASE_OPTIONS
+if 'timeout' in locals()['DATABASE_OPTIONS']:
+    locals()['DATABASE_OPTIONS']['timeout'] = float(locals()['DATABASE_OPTIONS']['timeout'])
 
-DATABASE_ENGINE = 'sqlite3'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = "%s/aircable.db" % AIRCABLE_PATH   # Or path to database file if using sqlite3.
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
-DATABASE_OPTIONS = {'timeout': 30}
+# keep a reference to the parser
+__CONFIGGLUE_PARSER__ = parser
 
-# Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
-if os.path.isfile('/etc/timezone'):
-    TIME_ZONE = file('/etc/timezone').readline().strip()
-else:
-    TIME_ZONE="America/Chicago"
-
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en'
-
-from gettext import gettext as _
-
-#LANGUAGES=(
-#    ('es', _('Spanish')),
-#    ('de', _('German')),
-#    ('en', _('English')),
-#)
-
-SITE_ID = 1
-
-# If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
-USE_I18N = True
-
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = '%s/aircable' % AIRCABLE_PATH
-
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash if there is a path component (optional in other cases).
-# Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = ''
-
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
-
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'c%-hx%#@jh4)_zlbqco+v9lm6s0xgi%)vzs-qrbkn)_#ef@7!h'
-
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
-    'django.template.loaders.eggs.load_template_source',
-)
-
-MIDDLEWARE_CLASSES = (
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-)
-
-ROOT_URLCONF = 'urls'
-
-my_path=os.path.dirname(__file__)
-
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(my_path, 'templates'),
-    os.path.join(my_path, 'bluez', 'templates'),
-    os.path.join(my_path, 'openproximity', 'templates'),
-)
-
-LOCALE_PATHS=(
-    os.path.join(my_path, 'locale'),
-    os.path.join(my_path, 'bluez', 'locale'),
-    os.path.join(my_path, 'openproximity', 'locale'),
-)
-
-INSTALLED_APPS = [
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.admin',
-    'django.contrib.admindocs',
-    'django.contrib.databrowse',
-    'django_cpserver',
-    'django_restapi',
-    'mailer',
-    'notification',
-    'rosetta',
-    'microblog',
-    'south',
-    'openproximity',
-]
-
-SERIALIZATION_MODULES = {
-    'json': 'wadofstuff.django.serializers.json'
-}
-
-# register our time zone aware user
-AUTH_PROFILE_MODULE = "openproximity.UserProfile"
+# keep loading modules
+from net.aircable.utils import logger
+from net.aircable.openproximity.pluginsystem import pluginsystem
+from lxmltool import XMLTool
 
 # load xml settings
 OPENPROXIMITY = XMLTool('/etc/openproximity2/settings.xml')
 
-# when logged in just send the user back to the main page
-LOGIN_REDIRECT_URL = "/"
-
 logger.info("starting up plugins")
-pluginsystem.find_plugins()
+pluginsystem.find_plugins(locals()['OP2_PLUGINS'])
 for plugin in pluginsystem.get_plugins('django'):
     if plugin.provides.get('TEMPLATE_DIRS', None) is not None :
         TEMPLATE_DIRS += ( os.path.join(plugin.path, plugin.provides['TEMPLATE_DIRS']), )

@@ -197,17 +197,18 @@ class PluginSystem(object):
 	try:
 	  if not egg_name in sys.path:
 	    sys.path.append(egg_name)
-	  self.load_info(egg_name, a.split('/')[0], egg=True)
-	  return
+	  return self.load_info(egg_name, a.split('/')[0], egg=True)
 	except Exception, err:
 	  logger.error("Failed to load info from egg file: %s" % egg_name)
 	  logger.exception(err)
     logger.info("no plugin in egg %s" % egg_name)
-
-  def find_plugins(self):
+    
+  def find_plugins(self, options):
     '''
     Init the plugin system, look for available plugins. This can only be done 
     once.
+    options is a dict holding the name for each plugin and a value, if value is
+    TRUE (default) then it will be enabled, otherwise plugin defaults are used
     '''
     if self.plugin_infos is not None:
       return
@@ -221,11 +222,24 @@ class PluginSystem(object):
 	  continue # __init__.py etc.
 	if entry.endswith('.py') or os.path.isdir( os.path.join(path, entry) ):
 	  try:
-	    self.load_info(path, entry.split('.')[0])
+	    plug = self.load_info(path, entry.split('.')[0])
 	  except Exception, err:
 	    logger.error("Failed to load info %s" % entry)
+	    continue
 	if entry.endswith('.egg'):
-	    self._find_plugins_for_egg(os.path.join(path, entry))
+	    plug = self._find_plugins_for_egg(os.path.join(path, entry))
+	    if not plug:
+	      continue
+
+	if options.__contains__(plug.name):
+	  logger.debug("found plugin in runtime settings")
+	  if not options[plug.name]:
+	    logger.debug("plugin disabled from settings!")
+	elif not plug.enabled:
+	  logger.debug("plugin disabled by default")
+	  continue
+
+	self.plugin_infos[plug.name] = plug
 
   def load_info(self, path, name, egg=False):
     '''
@@ -238,9 +252,8 @@ class PluginSystem(object):
       _name=name
     logger.info("Plugin: load_info %s" % name)
     plugin = Plugin(path, name, egg)
-    if plugin.enabled:
-      self.plugin_infos[name]=plugin
     logger.info("Plugin: %s ready" % _name)
+    return plugin
 
 
   def post_environ(self):

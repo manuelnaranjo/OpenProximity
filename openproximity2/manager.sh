@@ -15,4 +15,4 @@ OP2_VERSION=$(cat latest-version)
 export OP2_VERSION
 
 cd django-web
-python manage.py $@
+exec python manage.py $@
