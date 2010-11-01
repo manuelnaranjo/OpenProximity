@@ -146,6 +146,7 @@ INSTALLED_APPS = [
     'django.contrib.admindocs',
     'django.contrib.databrowse',
     'django_cpserver',
+    'django_restapi',
     'mailer',
     'notification',
     'rosetta',

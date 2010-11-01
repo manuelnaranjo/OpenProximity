@@ -16,7 +16,7 @@
 
 # A test plugin
 name='Test plugin'				# friendly name
-enabled=True                  	# disable me please
+enabled=False                  	# disable me please
 django=True                     # expose me as a django enabled plugin
 
 #post_environ=False				# something we have to handle once environ has been set

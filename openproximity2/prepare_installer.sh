@@ -203,6 +203,7 @@ cp "$CWD"/LICENSE .
 cp "$CWD"/manager.sh .
 cp -r "$CWD"/op_lib/net "$LIB_TARGET"
 cp -r "$CWD"/op_lib/plugins "$LIB_TARGET"
+cp -r "$CWD"/op_lib/django_restapi "$LIB_TARGET"
 cp "$CWD"/pair.sh .
 cp -r "$CWD"/remoteScanner .
 cp "$CWD"/remote_scanner.sh .
@@ -231,7 +232,7 @@ download_and_uncompress PyOFC2 0.1.1dev pyofc2 http://pypi.python.org/packages/s
 download_and_uncompress django-notification 0.1.5 notification http://pypi.python.org/packages/source/d/django-notification/
 download_and_uncompress django-mailer 0.1.0 mailer http://pypi.python.org/packages/source/d/django-mailer/
 download_jstree jstree v.0.9.9a2 http://jstree.googlecode.com/files jsTree
-svn_download django_restapi 81 http://django-rest-interface.googlecode.com/svn/trunk/ 81
+#svn_download django_restapi 81 http://django-rest-interface.googlecode.com/svn/trunk/ 81
 git_download timezones 2b903a38 git://github.com/brosner/django-timezones.git 2b903a38da1ff9df4b2aba8e4f5429d967f73881
 download_and_uncompress south 0.7.1 south http://www.aeracode.org/releases/south/
 
