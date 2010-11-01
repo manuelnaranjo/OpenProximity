@@ -3,3 +3,6 @@ RC1-bugfix:
     * Time filters are now timezone aware so they don't conflict with the server
       time filters are stored in GMT time. And then converted to user timezone
       when displaying
+    * Use configglue configurations
+    * Improved REST API now you get html descriptions for the API if enabled
+    * -1 fixed for rejected trials

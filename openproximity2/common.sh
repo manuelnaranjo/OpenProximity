@@ -11,23 +11,6 @@ for i in $( find $(pwd)/libs | grep egg ); do
     PYTHONPATH=$PYTHONPATH:$i
 done
 
-function syncdb(){
-    cd django-web
-    set -e
-    echo "Initializating DB"
-    LOG_FILE=$LOG_DIR/syncdb.log python manage.py syncdb --noinput
-    set +e
-    cd ..
-}
-
-function createadmin(){
-    cd django-web
-    set -e
-    LOG_FILE=$LOG_DIR/syncdb.log python createadmin.py
-    set +e
-    cd ..
-}
-
 function work(){
     while [ 1 ]; do
 	python "$@" &>/dev/null
