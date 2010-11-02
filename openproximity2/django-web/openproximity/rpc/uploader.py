@@ -25,8 +25,6 @@ from common import get_uploader, do_upload, is_known_dongle, isAIRcable
 
 import traceback
 
-SET = settings.OPENPROXIMITY
-
 def handle(services, signal, uploader, *args, **kwargs):
     logger.info("uploader signal: %s" % signals.TEXT[signal])
     logl = LogLine()
@@ -86,17 +84,17 @@ def get_dongles(dongles):
             if not is_known_dongle(address, UploaderBluetoothDongle) and \
                                                             isAIRcable(address):
                 logger.info('not known uploader %s' % address)
-                settings = SET.getSettingsByAddress(address)
-                if not 'uploader' in settings:
+                setting = settings.getUploaderDongle(address)
+                if setting:
                    logger.info('no settings for uploaders')
                    continue
-                    
+
                 logger.info('default settings where found')
-                logger.debug(settings['uploader'])
-                max_conn = settings['uploader'].get('max_conn', 1)
-                enabled = settings['uploader'].get('enable', True)
-                name = settings['uploader'].get('name', _("Autodiscovered Bluetooth dongle"))
-                    
+                logger.debug(setting)
+                max_conn = setting.get('value', 1)
+                enabled = setting.get('enable', True)
+                name = setting.get('name', _("Autodiscovered Bluetooth dongle"))
+
                 UploaderBluetoothDongle.objects.get_or_create(address=address, 
                     defaults={
                         'name': name,

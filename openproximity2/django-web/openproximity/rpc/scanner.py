@@ -25,8 +25,6 @@ from common import found_action, is_known_dongle
 
 import time
 
-SET = settings.OPENPROXIMITY
-
 def handle(services, signal, scanner, *args, **kwargs):
     logger.info("scanner signal: %s" % signals.TEXT[signal])
     logl = LogLine()
@@ -76,9 +74,9 @@ def started(scanner, address):
 def get_dongles(dongles):
     def create_new_discovered_dongle(address, settings):
         logger.info("going to setup as scanner")
-        priority = settings['scanner'].get('priority', 1)
-        enabled = settings['scanner'].get('enable', True)
-        name = settings['scanner'].get('name', _("Auto Discovered Dongle"))
+        priority = settings.get('value', 1)
+        enabled = settings.get('enable', True)
+        name = settings.get('name', _("Auto Discovered Dongle"))
         obj, created = ScannerBluetoothDongle.objects.get_or_create(
             address=address, 
             defaults={
@@ -107,9 +105,9 @@ def get_dongles(dongles):
         try:
             if not is_known_dongle(address, ScannerBluetoothDongle):
                 logger.info("dongle not known yet %s" % address)
-                settings = SET.getSettingsByAddress(address)
-                if 'scanner' in settings:
-                    create_new_discovered_dongle(address, settings)
+                setting = settings.getScannerDongle(address)
+                if setting:
+                    create_new_discovered_dongle(address, setting)
             out.extend(internal_get_dongles(address))
         except Exception, err:
             logger.exception(err)
