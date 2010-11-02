@@ -39,8 +39,6 @@ from models import *
 from forms import *
 import rpyc, os, time, setup
 
-SET = settings.OPENPROXIMITY.getAllSettings()
-
 def add_record_accepted(request):    
     return HttpResponse('Recorded\n')
 

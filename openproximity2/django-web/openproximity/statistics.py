@@ -34,5 +34,3 @@ from models import *
 from forms import *
 import rpyc, os
 
-SET = settings.OPENPROXIMITY.getAllSettings()
-
