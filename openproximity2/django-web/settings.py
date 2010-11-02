@@ -38,10 +38,6 @@ __CONFIGGLUE_PARSER__ = parser
 # keep loading modules
 from net.aircable.utils import logger
 from net.aircable.openproximity.pluginsystem import pluginsystem
-from lxmltool import XMLTool
-
-# load xml settings
-OPENPROXIMITY = XMLTool('/etc/openproximity2/settings.xml')
 
 logger.info("starting up plugins")
 pluginsystem.find_plugins(locals()['OP2_PLUGINS'])

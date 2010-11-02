@@ -39,8 +39,6 @@ from models import *
 from forms import *
 import rpyc, os, time
 
-SET = settings.OPENPROXIMITY.getAllSettings()
-
 from django import forms
 from timezones.forms import TimeZoneField
 from timezones import zones
@@ -107,6 +105,7 @@ def db_ready():
 def CreateDB():
     from django.core import management
     import rpyc
+    os.system('mkdir -p %s' % settings.AIRCABLE_PATH)
     try:
         server=rpyc.connect('localhost', 8010)
         server.root.Lock()
@@ -137,10 +136,21 @@ def CreateAdmin(username, password, email, time_zone):
     profile.timezone = time_zone
     profile.save()
 
+def CreateSecretKey():
+    from random import choice, seed
+    seed()
+    key = ''.join([choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for i in range(50)])
+    A=open(settings.OPENPROXIMITY_CONFIG_FILE, 'a+')
+    A.write('[django]\n')
+    A.write('secret_key=%s\n' % key)
+    A.write('\n')
+    A.close()
+
 def index(request):
     if request.method == 'POST':
 	form = UserForm(request.POST)
 	if form.is_valid():
+    	    CreateSecretKey()
 	    CreateDB()
 	    CreateAdmin( 
 		form.cleaned_data['username'],

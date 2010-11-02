@@ -6,3 +6,4 @@ RC1-bugfix:
     * Use configglue configurations
     * Improved REST API now you get html descriptions for the API if enabled
     * -1 fixed for rejected trials
+    * Deprecated lxmltool, all settings are now stored into text files (no more xml!)
