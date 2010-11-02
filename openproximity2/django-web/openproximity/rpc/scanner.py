@@ -105,7 +105,7 @@ def get_dongles(dongles):
         try:
             if not is_known_dongle(address, ScannerBluetoothDongle):
                 logger.info("dongle not known yet %s" % address)
-                setting = settings.getScannerDongle(address)
+                setting = settings.GETSCANNERDONGLE(address)
                 if setting:
                     create_new_discovered_dongle(address, setting)
             out.extend(internal_get_dongles(address))

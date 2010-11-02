@@ -27,18 +27,3 @@ if [ ! -d $LOG_DIR ]; then
     mkdir -p $LOG_DIR
 fi
 
-AIRCABLE_PATH="/tmp"
-TIMEOUT="20"
-MEDIA_ROOT=/tmp/aircable/media
-
-if [ -f /etc/openproximity2.conf ]; then
-    source /etc/openproximity2.conf
-fi
-
-export AIRCABLE_PATH
-mkdir -p $AIRCABLE_PATH
-
-if [ -z "$MEDIA_ROOT" ]; then
-    MEDIA_ROOT=$AIRCABLE_PATH/media
-fi
-export MEDIA_ROOT

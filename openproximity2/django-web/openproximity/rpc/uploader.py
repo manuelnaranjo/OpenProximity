@@ -84,8 +84,8 @@ def get_dongles(dongles):
             if not is_known_dongle(address, UploaderBluetoothDongle) and \
                                                             isAIRcable(address):
                 logger.info('not known uploader %s' % address)
-                setting = settings.getUploaderDongle(address)
-                if setting:
+                setting = settings.GETUPLOADERDONGLE(address)
+                if not setting:
                    logger.info('no settings for uploaders')
                    continue
 
@@ -140,11 +140,12 @@ def handle_sdp_timeout(dongle, remote, pending):
 def handle_file_uploaded(dongle, remote, pending, channel, files):
     logger.info("files uploaded: %s[%s]: %s" % ( remote, channel, files) )
     pending.pop(remote)
-    record = RemoteBluetoothDeviceFilesSuccess()
-    record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
-    record.campaign = get_campaign_rule(files)
-    record.setRemoteDevice(remote)
-    record.save()
+    for camp in get_campaign_rule(files):
+	record = RemoteBluetoothDeviceFilesSuccess()
+	record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
+	record.campaign = camp
+	record.setRemoteDevice(remote)
+	record.save()
 
 def handle_file_failed(dongle, remote, pending, channel, files, ret, err, services):
     logger.info("handle file failed %s[%s]: %s" % (remote, channel, files))

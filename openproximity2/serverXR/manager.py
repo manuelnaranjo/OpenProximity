@@ -205,11 +205,14 @@ if __name__ == '__main__':
     if autoreload.isParent() and len(sys.argv) < 4:
         print "usage: %s server-ip port type" % sys.argv[0]
         sys.exit(0)
-    
+
+    from django.core.management import execute_manager, setup_environ
+    import settings
+    setup_environ(settings)
+
     # get a list of valid modes
     valid_modes=['scanner', 'uploader']
 
-    pluginsystem.find_plugins()
     valid_modes.extend(
         [ i.provides['serverxr_type'] 
             for i in pluginsystem.get_plugins('serverxr') ] )

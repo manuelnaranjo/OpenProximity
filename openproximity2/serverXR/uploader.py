@@ -329,6 +329,8 @@ class UploadManager:
     			break
 
     	    if not dongle:
+    		if self.__index is None:
+    		    self.__index = 0
         	dongle=self.__sequence[self.__index]
             uuid = const.UUID[service]
 

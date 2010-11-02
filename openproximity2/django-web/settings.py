@@ -65,8 +65,11 @@ def __get_match_dongle(options, address):
 
     address = address.lower().strip()
     for rang, val, enable, name in options:
-	if address.startswith(rang.lower().strip()):
-	    return { 'enable': __parse(enable, bool), 'value': __parse(val), 'name': __parse(name) }
+	rang = rang.lower().strip()
 
-getScannerDongle=partial(__get_match_dongle, locals()['OP2_SCANNERS'])
-getUploaderDongle=partial(__get_match_dongle, locals()['OP2_UPLOADERS'])
+	if address.startswith(rang):
+	    out = { 'enable': __parse(enable, bool), 'value': __parse(val), 'name': __parse(name, str) }
+	    return out
+
+GETSCANNERDONGLE=partial(__get_match_dongle, locals()['OP2_SCANNERS'])
+GETUPLOADERDONGLE=partial(__get_match_dongle, locals()['OP2_UPLOADERS'])

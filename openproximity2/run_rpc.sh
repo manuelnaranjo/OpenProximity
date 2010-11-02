@@ -11,6 +11,9 @@ source common.sh
 
 echo "Starting RPC $1 Client"
 
+PYTHONPATH=$PYTHONPATH:$CWD/django-web
+export PYTHONPATH
+
 if [ -z "$DEBUG" ]; then
     LOG_FILE=$LOG_DIR/$1.log
     export LOG_FILE
