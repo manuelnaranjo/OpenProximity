@@ -19,8 +19,6 @@ from django import template
 from django.conf import settings
 from net.aircable.openproximity.pluginsystem import pluginsystem
 
-SET = settings.OPENPROXIMITY.getAllSettings()
-
 register=template.Library()
 
 def do_settings(parser, token):
@@ -28,7 +26,11 @@ def do_settings(parser, token):
 
 class SettingsNode(template.Node):
     def render(self, context):
-        context['settings'] = SET
+        context['settings'] = {
+    	    'logo': settings.OP2_LOGO,
+    	    'debug': settings.OP2_DEBUG,
+    	    'translate': settings.OP2_TRANSLATE,
+        }
 	return ''
 
 register.tag('settings', do_settings)
