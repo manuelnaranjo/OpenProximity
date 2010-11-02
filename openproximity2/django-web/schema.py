@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import django, os
 from configglue.pyschema import ( ConfigSection, StringConfigOption,
-	IntConfigOption, BoolConfigOption, DictConfigOption )
+	IntConfigOption, BoolConfigOption, DictConfigOption, LinesConfigOption,
+	TupleConfigOption )
 from django_configglue.schema import Django112Schema
 from ConfigParser import MAX_INTERPOLATION_DEPTH
 
@@ -42,8 +43,18 @@ class OpenProximitySchema(Django112Schema):
     openproximity = ConfigSection('openproximity')
     openproximity.aircable_path = StringConfigOption( default='/tmp/aircable',
 	help = 'Path were we store the database file (if using sqlite) and storing files for campaigns etc')
+    openproximity.op2_debug = BoolConfigOption(default=True,
+	help = 'Disable if you want to hide the "Databrowse" tab')
+    openproximity.op2_translate = BoolConfigOption(default=True,
+	help = 'Disable if you want to hide the "Translate" tab')
+    openproximity.op2_logo = StringConfigOption(default='logo.gif',
+	help = 'Logo to display instead of AIRcable logo')
     openproximity.op2_plugins = DictConfigOption(item=BoolConfigOption(),
 	help="""A list of plugins name with they're enable/disable state overrides plugins defaults)""")
+    openproximity.op2_scanners = LinesConfigOption( item=TupleConfigOption(4),
+	help="""A list of ([MAC filter], scanner priority) for dongle configuration on initial discovery""")
+    openproximity.op2_uploaders = LinesConfigOption( item=TupleConfigOption(4),
+	help="""A list of ([MAC filter], max connections) for dongle configuration on initial discovery""")
 
     ################################################
     # cherrypy settings

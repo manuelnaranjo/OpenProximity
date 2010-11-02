@@ -60,3 +60,17 @@ for plugin in pluginsystem.get_plugins('plugin_provider'):
 
 logger.info("plugin system initied")
 logger.info("settings.py loaded")
+
+def __get_match_dongle(options, address):
+    def __parse(option, typ=int):
+	if len(option.strip()) == 0:
+	    return None
+	return typ(option)
+
+    address = address.lower().strip()
+    for rang, val, enable, name in options:
+	if address.startswith(rang.lower().strip()):
+	    return { 'enable': __parse(enable, bool), 'value': __parse(val), 'name': __parse(name) }
+
+getScannerDongle=partial(__get_match_dongle, locals()['OP2_SCANNERS'])
+getUploaderDongle=partial(__get_match_dongle, locals()['OP2_UPLOADERS'])
