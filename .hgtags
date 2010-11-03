@@ -1,3 +1,4 @@
 4a14706822e3491500a6b5b9b5c1182d31f2c3c2 initial
 0fbdbdedd3f0834a031b612b070bbeb24f597827 added-configglue
 7a4e5de6b4690729c4141fbdf42609084442d283 announce email
+a94c210ca21d6e2ec7a8d4f20fee57dd8aa9eddb moved rpc into a management command
