@@ -66,8 +66,8 @@
 	    var old_body=$('known').getElementsByTagName('tbody')[0];
 	    var new_body=TBODY();
 
-	    for (var addr in dongles){
-		var val = dongles[addr];
+	    for (var i = 0; i<dongles.length; i++){
+		var val = dongles[i];
 		var tr = TR({ 
 		    'class': 'rpc_dongles', 
 		    'id': "rpc_dongles_"+val.address
