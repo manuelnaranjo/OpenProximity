@@ -47,6 +47,8 @@ class OpenProximitySchema(Django112Schema):
 	help = 'Disable if you want to hide the "Databrowse" tab')
     openproximity.op2_translate = BoolConfigOption(default=True,
 	help = 'Disable if you want to hide the "Translate" tab')
+    openproximity.op2_twitter = BoolConfigOption(default=True,
+	help = 'Disable if you want to hide the Twitter news client')
     openproximity.op2_logo = StringConfigOption(default='logo.gif',
 	help = 'Logo to display instead of AIRcable logo')
     openproximity.op2_plugins = DictConfigOption(item=BoolConfigOption(),

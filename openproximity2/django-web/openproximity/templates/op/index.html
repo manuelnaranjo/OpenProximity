@@ -1,6 +1,8 @@
 {% extends "op/base.html" %}
 
 {% load i18n microblog %}
+{% load openproximity %}
+{% settings %}
 
 {% block extrahead %}
 <script type="text/javascript">
@@ -158,12 +160,13 @@ addLoadEvent(check_version);
 	</div>
 	<div style="width: 49%; float:right;">
 	    <fieldset style="margin: 0px; padding: 0px; border: none">
-	    <div class="log content-main" style="float:left; width: 70%">
+	    <div class="log content-main" style="float:left; width: {% if settings.twitter %}70%{% else %}100%{% endif %}">
 		<div class="inner">
 		    <h1>{% trans "Server Log" %}</h1>
 		    <div id="messages"></div>
 		</div>
 	    </div>
+	    {% if settings.twitter %}
 	    <div  style="float:right; width: 29%">
 	      <script src="http://widgets.twimg.com/j/2/widget.js"></script>
 	      <script>
@@ -186,6 +189,7 @@ addLoadEvent(check_version);
 	      }).render().setUser('aircable_manuel').start();
 	      </script>
 	    </div>
+	    {% endif %}
 	    </fieldset>
 	</div>
 

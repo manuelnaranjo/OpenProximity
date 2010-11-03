@@ -30,6 +30,7 @@ class SettingsNode(template.Node):
     	    'logo': settings.OP2_LOGO,
     	    'debug': settings.OP2_DEBUG,
     	    'translate': settings.OP2_TRANSLATE,
+    	    'twitter': settings.OP2_TWITTER,
         }
 	return ''
 
