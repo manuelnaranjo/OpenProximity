@@ -82,6 +82,27 @@ class OpenProximitySchema(Django112Schema):
     cherrypy.cp_server_group = StringConfigOption(default='www-data',
 					    help="group to daemonized process")
 
+    ################################################
+    # rpyc settings
+    ################################################
+    rpyc = ConfigSection('rpyc')
+    rpyc.rpc_host = StringConfigOption(default="localhost",
+						  help='hostname to listen on')
+    rpyc.rpc_port = IntConfigOption(default=8010, help='port to listen on')
+    rpyc.rpc_daemonize = BoolConfigOption(default = False,
+					help='whether to detach from terminal')
+    rpyc.rpc_threaded = BoolConfigOption(default = True,
+				    help='run in threaded way instead of forked')
+    rpyc.rpc_autoregister = BoolConfigOption(default = False,
+				help='try registering the server in name servers')
+    rpyc.rpc_pidfile = StringConfigOption(default=None,
+			      help="write the spawned process-id to this file")
+    rpyc.rpc_server_user = StringConfigOption(default='www-data',
+					  help="user to run daemonized process")
+    rpyc.rpc_server_group = StringConfigOption(default='www-data',
+					    help="group to daemonized process")
+
+
 if os.path.isfile('/etc/timezone'):
     OpenProximitySchema.django.time_zone.default = file('/etc/timezone').readline().strip()
 

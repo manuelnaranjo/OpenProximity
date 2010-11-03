@@ -17,35 +17,14 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import gc
-#gc.set_debug(gc.DEBUG_STATS)
-
 from net.aircable.utils import logger, logmain
-
-if __name__ == '__main__':
-    logmain('rpc.py')
-
-# setup Django ORM
-try:
-    import settings # Assumed to be in the same directory.
-    setattr(settings, "DEBUG", False)
-    logger.info("RPC-DEBUG %s" % getattr(settings, "DEBUG"))
-    from django.core.management import setup_environ
-    setup_environ(settings)
-except ImportError:
-    logger.error("Error: Can't find the file 'settings.py' in the directory containing %r. It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n(If the file settings.py does indeed exist, it's causing an ImportError somehow.)\n" % __file__)
-    sys.exit(1)
-
 from net.aircable.openproximity.pluginsystem import pluginsystem
-pluginsystem.post_environ()
-
-# now we can safely import the rest
 import net.aircable.openproximity.signals as signals
-import openproximity.rpc as rpc
-import openproximity.rpc.scanner, openproximity.rpc.uploader
+import scanner, uploader
 import threading, time, traceback, sys
 
-from django.db import transaction, models, close_connection, reset_queries
-from openproximity.models import CampaignFile, Setting, getMatchingCampaigns, RemoteDevice
+from django.db import transaction, close_connection, reset_queries
+from openproximity.models import CampaignFile, getMatchingCampaigns, RemoteDevice
 from rpyc import Service, async
 from rpyc.utils.server import ThreadedServer, ForkingServer
 
@@ -112,9 +91,9 @@ class OpenProximityService(Service):
 
             try:        
                 if signals.isScannerSignal(signal):
-                    rpc.scanner.handle(services, signal, self, *args, **kwargs)
+                    scanner.handle(services, signal, self, *args, **kwargs)
                 elif signals.isUploaderSignal(signal):
-                    rpc.uploader.handle(services, signal, self, *args, **kwargs)
+                    uploader.handle(services, signal, self, *args, **kwargs)
                 transaction.commit() # commit only after scanner and upload has done it's work
             except Exception, err:
                 logger.error("rpc listener while doing scanner or uploader")
@@ -180,16 +159,9 @@ class OpenProximityService(Service):
             for dongle in dongles:
                 self.dongles.add( str(dongle), )
 
-            for dongle, priority, name in rpc.scanner.get_dongles(dongles): # local
+            for dongle, priority, name in scanner.get_dongles(dongles): # local
                 logger.info("%s: %s [%s]" % (dongle, name, priority) )
                 self.add_dongle(dongle, priority, name)
-
-            (setting, created) = Setting.objects.get_or_create(name="scanner-concurrent") # local
-
-            concurrent = (created == False and setting.value)
-
-            logger.info("Concurrent setting %s" % concurrent)
-            self.scanner.setConcurrent(concurrent)
             self.refreshScanners()
 
         def exposed_uploader_register(self, client = None,
@@ -215,7 +187,7 @@ class OpenProximityService(Service):
             for dongle in dongles:
                 self.dongles.add( str(dongle), )
 
-            for dongle, max_conn, name in rpc.uploader.get_dongles(dongles):
+            for dongle, max_conn, name in uploader.get_dongles(dongles):
                 logger.info("%s: %s[%s]" % (dongle, name, max_conn))
                 self.add_dongle(dongle, max_conn, name)
             self.refreshUploaders()
@@ -269,7 +241,7 @@ class OpenProximityService(Service):
             global enabled
             enabled = True
             self.exit(False)
-            
+
         def exposed_getPIN(self, remote, local):
             logger.info("getPIN request for %s->%s" % (local, remote) )
             remote = RemoteDevice.getRemoteDevice(address=remote)
@@ -283,15 +255,5 @@ class OpenProximityService(Service):
                 logger.error(err)
                 logger.exception(err)
             logger.info("No pin code")
-            
+
             raise Exception("No pin code found")
-
-def run():
-    server=ThreadedServer(OpenProximityService, '0.0.0.0', 
-                port=8010, auto_register=False)
-    server.start()
-            
-if __name__ == "__main__":
-    from net.aircable import autoreload
-
-    autoreload.main(run)

@@ -25,7 +25,7 @@ OPENPROXIMITY_CONFIG_FILE=os.environ.get('OPENPROXIMITY_CONFIG_FILE', "/etc/open
 # parse config files
 parser=SchemaConfigParser(schema.OpenProximitySchema())
 parser._interpolate = partial(schema._interpolate, parser)
-parser.read(['default.cfg', 'django.cfg', 'cherrypy.cfg', OPENPROXIMITY_CONFIG_FILE])
+parser.read(['default.cfg', 'django.cfg', 'cherrypy.cfg', 'rpyc.cfg', OPENPROXIMITY_CONFIG_FILE])
 update_settings(parser, locals())
 
 # fix timeout in DATABASE_OPTIONS

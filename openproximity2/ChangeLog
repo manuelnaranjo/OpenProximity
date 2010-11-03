@@ -9,3 +9,4 @@ RC1-bugfix:
     * Deprecated lxmltool, all settings are now stored into text files (no more xml!)
     * Fixed multiple campaigns bug where more than 1 campaign running in parallel 
       wasn't been correctly ACKED
+    * Made rpyc server a django management command
