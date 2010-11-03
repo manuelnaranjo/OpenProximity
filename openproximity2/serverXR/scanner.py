@@ -187,19 +187,8 @@ class ScanManager:
     
     pending = None
     # list of pending scanners to complete the process for concurrent mode.
-
-    def __init__(self, bus, listener=None, rpc=None):
-        logger.debug("ScanManager created")
-        self.bus = bus
-        self.manager = dbus.Interface(
-                                bus.get_object(const.BLUEZ, const.BLUEZ_PATH), 
-                                const.BLUEZ_MANAGER
-        )
-        if listener is not None:
-            for x in listener:
-                self.exposed_addListener(x)
-        self.exposed_refreshScanners()
-        
+    
+    def addBlueZSignalHandlers(self):
         # Subscribe to signals
         self.bus.add_signal_receiver(
             self.device_found, # callback
@@ -214,7 +203,8 @@ class ScanManager:
             'org.bluez.Adapter', # interface name
             'org.bluez', # sender bus name
             path_keyword='path') #
-            
+
+    def addRemoteScannerSignalHandlers(self):
         # call back for remote scanner
         self.bus.add_signal_receiver(
             self.property_changed, # callback
@@ -229,6 +219,28 @@ class ScanManager:
             dbus_interface=remotescanner_url, # interface name
             path_keyword='path'
             )
+
+
+    def __init__(self, bus, listener=None, rpc=None):
+        logger.debug("ScanManager created")
+        self.bus = bus
+        self.manager = dbus.Interface(
+                                bus.get_object(const.BLUEZ, const.BLUEZ_PATH), 
+                                const.BLUEZ_MANAGER
+        )
+        if listener is not None:
+            for x in listener:
+                self.exposed_addListener(x)
+        self.exposed_refreshScanners()
+        
+        self.addBlueZSignalHandlers() # if this fails we're dead
+        
+        try:
+	    self.addRemoteScannerSignalHandlers() 
+	    # this may fail and we don't care
+        except:
+    	    pass
+        
         self.rpc = rpc
         if self.rpc:
             self.remote_listener=rpyc.async(self.rpc.root.listener)
@@ -254,9 +266,13 @@ class ScanManager:
                 except Exception, err:
                     print err
                     print "trying with a remote scanner"
-                    adapter = RemoteScanAdapter(self.scanners[i][0], 
-                    local=self.scanners[i][1], address=i, 
-                    bus=self.bus, scanner_manager=self)
+                    try:
+                	adapter = RemoteScanAdapter(self.scanners[i][0], 
+                	    local=self.scanners[i][1], address=i, 
+                	    bus=self.bus, scanner_manager=self)
+            	    except Exception, err2:
+            		logger.error(err2)
+            		continue
                 
                 self.__dongles[i] = adapter
         
