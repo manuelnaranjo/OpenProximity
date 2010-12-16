@@ -1,0 +1,7 @@
+<uwsgi>
+    <pythonpath>/opt/openproximity2/django-web</pythonpath>
+    <pythonpath>/opt/openproximity2/libs</pythonpath>
+    <app mountpoint="/">
+        <script>django_wsgi</script>
+    </app>
+</uwsgi>
