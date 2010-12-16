@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import threading, time, traceback, sys
+import threading, time, traceback, sys, os
 from openproximity.rpc import server
 from rpyc import Service, async
 from rpyc.utils.server import ThreadedServer, ForkingServer
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from optparse import make_option, OptionParser
+from configglue.pyschema import schemaconfigglue
+
 
 SERVER_OPTIONS = {
     'host': settings.RPC_HOST,
@@ -25,15 +28,25 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         from django.conf import settings
         from django.utils import translation
-        # Activate the current language, because it won't get activated later.
-        try:
-            translation.activate(settings.LANGUAGE_CODE)
-        except AttributeError:
-            pass
         runserver(args)
 
     def usage(self, subcommand):
         return self.help
+
+    def create_parser(self, prog_name, subcommand):
+        """
+        Add all our SchemaConfigParser's options so they can be shown
+        in help messages and such.
+        """
+        print prog_name, subcommand
+	parser = OptionParser(prog=prog_name,
+	    usage=self.usage(subcommand),
+	    version=self.get_version(),
+	    option_list=self.option_list)
+
+	configglue_parser = settings.__CONFIGGLUE_PARSER__
+	op, options, args = schemaconfigglue(configglue_parser, op=parser)
+	return op
 
 def change_uid_gid(uid, gid=None):
     """Try to change UID and GID to the provided values.
