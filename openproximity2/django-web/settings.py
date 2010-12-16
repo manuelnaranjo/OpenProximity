@@ -15,17 +15,27 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import sys, os
+__PATH=os.path.dirname(os.path.abspath(__file__))
+__ROOT=os.path.dirname(__PATH)
+__LIBS=os.path.join(__ROOT, 'libs')
+sys.path.insert(1,__LIBS)
+
 from configglue.pyschema import SchemaConfigParser
 from django_configglue.utils import update_settings
 from functools import partial
-import schema, os
+import schema
 
 OPENPROXIMITY_CONFIG_FILE=os.environ.get('OPENPROXIMITY_CONFIG_FILE', "/etc/openproximity2.conf")
 
 # parse config files
 parser=SchemaConfigParser(schema.OpenProximitySchema())
 parser._interpolate = partial(schema._interpolate, parser)
-parser.read(['default.cfg', 'django.cfg', 'cherrypy.cfg', 'rpyc.cfg', OPENPROXIMITY_CONFIG_FILE])
+parser.read([ os.path.join(__PATH, 'default.cfg'),
+	os.path.join(__PATH, 'django.cfg'),
+	os.path.join(__PATH, 'cherrypy.cfg'),
+	os.path.join(__PATH, 'rpyc.cfg'),
+	OPENPROXIMITY_CONFIG_FILE])
 update_settings(parser, locals())
 
 # fix timeout in DATABASE_OPTIONS
@@ -35,27 +45,20 @@ if 'timeout' in locals()['DATABASE_OPTIONS']:
 # keep a reference to the parser
 __CONFIGGLUE_PARSER__ = parser
 
-# keep loading modules
-from net.aircable.utils import logger
 from net.aircable.openproximity.pluginsystem import pluginsystem
-
-logger.info("starting up plugins")
 pluginsystem.find_plugins(locals()['OP2_PLUGINS'])
-for plugin in pluginsystem.get_plugins('django'):
-    if plugin.provides.get('TEMPLATE_DIRS', None) is not None :
-        TEMPLATE_DIRS += ( os.path.join(plugin.path, plugin.provides['TEMPLATE_DIRS']), )
-    if plugin.provides.get('LOCALE_PATHS', None) is not None:
-        LOCALE_PATHS += ( os.path.join(plugin.path, plugin.provides['LOCALE_PATHS']), )
-    if plugin.provides.get('django_app', False):
-        INSTALLED_APPS += (plugin.name,)
 
-logger.info("starting up plugin providers")
-for plugin in pluginsystem.get_plugins('plugin_provider'):
-    for plug in pluginsystem.get_plugins(plugin.provides['plugin_provider_name']):
-        INSTALLED_APPS += (plug.name, )
+import plug
+for k in dir(plug):
+    if not k.isupper():
+	continue
+    locals()[k].extend(getattr(plug, k))
+    orig=parser.get('django', k.lower())
+    orig.extend(getattr(plug, k))
+    parser.set('django', k.lower(), orig)
 
-logger.info("plugin system initied")
-logger.info("settings.py loaded")
+# make sure we don't get loaded again!
+sys.modules['django-web.settings'] = sys.modules['settings']
 
 def __get_match_dongle(options, address):
     def __parse(option, typ=int):
