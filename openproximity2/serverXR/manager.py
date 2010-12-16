@@ -201,11 +201,6 @@ def run(server_, port, type_):
     autoreload.RELOAD = True
 
 if __name__ == '__main__':
-    # setup autoreload
-    if autoreload.isParent() and len(sys.argv) < 4:
-        print "usage: %s server-ip port type" % sys.argv[0]
-        sys.exit(0)
-
     from django.core.management import execute_manager, setup_environ
     import settings
     setup_environ(settings)
@@ -221,6 +216,4 @@ if __name__ == '__main__':
         print "not valid type, you can use any of", valid_modes
         sys.exit(0)
 
-    # register for autoreload
-    autoreload.main(run, tuple(sys.argv[1:4]),{})
-
+    run(*sys.argv[1:4])
