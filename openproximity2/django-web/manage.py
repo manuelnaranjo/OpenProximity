@@ -15,28 +15,24 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from net.aircable.utils import logger, logmain
-
-if __name__ == '__main__':
-    logmain("manage")
-    
-from django.core.management import execute_manager, setup_environ
 try:
     import settings # Assumed to be in the same directory.
-    setup_environ(settings)
 except ImportError, e:
     import sys, traceback
-    logger.error("Error: Can't find the file 'settings.py' in the directory "
-            "containing %r. It appears you've customized things.\nYou'll have "
-            "to run django-admin.py, passing it your settings module.\n(If the "
-            "file settings.py does indeed exist, it's causing an ImportError "
-            "somehow.)\n" % __file__)
-    logger.exception(e)
+    print "Error: Can't find the file 'settings.py' in the directory",
+    print "containing %r. It appears you've customized things.\nYou'll have" % __file__,
+    print "to run django-admin.py, passing it your settings module.\n(If the",
+    print "file settings.py does indeed exist, it's causing an ImportError",
+    print "somehow.)""" 
+    print traceback.print_exc()
     sys.exit(1)
+
+from django.core.management import execute_from_command_line, setup_environ
+setup_environ(settings)
 
 from net.aircable.openproximity.pluginsystem import pluginsystem
 pluginsystem.post_environ()
 
 if __name__ == "__main__":
-    execute_manager(settings)
-    
+    from django.conf import settings as set
+    execute_from_command_line()
