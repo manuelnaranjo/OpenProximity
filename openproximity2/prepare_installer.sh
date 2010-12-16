@@ -236,6 +236,7 @@ download_jstree jstree v.0.9.9a2 http://jstree.googlecode.com/files jsTree
 #svn_download django_restapi 81 http://django-rest-interface.googlecode.com/svn/trunk/ 81
 git_download timezones 2b903a38 git://github.com/brosner/django-timezones.git 2b903a38da1ff9df4b2aba8e4f5429d967f73881
 download_and_uncompress south 0.7.1 south http://www.aeracode.org/releases/south/
+download_and_uncompress configglue 0.9pre1 configglue http://launchpad.net/configglue/trunk/0.9pre1/+download/
 
 #some ideas on a WYSIWYG template editor
 #download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/
