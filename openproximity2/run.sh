@@ -20,9 +20,6 @@ fi
 . rpc.sh
 cd $CWD
 
-. server.sh
-cd $CWD
-
 # wait until rpc is ready
 sleep 5
 
