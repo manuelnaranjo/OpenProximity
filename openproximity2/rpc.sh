@@ -16,7 +16,7 @@ cd django-web
 echo "Starting RPyC server"
 
 if [ -z "$DEBUG" ]; then
-    exec python manage.py rpc --traceback -v 2 $@ 2>&1 1>$LOG_FILE
+    exec python manage.py rpc --django_debug=True --rpyc_rpc_daemonize=True --traceback -v 2
 else
     export DEBUG
     exec python manage.py rpc --django_debug=True --rpyc_rpc_daemonize=False --traceback -v 2 $@
