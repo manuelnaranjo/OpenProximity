@@ -7,7 +7,7 @@ PYTHONPATH=$(pwd)/libs:/usr/lib/openproximity:~/.openproximity2
 LOG_DIR=/var/log/aircable
 export PYTHONPATH
 
-for i in $( find $(pwd)/libs | grep egg ); do
+for i in $( find $(pwd)/libs -iname *.egg ); do
     PYTHONPATH=$PYTHONPATH:$i
 done
 
