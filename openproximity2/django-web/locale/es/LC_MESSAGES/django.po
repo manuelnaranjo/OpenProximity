@@ -5,6 +5,7 @@
 # 
 msgid ""
 msgstr ""
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-12-06 13:23-0300\n"
