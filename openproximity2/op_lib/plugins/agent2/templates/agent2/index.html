@@ -1,0 +1,57 @@
+{% extends "agent2/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="content-main">
+    {% if agent2_settings.server and agent2_settings.hash_id and agent2_settings.password%}
+	<fieldset>
+	    <legend>{% trans "Server Configuration" %}</legend>
+	    {% for field, value in agent2_settings.items %}
+		<div class="setting">
+		    <div class="label">{{ field }}</div>
+		    <span class="value">
+			{% ifequal field "server" %}
+			    <a href="javascript: window.open('{{ value }}')">{{ value }}</a>
+			{% else %}
+			    {{ value }}
+			{% endifequal %}
+		    </span>
+		</div>
+	    {% endfor %}
+	</fieldset>
+    {% else %}
+	<div class="error">
+	    <a href="{% url agent2_setup %}">
+    		{% trans "Not yet configured, click here to setup" %}
+	    </a>
+	</div>
+    {% endif %}
+</div>
+
+<div class="content-main">
+    <fieldset>
+	<legend>{% trans "Commit Log" %}</legend>
+	{% for record in records %}
+	    <fieldset>
+		<div class="setting">
+			<div class="label">{% trans "Time" %}</div>
+			<span class="value">{{ record.time }}</span>
+		</div>
+		<div class="setting">
+			<div class="label">{% trans "Found Records" %}</div>
+			<span class="value">{{ record.commited_scan_records }}</span>
+		</div>
+		<div class="setting">
+			<div class="label">{% trans "SDP Records" %}</div>
+			<span class="value">{{ record.commited_sdp_records }}</span>
+		</div>
+		<div class="setting">
+			<div class="label">{% trans "success" %}</div>
+			<span class="value">{{ record.success }}</span>
+		</div>
+	    </fieldset>
+	{% endfor %}
+    </fieldset>
+</div>
+{% endblock %}
+

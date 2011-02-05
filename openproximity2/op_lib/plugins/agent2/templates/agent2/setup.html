@@ -1,0 +1,24 @@
+{% extends "agent2/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="content-main">
+    <form method="post">
+	{{ form.non_field_errors }}
+	{% for field in form.hidden_fields %}
+	    {{ field }}
+	{% endfor %}
+
+	{% for field in form.visible_fields %}
+	    <div class="setting">
+		<div class="label">{{ field.label_tag }}</div>
+	        <span class="value">{{ field }}</span><br>
+	        <span class="help">{{ field.help_text }}</span><br>
+	        <span class="error">{{ field.errors }}</span>
+	    </div>
+	{% endfor %}
+    <input type="submit" value="{% trans "Accept" %}">
+    </form>
+</div>
+{% endblock %}
+

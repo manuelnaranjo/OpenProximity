@@ -1,0 +1,9 @@
+{% extends "op/base.html" %}
+{% load openproximity %}
+{% load i18n %}
+
+{% block navbar %}
+    {% createNavButton "/" "nav_index" _("OpenProximity") %}
+    {% createNavButton "/agent2/" "nav_agent2" _("Agent Index") %}
+    {% createNavButton "/agent2/setup/" "nav_agent2_setup" _("Agent Setup") %}
+{% endblock %}
