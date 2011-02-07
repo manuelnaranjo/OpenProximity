@@ -78,6 +78,9 @@ def getLockOverRecords(klass):
 def getRecordsForUpload(klass, pks):
     return klass.objects.filter(pk__in=pks).values_list(*klass.fields)
 
+def getRemotesForUpload(klass, pks):
+    return klass.objects.filter(pk__in=pks).values_list('record__remote__address')[0]
+
 def unlockRecords(klass, pks):
     return klass.objects.filter(pk__in=pks).update(flag=False)
 
@@ -90,10 +93,11 @@ def get_csrf_token(klass):
     )
     return json_decode(urllib2.urlopen(req).read())['csrf_token']
 
-def pushRecords(klass, records):
+def pushRecords(klass, records, remotes):
     data = json_encode({
         'hash_id': getSetting('hash_id'),
         'password': getSetting('password'),
+        'remotes': remotes,
         'records': klass.values_to_dict(records),
     })
     headers = {
@@ -118,7 +122,8 @@ def pushRecords(klass, records):
 def doGenericRecords(klass):
     pks = getLockOverRecords(klass)
     records = getRecordsForUpload(klass, pks)
-    amount = pushRecords(klass, records)
+    remotes = getRemotesForUpload(klass, pks)
+    amount = pushRecords(klass, records, remotes)
 
     print "Commited %i out of %i" % (amount, len(pks))
 

@@ -111,9 +111,10 @@ class SettingsTest(TestCase):
 
 	pks=methods.getLockOverRecords(models.uploadFoundRecord)
 	records = methods.getRecordsForUpload(models.uploadFoundRecord, pks)
-
+        remotes = methods.getRemotesForUpload(models.uploadFoundRecord, pks)
+        
 	self.assertEqual(amount_records, 
-		methods.pushRecords(models.uploadFoundRecord, records)
+		methods.pushRecords(models.uploadFoundRecord, records, remotes)
 	)
 
     def test_005_test_sdp_records(self):
@@ -171,9 +172,10 @@ class SettingsTest(TestCase):
 
 	pks=methods.getLockOverRecords(models.uploadSDPRecord)
 	records = methods.getRecordsForUpload(models.uploadSDPRecord, pks)
+        remotes = methods.getRemotesForUpload(models.uploadSDPRecord, pks)
 
 	self.assertEqual(amount_records*3, 
-	    methods.pushRecords(models.uploadSDPRecord, records))
+	    methods.pushRecords(models.uploadSDPRecord, records, remotes))
 	op_models.MarketingCampaign.objects.filter(pk__in=[camp1.pk, camp2.pk]).delete()
 
     def test_007_test_helper(self):
