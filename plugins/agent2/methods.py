@@ -116,7 +116,7 @@ def pushRecords(klass, records):
     raise Exception("failed reason: %s" % r.reason)
 
 def doGenericRecords(klass):
-    pks=getLockOverRecords(klass)
+    pks = getLockOverRecords(klass)
     records = getRecordsForUpload(klass, pks)
     amount = pushRecords(klass, records)
 
