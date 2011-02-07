@@ -121,6 +121,9 @@ def pushRecords(klass, records, remotes):
 
 def doGenericRecords(klass):
     pks = getLockOverRecords(klass)
+    if len(pks) == 0:
+	return 0
+
     records = getRecordsForUpload(klass, pks)
     remotes = getRemotesForUpload(klass, pks)
     amount = pushRecords(klass, records, remotes)

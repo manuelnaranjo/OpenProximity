@@ -1,7 +1,7 @@
 from setuptools import setup
 from agent2 import __version__
 
-setup(name="OpenProximity Agent2",
+setup(name="openproximity-agent2",
     version=__version__,
     packages=['agent2',
             'agent2.management', 

@@ -63,7 +63,7 @@ def dosetup(**kwargs):
 
     if kwargs['enabled']:
 	line = '%(cron_minute)s %(cron_hour)s %(cron_dom)s %(cron_month)s %(cron_dow)s' % kwargs
-	line = '%s cd /opt/openproximity2; /bin/bash manager.sh pushrecords >> /tmp/pushrecords.log' % line
+	line = '%s cd /opt/openproximity2; /bin/bash manager.sh egg_command pushrecords >> /tmp/pushrecords.log' % line
 	new_crontab.write('%s\n' % line)
     new_crontab.close()
 
