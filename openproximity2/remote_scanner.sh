@@ -7,7 +7,6 @@ source common.sh
 LOG_DIR=/var/log/aircable
 LOG_FILE=$LOG_DIR/remote_scanner.log
 
-export PYTHONPATH
 export LOG_FILE
 
 cd remoteScanner

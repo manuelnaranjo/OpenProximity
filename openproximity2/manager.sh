@@ -8,7 +8,6 @@ source common.sh
 LOG_DIR=/var/log/aircable
 LOG_FILE=$LOG_DIR/manager.log
 
-export PYTHONPATH
 export LOG_FILE
 
 OP2_VERSION=$(cat latest-version)

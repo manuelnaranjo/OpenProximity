@@ -206,6 +206,7 @@ cp -r "$CWD"/op_lib/plugins "$LIB_TARGET"
 cp -r "$CWD"/op_lib/django_restapi "$LIB_TARGET"
 cp "$CWD"/pair.sh .
 cp -r "$CWD"/remoteScanner .
+cp "$CWD"/django-web/setpaths.py remoteScanner
 cp "$CWD"/remote_scanner.sh .
 cp "$CWD"/rpc.sh .
 cp "$CWD"/run.sh .
@@ -251,9 +252,7 @@ done
 
 rm -rf "$OP2"/tmp
 
-PYTHONPATH=$OP2/openproximity2/libs
 DEBUG="yes"
-export PYTHONPATH
 export DEBUG
 #update messages
 cd "$OP2/openproximity2/django-web"; NO_SYNC="true" python manage.py  makemessages --traceback -a

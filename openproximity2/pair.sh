@@ -6,8 +6,6 @@
 source common.sh 
 LOG_DIR=/var/log/aircable
 
-export PYTHONPATH
-
 echo "Starting Pairing manager"
 if [ -z $DEBUG ]; then
     LOG_FILE=$LOG_DIR/pair.log

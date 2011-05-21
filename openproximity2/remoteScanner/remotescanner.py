@@ -15,6 +15,8 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import setpaths
+
 import gobject
 
 import threading, os, traceback, time
@@ -22,7 +24,6 @@ import dbus
 import dbus.service
 import dbus.glib
 import dbus.mainloop.glib
-from net.aircable.utils import logger
 
 from re import compile
 

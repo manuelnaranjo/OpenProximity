@@ -8,8 +8,6 @@ LOG_DIR=/var/log/aircable
 LOG_FILE=$LOG_DIR/server.log
 export LOG_FILE
 
-export PYTHONPATH
-
 OP2_VERSION=$(cat latest-version)
 export OP2_VERSION
 
