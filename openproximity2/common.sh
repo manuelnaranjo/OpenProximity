@@ -3,13 +3,7 @@
 # this script will launch all the needed parts for an OpenProximity2.0 stand
 # alone server
 LOG_FILE=/dev/null
-PYTHONPATH=$(pwd)/libs:/usr/lib/openproximity:~/.openproximity2
 LOG_DIR=/var/log/aircable
-export PYTHONPATH
-
-for i in $( find $(pwd)/libs -iname *.egg ); do
-    PYTHONPATH=$PYTHONPATH:$i
-done
 
 function work(){
     while [ 1 ]; do

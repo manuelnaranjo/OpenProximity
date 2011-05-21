@@ -17,6 +17,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # -*- coding: utf-8 -*-
+import setpaths
 import dbus, dbus.glib, gobject, select
 import os, sys, errno
 import rpyc

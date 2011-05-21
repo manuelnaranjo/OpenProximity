@@ -15,11 +15,10 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import sys, os
+import sys, os, setpaths
 __PATH=os.path.dirname(os.path.abspath(__file__))
 __ROOT=os.path.dirname(__PATH)
 __LIBS=os.path.join(__ROOT, 'libs')
-sys.path.insert(1,__LIBS)
 
 from configglue.pyschema import SchemaConfigParser
 from django_configglue.utils import update_settings

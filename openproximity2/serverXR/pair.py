@@ -23,9 +23,9 @@ ask which PIN code to use.
 
 SPP mode not yet supported.
 '''
+import setpaths
 
 import gobject
-
 import sys, os
 import dbus, dbus.service, dbus.mainloop.glib
 from net.aircable.utils import logger
