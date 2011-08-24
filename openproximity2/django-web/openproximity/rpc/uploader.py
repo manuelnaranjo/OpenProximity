@@ -141,11 +141,11 @@ def handle_file_uploaded(dongle, remote, pending, channel, files):
     logger.info("files uploaded: %s[%s]: %s" % ( remote, channel, files) )
     pending.pop(remote)
     for camp in get_campaign_rule(files):
-	record = RemoteBluetoothDeviceFilesSuccess()
-	record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
-	record.campaign = camp
-	record.setRemoteDevice(remote)
-	record.save()
+        record = RemoteBluetoothDeviceFilesSuccess()
+        record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
+        record.campaign = camp
+        record.setRemoteDevice(remote)
+        record.save()
 
 def handle_file_failed(dongle, remote, pending, channel, files, ret, err, services):
     logger.info("handle file failed %s[%s]: %s" % (remote, channel, files))
