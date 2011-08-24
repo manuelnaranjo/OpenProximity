@@ -26,15 +26,18 @@ INSTALLED_APPS=()
 logger.info("starting up plugins")
 for plugin in pluginsystem.get_plugins('django'):
     if plugin.provides.get('TEMPLATE_DIRS', None) is not None :
-        TEMPLATE_DIRS += ( os.path.join(plugin.path, plugin.provides['TEMPLATE_DIRS']), )
+        TEMPLATE_DIRS += ( 
+            os.path.join(plugin.path, plugin.provides['TEMPLATE_DIRS']), )
     if plugin.provides.get('LOCALE_PATHS', None) is not None:
-        LOCALE_PATHS+=( os.path.join(plugin.path, plugin.provides['LOCALE_PATHS']), )
+        LOCALE_PATHS+=( 
+            os.path.join(plugin.path, plugin.provides['LOCALE_PATHS']), )
     if plugin.provides.get('django', False):
-	INSTALLED_APPS+=( plugin.name, )
+        INSTALLED_APPS+=( plugin.name, )
 
 logger.info("starting up plugin providers")
 for plugin in pluginsystem.get_plugins('plugin_provider'):
-    for plug in pluginsystem.get_plugins(plugin.provides['plugin_provider_name']):
+    for plug in pluginsystem.get_plugins(
+            plugin.provides['plugin_provider_name']):
         INSTALLED_APPS+=( plug.name, )
 
 logger.info("plugin system initied")
