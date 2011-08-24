@@ -35,8 +35,8 @@ from net.aircable.utils import logger
 import errno
 
 TIMEOUT_RET = [
-	errno.ENOTCONN, # 107
-	]
+        errno.ENOTCONN, # 107
+        ]
 
 class UserProfile(models.Model):
     user = models.ForeignKey(User, unique=True)
@@ -52,14 +52,14 @@ class Setting(models.Model):
 
 class BluetoothDongle(models.Model):
     address = models.CharField(
-	    max_length=17, 
-	    blank=False, 
-	    verbose_name=_("bluetooth address")
+            max_length=17, 
+            blank=False, 
+            verbose_name=_("bluetooth address")
     )
     name = models.CharField(
-	    max_length=100, 
-	    blank=True,
-	    verbose_name=_("identifying name")
+            max_length=100, 
+            blank=True,
+            verbose_name=_("identifying name")
     )
     enabled = models.BooleanField()
 
@@ -86,14 +86,14 @@ class ScannerBluetoothDongle(BluetoothDongle):
         
 class RemoteScannerBluetoothDongle(ScannerBluetoothDongle):
     local_dongle = models.ForeignKey(
-	    ScannerBluetoothDongle, 
-	    related_name="remote_dongles" )
+            ScannerBluetoothDongle, 
+            related_name="remote_dongles" )
 
 class UploaderBluetoothDongle(BluetoothDongle):
     max_conn = models.IntegerField(
-	default=7,
-	verbose_name=_("connections"),
-	help_text=_("maximum allowed connections")
+        default=7,
+        verbose_name=_("connections"),
+        help_text=_("maximum allowed connections")
     )
     
     def __unicode__(self):
@@ -111,12 +111,12 @@ class Campaign(models.Model):
     
     #name is going to change
     name = models.CharField(
-			    max_length=100,
-			    verbose_name=_("campaign name")
+                            max_length=100,
+                            verbose_name=_("campaign name")
     )
     enabled = models.BooleanField(
-			    default=True,
-			    verbose_name=_("campaign enabled")
+                            default=True,
+                            verbose_name=_("campaign enabled")
     )
     name_filter = models.CharField(
                             null=True,
@@ -131,9 +131,9 @@ class Campaign(models.Model):
                             verbose_name=_("address filter")
     )
     devclass_filter = models.IntegerField(
-			    null=True, 
-			    blank=True,
-			    verbose_name=_("devclass filter")
+                            null=True, 
+                            blank=True,
+                            verbose_name=_("devclass filter")
     )
     start = models.DateTimeField(
                             null=True, 
@@ -168,12 +168,12 @@ class Campaign(models.Model):
                             verbose_name=_("PIN code")
     )
     concurrent_scanning=models.BooleanField(
-			    default=False,
-			    help_text=_("concurrent scanning makes all your "
-		"scanners to run simultaneous, instead of doing so in a "
-		"sequence one after the other, if you enable this scanner "
-		"priority is ignored"),
-			    verbose_name=_("concurrent scanning")
+                            default=False,
+                            help_text=_("concurrent scanning makes all your "
+                "scanners to run simultaneous, instead of doing so in a "
+                "sequence one after the other, if you enable this scanner "
+                "priority is ignored"),
+                            verbose_name=_("concurrent scanning")
     )
 
 
@@ -240,23 +240,23 @@ class MarketingCampaign(Campaign):
                             verbose_name=_("RSSI max")
     )
     fixed_channel=models.IntegerField(
-			    null=True,
-			    blank=True,
-			    default = None,
-			    help_text=_("if you set this parameter then "
-		  "OpenProximity will never try to resolve sdp records and "
-		  "use only this channel, leave it empty unless you know "
-		  "what you're doing."),
-			    verbose_name=_("fixed channel")
+                            null=True,
+                            blank=True,
+                            default = None,
+                            help_text=_("if you set this parameter then "
+                  "OpenProximity will never try to resolve sdp records and "
+                  "use only this channel, leave it empty unless you know "
+                  "what you're doing."),
+                            verbose_name=_("fixed channel")
     )
     upload_on_discovered = models.BooleanField(
-			    default=False,
-			    help_text=_("in some cases you may want to force "
-	    "that the same dongle that discovers a device is "
-	    "the one that's going to do the upload. Make sure "
-	    "all your dongles can work as scanner and uploaders "
-	    "otherwise you will not service some devices."),
-			    verbose_name=_("scan and upload on same dongle")
+                            default=False,
+                            help_text=_("in some cases you may want to force "
+            "that the same dongle that discovers a device is "
+            "the one that's going to do the upload. Make sure "
+            "all your dongles can work as scanner and uploaders "
+            "otherwise you will not service some devices."),
+                            verbose_name=_("scan and upload on same dongle")
     )
 
 
@@ -264,52 +264,52 @@ class MarketingCampaign(Campaign):
         return "MarketingCampaign: %s" % self.name
 
     def getTimeoutCount(self, remote):
-	''' this function will count how many times a certain devices did a
-	    timeout
-	'''
-	return RemoteBluetoothDeviceFilesRejected.objects.\
+        ''' this function will count how many times a certain devices did a
+            timeout
+        '''
+        return RemoteBluetoothDeviceFilesRejected.objects.\
                 filter(remote=remote, campaign=self).\
                 filter(ret_value__in=TIMEOUT_RET).count()
 
     def getRejectedCount(self, remote):
-	''' this function will count how many time the user has rejected'''
-	return RemoteBluetoothDeviceFilesRejected.objects.\
+        ''' this function will count how many time the user has rejected'''
+        return RemoteBluetoothDeviceFilesRejected.objects.\
                 filter(remote=remote, campaign=self).\
                 exclude(ret_value__in=TIMEOUT_RET).count()
                 
     def getTriesCount(self, remote):
-	return RemoteBluetoothDeviceFileTry.\
+        return RemoteBluetoothDeviceFileTry.\
                 objects.filter(remote=remote, campaign=self).\
                     count()
 
     def hasAccepted(self, remote):
-	return RemoteBluetoothDeviceFilesSuccess.objects.filter(
+        return RemoteBluetoothDeviceFilesSuccess.objects.filter(
                 campaign=self,
                 remote=remote).count()>0
                 
     def getAcceptedCount(self):
-	return RemoteBluetoothDeviceFilesSuccess.\
-	    objects.\
-		filter(campaign=self).\
-		    count()
+        return RemoteBluetoothDeviceFilesSuccess.\
+            objects.\
+                filter(campaign=self).\
+                    count()
 
     def tryAgain(self, record=None, remote=None):
-	assert record or remote, "Can't pass both record and remote as none"
+        assert record or remote, "Can't pass both record and remote as none"
 
-	if remote:
-	    qs = RemoteBluetoothDeviceFilesRejected.\
-		    objects.\
-			filter(
-			    campaign=self,
-			    remote=remote
-			).\
-		    order_by('-time')
-	    if qs.count() == 0:
-		logger.info("first time ever")
-		return True
+        if remote:
+            qs = RemoteBluetoothDeviceFilesRejected.\
+                    objects.\
+                        filter(
+                            campaign=self,
+                            remote=remote
+                        ).\
+                    order_by('-time')
+            if qs.count() == 0:
+                logger.info("first time ever")
+                return True
 
-	    record=qs.all()[0]
-	    logger.debug("got record, %s" % record)
+            record=qs.all()[0]
+            logger.debug("got record, %s" % record)
 
         delta = time.mktime(time.gmtime())-time.mktime(record.time.timetuple())
         logger.info("delta: %s" % delta)
@@ -317,78 +317,78 @@ class MarketingCampaign(Campaign):
         if record.isTimeout():
             logger.info("record timeout")
             return delta >= self.tries_timeout and (
-		self.tries_count==-1 or \
-		self.tries_count > self.getTriesCount(record.remote)
-	    )
+                self.tries_count==-1 or \
+                self.tries_count > self.getTriesCount(record.remote)
+            )
         else:
             logger.info("record rejected")
             return delta >= self.rejected_timeout and \
                 (self.rejected_count==-1 or 
-		    self.rejected_count > self.getRejectedCount(record.remote)
-		)
+                    self.rejected_count > self.getRejectedCount(record.remote)
+                )
     
     def matches(self, remote, record=None, *args, **kwargs):
-	'''
-	    This function will get called to ask the campaign
-	    if it matches the definition rules
-	'''
-	logger.info("matches %s", self.pk)
-	
-	# test is we reached the rejected count
-	rejected_pass = remote is None or (
-	    self.rejected_count == -1 or 
-	    self.getRejectedCount(remote) < self.rejected_count
-	)
-	
-	logger.debug("rejected_pass %s" % rejected_pass)
-	if not rejected_pass:
-	    return False
-	
-	# test for successful uploads
-	accepted_pass = self.accepted_count == -1 or (
-	    self.accepted_count > self.getAcceptedCount()
-	)
-	logger.debug("accepted_pass %s" % accepted_pass)
-	if not accepted_pass:
-	    return False
+        '''
+            This function will get called to ask the campaign
+            if it matches the definition rules
+        '''
+        logger.info("matches %s", self.pk)
+        
+        # test is we reached the rejected count
+        rejected_pass = remote is None or (
+            self.rejected_count == -1 or 
+            self.getRejectedCount(remote) < self.rejected_count
+        )
+        
+        logger.debug("rejected_pass %s" % rejected_pass)
+        if not rejected_pass:
+            return False
+        
+        # test for successful uploads
+        accepted_pass = self.accepted_count == -1 or (
+            self.accepted_count > self.getAcceptedCount()
+        )
+        logger.debug("accepted_pass %s" % accepted_pass)
+        if not accepted_pass:
+            return False
 
-	name_pass = self.name_filter is None or \
-	    remote.name is None or \
+        name_pass = self.name_filter is None or \
+            remote.name is None or \
             remote.name.startswith(self.name_filter)
         logger.debug("name_pass: %s" % name_pass)
         if not name_pass:
-    	    return False
+            return False
 
-	addr_pass = self.addr_filter is None or \
-	    remote.address.startswith(self.addr_filter)
-	logger.debug("addr_pass: %s" % addr_pass)
+        addr_pass = self.addr_filter is None or \
+            remote.address.startswith(self.addr_filter)
+        logger.debug("addr_pass: %s" % addr_pass)
         if not addr_pass:
-	    return False
-	
-	class_pass = self.devclass_filter is None or \
+            return False
+        
+        class_pass = self.devclass_filter is None or \
             (remote.devclass & self.devclass_filter)>0
             
         logger.debug("class_pass: %s" % class_pass)
         if not class_pass:
-	    return False
+            return False
 
-	rssi_test = not(record is None or not hasattr(record, 'getAverageRSSI'))
-	logger.debug("rssi_test: %s" % rssi_test)
-	
-	if rssi_test:
-	    rssi = record.getAverageRSSI()
-	    rssi_pass = \
-		(self.rssi_min is None or rssi > self.rssi_min ) \
-		    or \
+        rssi_test = not(record is None or not hasattr(record, 'getAverageRSSI'))
+        logger.debug("rssi_test: %s" % rssi_test)
+        
+        if rssi_test:
+            rssi = record.getAverageRSSI()
+            rssi_pass = \
+                (self.rssi_min is None or rssi > self.rssi_min ) \
+                    or \
                 (self.rssi_max is None or rssi < self.rssi_max )
             logger.info("rssi_pass %s, average: %s, min: %s, max: %s" %
-        	    (rssi_pass, rssi, self.rssi_min, self.rssi_max)
-	    )
-	    if not rssi_pass:
-		return False
+                    (rssi_pass, rssi, self.rssi_min, self.rssi_max)
+            )
+            if not rssi_pass:
+                return False
 
-	logger.info("passed all tests")
-	return True
+        logger.info("passed all tests")
+        return True
 
 def campaign_file_upload_to(instance, filename):
   return os.path.join('campaign',time.strftime("%Y_%m_%d__%H_%M_%S"),filename)
