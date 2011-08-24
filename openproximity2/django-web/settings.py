@@ -31,15 +31,16 @@ OPENPROXIMITY_CONFIG_FILE=os.environ.get('OPENPROXIMITY_CONFIG_FILE', "/etc/open
 parser=SchemaConfigParser(schema.OpenProximitySchema())
 parser._interpolate = partial(schema._interpolate, parser)
 parser.read([ os.path.join(__PATH, 'default.cfg'),
-	os.path.join(__PATH, 'django.cfg'),
-	os.path.join(__PATH, 'cherrypy.cfg'),
-	os.path.join(__PATH, 'rpyc.cfg'),
-	OPENPROXIMITY_CONFIG_FILE])
+        os.path.join(__PATH, 'django.cfg'),
+        os.path.join(__PATH, 'cherrypy.cfg'),
+        os.path.join(__PATH, 'rpyc.cfg'),
+        OPENPROXIMITY_CONFIG_FILE])
 update_settings(parser, locals())
 
 # fix timeout in DATABASE_OPTIONS
 if 'timeout' in locals()['DATABASE_OPTIONS']:
-    locals()['DATABASE_OPTIONS']['timeout'] = float(locals()['DATABASE_OPTIONS']['timeout'])
+    locals()['DATABASE_OPTIONS']['timeout'] = \
+        float(locals()['DATABASE_OPTIONS']['timeout'])
 
 # keep a reference to the parser
 __CONFIGGLUE_PARSER__ = parser
@@ -50,7 +51,7 @@ pluginsystem.find_plugins(locals()['OP2_PLUGINS'])
 import plug
 for k in dir(plug):
     if not k.isupper():
-	continue
+        continue
     locals()[k].extend(getattr(plug, k))
     orig=parser.get('django', k.lower())
     orig.extend(getattr(plug, k))
@@ -61,17 +62,21 @@ sys.modules['django-web.settings'] = sys.modules['settings']
 
 def __get_match_dongle(options, address):
     def __parse(option, typ=int):
-	if len(option.strip()) == 0:
-	    return None
-	return typ(option)
+        if len(option.strip()) == 0:
+            return None
+        return typ(option)
 
     address = address.lower().strip()
     for rang, val, enable, name in options:
-	rang = rang.lower().strip()
+        rang = rang.lower().strip()
 
-	if address.startswith(rang):
-	    out = { 'enable': __parse(enable, bool), 'value': __parse(val), 'name': __parse(name, str) }
-	    return out
+        if address.startswith(rang):
+            out = { 
+                'enable': __parse(enable, bool), 
+                'value': __parse(val), 
+                'name': __parse(name, str) 
+            }
+            return out
 
 GETSCANNERDONGLE=partial(__get_match_dongle, locals()['OP2_SCANNERS'])
 GETUPLOADERDONGLE=partial(__get_match_dongle, locals()['OP2_UPLOADERS'])
