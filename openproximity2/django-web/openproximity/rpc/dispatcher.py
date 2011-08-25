@@ -1,69 +1,112 @@
-from net.aircable.utils import logger
-from threading import Timer
-from time import time
+try:
+    from net.aircable.utils import logger
+except:
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger("")
+
+from threading import Timer, Thread, Event, Condition, Lock
+import time
+from time import time as now
 
 class Task:
     def internal_callback(self):
         logger.debug("Timer timeout %s" % self)
         self.callback(*self.a, **self.kw)
-        self.dispatcher.cueue.remove(self)
+        Dispatcher.cueue.remove(self)
     
     def cancel(self):
         logger.info("Timer.cancel %s" % self)
-        self.dispatcher.cueue.remove(self)
-        self.timer.cancel()
+        Dispatcher.cueue.remove(self)
 
-    def __init__(self, dispatcher, delay, callback, *a, **kw):
-        assert type(delay) is float or int
+    def __init__(self, triggerTime, callback, *a, **kw):
+        assert type(triggerTime) is float or int
         assert callable(callback)
-        logger.info("new Timer %s %f %s" % (self, delay, callback))
-        self.dispatcher = dispatcher
+        logger.info("new Timer %s %f %s" % (self, triggerTime, callback))
         self.callback = callback
         self.a = a
         self.kw = kw
-        self.timer = Timer(delay, self.internal_callback)
-        self.timer.start()
+        self.triggerTime = triggerTime
 
-class Dispatcher():
-    cueue = []
+class Dispatcher(Thread):
+    cueue = None
+    instance = None
+    cond = None
+    nextTrigger = None
 
-    def callLater(self, delay, callback, *a, **kw):
-        t = Task(self, delay, callback, *a, **kw)
-        self.cueue.append(t)
+    def __init__(self):
+        Thread.__init__(self)
+        Dispatcher.instance = self
+        Dispatcher.cueue = []
+        self.cond = Condition(Lock())
+        self.evt = Event()
+    
+    def run(self):
+        while True:
+            logger.debug("sleeping for %s" % self.nextTrigger)
+            self.evt.wait(self.nextTrigger)
+            n = now()
+            tasks = [ b for b in Dispatcher.cueue if b.triggerTime <= n ]
+            logger.debug("Doing %i callbacks" % len(tasks))
+            for t in tasks:
+                t.internal_callback()
+            if len(Dispatcher.cueue) > 0:
+                self.nextTrigger = min([b.triggerTime for b in Dispatcher.cueue]) - now()
+            else:
+                self.nextTrigger = None
+            self.evt.clear()
+
+
+    def __callLater(self, triggerTime, callback, *a, **kw):
+        t = Task(triggerTime, callback, *a, **kw)
+        Dispatcher.cueue.append(t)
+        if not self.nextTrigger or triggerTime < self.nextTrigger:
+            logger.debug("notifying condition")
+            # we need to trigger before the next event
+            self.evt.set()
+            self.nextTrigger = triggerTime
         return t
 
-    def cancelCallLater(self, task):
-        if task in self.cueue:
+    @classmethod
+    def callLater(klass, triggerTime, callback, *a, **kw):
+        return klass.instance.__callLater(triggerTime, callback, *a, **kw)
+
+    @classmethod
+    def cancelCallLater(klass, task):
+        if task in klass.cueue:
             task.cancel()
             return True
         return False
 
-    def cancelAll(self):
-        for task in self.cueue:
+    @classmethod
+    def cancelAll(klass):
+        for task in klass.cueue:
             task.cancel()
-        self.cueue = []
+        klass.cueue = []
+Dispatcher().start()
 
 if __name__ == '__main__':
     import sys
     t1=t2=t3=None
-    dispatcher = Dispatcher()
     def task1():
-        print time(), "task1 completed"
+        print now(), "task1 completed"
         sys.exit(0)
     
     def task2(*a, **kw):
-        print time(), "task2 completed", a, kw
+        print now(), "task2 completed", a, kw
     
     def task3():
-        print time(), "task3 completed"
+        print now(), "task3 completed"
     
-    def task4(dispatcher, t):
-        print time(), "task4 completed", t, dispatcher.cancelCallLater(t)
+    def task4(t):
+        Dispatcher.callLater(now(), task2, "hello world", a=1, b=2, c=3)
+        print now(), "task4 completed", t, Dispatcher.cancelCallLater(t)
     
-    t1=dispatcher.callLater(10, task1)
-    t2=dispatcher.callLater(1, task2, "hello world", a=1, b=2, c=3)
-    t3=dispatcher.callLater(11, task3)
-    dispatcher.callLater(4, task4, dispatcher, t3)
-    dispatcher.callLater(2, task4, dispatcher, None)
-    dispatcher.callLater(3, task4, dispatcher, t2)
-    print time(), "started"
+    t1=Dispatcher.callLater(10+now(), task1)
+    t2=Dispatcher.callLater(1+now(), task2, "hello world", a=1, b=2, c=3)
+    t3=Dispatcher.callLater(11+now(), task3)
+    Dispatcher.callLater(4+now(), task4, t3)
+    Dispatcher.callLater(2+now(), task4, None)
+    Dispatcher.callLater(3+now(), task4, t2)
+    
+    print now(), "started"
