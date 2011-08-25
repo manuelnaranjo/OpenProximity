@@ -89,10 +89,10 @@ def get_dongles(dongles):
     def internal_get_dongles(address):
         dongle = ScannerBluetoothDongle.objects.get(address=address)
         logger.info("%s is a scanner dongle" % address)
-	    
+            
         if dongle.enabled:
             yield (address, dongle.priority, dongle.name)
-	    	
+                
         if dongle.remote_dongles.count() > 0:
             logger.info("We have remote dongles available")
             for remote in dongle.remote_dongles.all():
@@ -129,9 +129,9 @@ def cycle_completed(scanner):
 
     concurrent = False
     for camp in camps:
-	if camp.concurrent_scanning:
-	    concurrent = True
-	    break
+        if camp.concurrent_scanning:
+            concurrent = True
+            break
 
     logger.info("starting scan cycle")
     scanner.setConcurrent(concurrent)
@@ -147,8 +147,8 @@ def handle_addrecord(services, remote_, dongle, pending):
     logger.info("handle_addrecord %s" % address)
     remote=RemoteDevice.getRemoteDevice(
                     address=address, 
-					name=name, 
-					devclass=remote_['devclass']
+                                        name=name, 
+                                        devclass=remote_['devclass']
             )
     record = RemoteBluetoothDeviceFoundRecord()
     record.action = signals.FOUND_DEVICE
@@ -173,9 +173,9 @@ def handle_addrecord(services, remote_, dongle, pending):
     
     logl = LogLine()
     logl.content="Found: %s %s %s" % (
-	record.remote.address, 
-	record.remote.name,
-	record.getRSSI())
+        record.remote.address, 
+        record.remote.name,
+        record.getRSSI())
     logl.save()
     
     if address not in pending:
