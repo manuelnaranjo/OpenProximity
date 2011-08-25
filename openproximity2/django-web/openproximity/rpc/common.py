@@ -69,9 +69,9 @@ def get_files_from_campaign(camp, record):
         logger.debug("All ready rejected %s times, and timedout %s" % (c, d))
         try_ = camp.tryAgain(remote=record.remote, record=None)
         logger.info("try again: %s" % try_)
-        if not try_ :
+        if not try_:
             raise StopIteration
-            
+
     files__ = camp.campaignfile_set
     files__ = files__.filter(chance__isnull=True) | files__.filter(
                                         chance__gte=str(random())
@@ -138,6 +138,11 @@ def found_action(services, address, record, pending, dongle):
           channel = camp.fixed_channel
         if camp.upload_on_discovered:
             use_same = True
+    sdp = RemoteBluetoothDeviceSDP.objects.filter(remote__pk=remote.pk)
+    if sdp.count() > 0:
+        channel = sdp.all()[-1].channel
+        logger.info("using previous resolved channel %i" % channel)
+
     logger.info("going to upload %s files" % len(files))
     if len(files) > 0:
         pending[record.remote.address]=uploader
