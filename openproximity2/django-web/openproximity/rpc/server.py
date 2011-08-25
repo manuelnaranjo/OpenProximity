@@ -24,9 +24,11 @@ import scanner, uploader
 import threading, time, traceback, sys
 
 from django.db import transaction, close_connection, reset_queries
-from openproximity.models import CampaignFile, getMatchingCampaigns, RemoteDevice
+from openproximity.models import CampaignFile, getMatchingCampaigns, \
+    RemoteDevice
 from rpyc import Service, async
 from rpyc.utils.server import ThreadedServer, ForkingServer
+from dispatcher import Dispatcher
 
 services = set()
 pending = dict()
@@ -46,6 +48,12 @@ def db_ready():
 class OpenProximityService(Service):
     dongles = None
     remote_quit = None
+    instance = None
+
+    def __init__(self, *args, **kwargs):
+        logger.info("New OpenProximityServer")
+        Service.__init__(self, *args, **kwargs)
+        OpenProximityService.instance = self
 
     def on_connect(self):
         services.add(self)
