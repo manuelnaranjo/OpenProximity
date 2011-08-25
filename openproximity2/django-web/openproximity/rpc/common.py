@@ -40,21 +40,21 @@ def get_uploader(services):
     return None
 
 def do_upload(uploader, 
-		    files, 
-		    remote, 
-		    service='opp', 
-		    dongle_name=None, 
-		    channel=None,
-		    dongle=None):
+                    files, 
+                    remote, 
+                    service='opp', 
+                    dongle_name=None, 
+                    channel=None,
+                    dongle=None):
     logger.info("do_upload")
     logger.debug("About to call upload")
 
     uploader.upload(ByValWrapper(files), 
-	remote, 
-	service, 
-	dongle_name=dongle_name, 
-	channel=channel,
-	uploader=dongle.address if dongle else None)
+        remote, 
+        service, 
+        dongle_name=dongle_name, 
+        channel=channel,
+        uploader=dongle.address if dongle else None)
     logger.debug("upload called async")
     
 def get_files_from_campaign(camp, record):
@@ -66,11 +66,11 @@ def get_files_from_campaign(camp, record):
     d = camp.getTimeoutCount(record.remote)
 
     if c>0 or d>0:
-	logger.debug("All ready rejected %s times, and timedout %s" % (c, d))
+        logger.debug("All ready rejected %s times, and timedout %s" % (c, d))
         try_ = camp.tryAgain(remote=record.remote, record=None)
         logger.info("try again: %s" % try_)
         if not try_ :
-	    raise StopIteration
+            raise StopIteration
             
     files__ = camp.campaignfile_set
     files__ = files__.filter(chance__isnull=True) | files__.filter(
@@ -134,15 +134,15 @@ def found_action(services, address, record, pending, dongle):
         if camp.dongle_name:
             name = camp.dongle_name
         service = camp.get_service_display()
-	if camp.fixed_channel and camp.fixed_channel > -1:
-	  channel = camp.fixed_channel
-	if camp.upload_on_discovered:
-	    use_same = True
+        if camp.fixed_channel and camp.fixed_channel > -1:
+          channel = camp.fixed_channel
+        if camp.upload_on_discovered:
+            use_same = True
     logger.info("going to upload %s files" % len(files))
     if len(files) > 0:
         pending[record.remote.address]=uploader
         do_upload(uploader, files, record.remote.address, service, name, 
-    		channel=channel, dongle=dongle if use_same else None)
+                channel=channel, dongle=dongle if use_same else None)
         line.content+=" uploading files"
     else:
         line.content+=" no files to upload"
