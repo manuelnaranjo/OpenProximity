@@ -146,10 +146,10 @@ def handle_addrecord(services, remote_, dongle, pending):
 
     logger.info("handle_addrecord %s" % address)
     remote=RemoteDevice.getRemoteDevice(
-                    address=address, 
-                                        name=name, 
-                                        devclass=remote_['devclass']
-            )
+        address=address, 
+        name=name, 
+        devclass=remote_['devclass']
+    )
     record = RemoteBluetoothDeviceFoundRecord()
     record.action = signals.FOUND_DEVICE
     record.dongle = dongle
