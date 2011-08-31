@@ -347,7 +347,7 @@ def generate_stats():
 def index(request):
     # check if DB needs to be created
     if not setup.db_ready():
-	return setup.index(request)
+        return setup.index(request)
 
     # generate rpc information
     rpc = generate_rpc_information()
@@ -453,7 +453,7 @@ def rpc_campaign_info(request):
     out['tries'] = out['accepted']+non_accepted
 
     return HttpResponse(
-	simplejson.dumps(out),
+        simplejson.dumps(out),
         content_type="application/json"
     )
 
@@ -464,22 +464,22 @@ def rpc_campaign_device(request):
     device = RemoteDevice.objects.filter(id__in=objs.values('remote'))
 
     if device.count() > 0:
-	return HttpResponse(
-	    simplejson.dumps(
-		list(smart_group(
-		    device.values(
-			'id',
-			'address', 
-			'name', 
-			'last_seen', 
-			'devclass')
-		    )
-		)),
-	    content_type="application/json"
-	)
+        return HttpResponse(
+            simplejson.dumps(
+                list(smart_group(
+                    device.values(
+                        'id',
+                        'address', 
+                        'name', 
+                        'last_seen', 
+                        'devclass')
+                    )
+                )),
+            content_type="application/json"
+        )
 
     return HttpResponse(
-	simplejson.dumps(out),
+        simplejson.dumps(out),
         content_type="application/json"
     )
 
@@ -498,7 +498,7 @@ def rpc_campaign_tot(request):
     out['tries'] = out['accepted']+non_accepted
 
     return HttpResponse(
-	simplejson.dumps(out),
+        simplejson.dumps(out),
         content_type="application/json"
     )
 
@@ -510,22 +510,22 @@ def rpc_campaign_device_accepted(request):
     device = RemoteDevice.objects.filter(id__in=objs.values('remote'))
     
     if device.count() > 0:
-	return HttpResponse(
-	    simplejson.dumps(
-		list(smart_group(
-		    device.values(
-			'id',
-			'address', 
-			'name', 
-			'last_seen', 
-			'devclass')
-		    )
-		)),
-	    content_type="application/json"
-	)
+        return HttpResponse(
+            simplejson.dumps(
+                list(smart_group(
+                    device.values(
+                        'id',
+                        'address', 
+                        'name', 
+                        'last_seen', 
+                        'devclass')
+                    )
+                )),
+            content_type="application/json"
+        )
 
     return HttpResponse(
-	simplejson.dumps(out),
+        simplejson.dumps(out),
         content_type="application/json"
     )
 
@@ -536,22 +536,22 @@ def rpc_campaign_device_rejected(request):
     device = RemoteDevice.objects.filter(id__in=objs.values('remote'))
 
     if device.count() > 0:
-	return HttpResponse(
-	    simplejson.dumps(
-		list(smart_group(
-		    device.values(
-			'id',
-			'address', 
-			'name', 
-			'last_seen', 
-			'devclass')
-		    )
-		)),
-	    content_type="application/json"
-	)
+        return HttpResponse(
+            simplejson.dumps(
+                list(smart_group(
+                    device.values(
+                        'id',
+                        'address', 
+                        'name', 
+                        'last_seen', 
+                        'devclass')
+                    )
+                )),
+            content_type="application/json"
+        )
 
     return HttpResponse(
-	simplejson.dumps(out),
+        simplejson.dumps(out),
         content_type="application/json"
     )
 
@@ -562,22 +562,22 @@ def rpc_campaign_device_ignored(request):
     device = RemoteDevice.objects.filter(id__in=objs.values('remote'))
 
     if device.count() > 0:
-	return HttpResponse(
-	    simplejson.dumps(
-		list(smart_group(
-		    device.values(
-			'id',
-			'address', 
-			'name', 
-			'last_seen', 
-			'devclass')
-		    )
-		)),
-	    content_type="application/json"
-	)
+        return HttpResponse(
+            simplejson.dumps(
+                list(smart_group(
+                    device.values(
+                        'id',
+                        'address', 
+                        'name', 
+                        'last_seen', 
+                        'devclass')
+                    )
+                )),
+            content_type="application/json"
+        )
 
     return HttpResponse(
-	simplejson.dumps(out),
+        simplejson.dumps(out),
         content_type="application/json"
     )
 
@@ -593,18 +593,18 @@ def stats_restart_campaign(request):
 # end of changes from Coli
 
 RPC_COMMANDS={
-    'stats':			rpc_stats,
-    'info':			rpc_info,
-    'last-seen':		rpc_last_seen,
-    'device-info':		rpc_device_info, 
+    'stats':                    rpc_stats,
+    'info':                     rpc_info,
+    'last-seen':                rpc_last_seen,
+    'device-info':              rpc_device_info, 
     # methods from Coli
-    'campaign-info':		rpc_campaign_info,
-    'campaign-tot':		rpc_campaign_tot,
-    'campaign-device':		rpc_campaign_device,
-    'campaign-device-accepted':	rpc_campaign_device_accepted,
+    'campaign-info':            rpc_campaign_info,
+    'campaign-tot':             rpc_campaign_tot,
+    'campaign-device':          rpc_campaign_device,
+    'campaign-device-accepted': rpc_campaign_device_accepted,
     'campaign-device-rejected': rpc_campaign_device_rejected,
-    'campaign-device-ignored': 	rpc_campaign_device_ignored,
-#    'delete-statistics': 	stats_restart,
+    'campaign-device-ignored':  rpc_campaign_device_ignored,
+#    'delete-statistics':       stats_restart,
     'delete-statistics-campaign':stats_restart_campaign,
 }
 
@@ -615,7 +615,7 @@ def rpc_command(request, command):
 
 def last_seen(request):
     return render_to_response(
-	"op/last_seen.html", 
-	{}, 
+        "op/last_seen.html", 
+        {}, 
         context_instance=RequestContext(request)
     )
