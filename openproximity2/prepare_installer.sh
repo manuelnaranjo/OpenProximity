@@ -226,7 +226,6 @@ cd tmp
 
 download_and_uncompress rpyc 3.0.6 rpyc http://ufpr.dl.sourceforge.net/sourceforge/rpyc
 download_and_uncompress Django 1.1 django http://media.djangoproject.com/releases/1.1
-git_download django_cpserver 19739be git://github.com/lincolnloop/django-cpserver.git 19739be
 download_and_uncompress django-rosetta 0.4.7 rosetta http://django-rosetta.googlecode.com/files
 download_and_uncompress wadofstuff-django-serializers 1.0.0 wadofstuff http://wadofstuff.googlecode.com/files
 download_and_uncompress poster 0.4 poster http://pypi.python.org/packages/source/p/poster/
