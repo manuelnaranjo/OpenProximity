@@ -33,12 +33,6 @@ ADDRESS_MAC=compile("([0-9A-F]{2}\:){5}([0-9A-F]{2})")
 def isAIRcable(address):
     return address[:8].upper() in AIRCABLE_MAC
 
-def get_uploader(services):
-    for i in services:
-        if getattr(i, 'uploader', None) is not None:
-            return i
-    return None
-
 def do_upload(uploader, 
                     files, 
                     remote, 
@@ -80,26 +74,10 @@ def get_files_from_campaign(camp, record):
         logger.debug('going to upload %s' % f.file)
         yield str(f.file.name), camp.pk
 
-def found_action(services, address, record, pending, dongle):
-    line = LogLine()
-    line.content="Found action for: %s" % address
-    try:
-        for plugin in pluginsystem.get_plugins('found_action'):
-            logger.info("found action trying with %s" % plugin.name)
-            service = plugin.rpc['found_action'](services=services, record=record)
-            if service:
-                logger.info("plugin has handled")
-                line.content+=" %s is handling" % getattr(plugin, 'name', 
-                                                                    'plugin')
-                line.save()
-                pending[record.remote.address]=service
-                return True
-    except Exception, err:
-        logger.error("plugin do_action")
-        logger.exception(err)
-
-    #fall back to normal uploader
-    uploader = get_uploader(services)
+def found_action_upload(remote, record = None, line=None):
+    from openproximity.rpc.server import OpenProximityService
+    
+    uploader = OpenProximityService.getUploader()
 
     if uploader is None:
         line.content+=" no uploaders, can't handle"
@@ -109,7 +87,7 @@ def found_action(services, address, record, pending, dongle):
     logger.info("found uploader")
 
     camps = getMatchingCampaigns(
-            record.remote, 
+            remote, 
             enabled=True, 
             record=record, 
             classes=[MarketingCampaign,]
@@ -138,14 +116,14 @@ def found_action(services, address, record, pending, dongle):
           channel = camp.fixed_channel
         if camp.upload_on_discovered:
             use_same = True
-    sdp = RemoteBluetoothDeviceSDP.objects.filter(remote__pk=remote.pk)
+    sdp = RemoteBluetoothDeviceSDP.objects.filter(remote__pk=record.remote.pk)
     if sdp.count() > 0:
-        channel = sdp.all()[-1].channel
-        logger.info("using previous resolved channel %i" % channel)
+        channel = sdp.order_by("-time")[0].channel
+        line.content += "using previous resolved channel %i" % channel
 
     logger.info("going to upload %s files" % len(files))
     if len(files) > 0:
-        pending[record.remote.address]=uploader
+        OpenProximityService.addPending(record.remote.address, uploader)
         do_upload(uploader, files, record.remote.address, service, name, 
                 channel=channel, dongle=dongle if use_same else None)
         line.content+=" uploading files"
@@ -154,3 +132,31 @@ def found_action(services, address, record, pending, dongle):
     
     line.save()
 
+def found_action(address, record, dongle):
+    line = LogLine()
+    line.content="Found action for: %s" % address
+    try:
+        for plugin in pluginsystem.get_plugins('found_action'):
+            logger.info("found action trying with %s" % plugin.name)
+            service = plugin.rpc['found_action'](record=record, dongle=dongle)
+            if service:
+                logger.info("plugin has handled")
+                line.content+=" %s is handling" % getattr(plugin, 'name', 
+                                                                    'plugin')
+                line.save()
+                OpenProximityService.addPending(address, service)
+                return True
+    except Exception, err:
+        logger.error("plugin do_action")
+        logger.exception(err)
+
+    return found_action_upload(record.remote, record, line)
+
+def schedule_try_upload(klass, remote_address, rule_id, record_id):
+    line = LogLine()
+    camp = klass.objects.get(pk=rule_id)
+    remote = RemoteDevice.objects.get(address=remote_address)
+    record = RemoteBluetoothDeviceFilesRejected.objects.get(pk=record_id)
+    line.content = "Scheduled event for %s" % remote_address
+    logger.info("scheduled try for %s %s" % (remote, camp))
+    found_action_upload(remote, record, line)
