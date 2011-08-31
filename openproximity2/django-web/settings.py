@@ -20,7 +20,7 @@ __PATH=os.path.dirname(os.path.abspath(__file__))
 __ROOT=os.path.dirname(__PATH)
 __LIBS=os.path.join(__ROOT, 'libs')
 
-from configglue.pyschema import SchemaConfigParser
+from configglue.parser import SchemaConfigParser
 from django_configglue.utils import update_settings
 from functools import partial
 import schema
