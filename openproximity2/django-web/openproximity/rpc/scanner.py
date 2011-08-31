@@ -25,37 +25,35 @@ from common import found_action, is_known_dongle
 
 import time
 
-def handle(services, signal, scanner, *args, **kwargs):
+def handle(signal, *args, **kwargs):
     logger.info("scanner signal: %s" % signals.TEXT[signal])
     logl = LogLine()
     logl.content += signals.TEXT[signal]
 
     if signal == signals.DONGLES_ADDED:
         logger.info("Dongles initializated")
-        cycle_completed(scanner)
+        cycle_completed()
     elif signal == signals.NO_DONGLES:
         logger.error("NO SCANNER DONGLES!!!")
     elif signal == signals.DONGLE_NOT_AVAILABLE:
         logger.error("DONGLE NOT AVAILABLE %s" % kwargs['address'])
         logl.content += " " + kwargs['address']
-        do_scan(scanner)
+        do_scan()
     elif signal == signals.CYCLE_SCAN_DONGLE_COMPLETED:
         logger.info("DONGLE DONE WITH SCAN %s" % kwargs['address'])
         logl.content += " " + kwargs['address']
-        do_scan(scanner)
+        do_scan()
     elif signal == signals.CYCLE_COMPLETE:
-        cycle_completed(scanner)
+        cycle_completed()
     elif signal == signals.CYCLE_START:
         pass
     elif signal == signals.CYCLE_SCAN_DONGLE:
         logl.content += " " + kwargs['address']
-        started(scanner, kwargs['address'])
+        started(kwargs['address'])
     elif signal == signals.FOUND_DEVICE:
         logl.content += " " + kwargs['address']
-        addrecords(services, 
-            kwargs['address'], 
-            kwargs['records'], 
-            kwargs['pending']
+        addrecords(kwargs['address'], 
+            kwargs['records']
         )
     else:
         logger.error("unknown signal")
@@ -63,7 +61,7 @@ def handle(services, signal, scanner, *args, **kwargs):
     
     logl.save()
 
-def started(scanner, address):
+def started(address):
     logger.info('scan_started %s' % address)
     dongle = ScannerBluetoothDongle.objects.get(address=address)
     record = DeviceRecord()
@@ -113,13 +111,17 @@ def get_dongles(dongles):
             logger.exception(err)
     return out
 
-def do_scan(scanner):
+def do_scan():
+    from openproximity.rpc.server import OpenProximityService
     logger.info("start scan")
+    scanner = OpenProximityService.getScanner()
     scanner.doScan()
 
-def cycle_completed(scanner):
+def cycle_completed():
+    from openproximity.rpc.server import OpenProximityService
     logger.info("scanner_cycle_complete")
     camps = getMatchingCampaigns(enabled=True)
+    scanner = OpenProximityService.getScanner()
     if len(camps)==0:
         logger.info("no campaigns, no more scanning")
         # tell the rpc scanner to ping us periodically until there's
@@ -140,7 +142,8 @@ def cycle_completed(scanner):
 
 uploaded = set()
 
-def handle_addrecord(services, remote_, dongle, pending):
+def handle_addrecord(remote_, dongle):
+    from openproximity.rpc.server import OpenProximityService
     address = remote_['address']
     name = smart_unicode(remote_['name']) if remote_['name'] else None
 
@@ -178,12 +181,12 @@ def handle_addrecord(services, remote_, dongle, pending):
         record.getRSSI())
     logl.save()
     
-    if address not in pending:
-        return found_action(services, address, record, pending, dongle=dongle)
+    if not OpenProximityService.isPending(address):
+        return found_action(address, record, dongle=dongle)
 
     return True
     
-def addrecords(services, address, records, pending):
+def addrecords(address, records):
     logger.info('addrecords for dongle %s' % address)
     try:
         dongle = RemoteScannerBluetoothDongle.objects.get(address=address)
@@ -193,7 +196,7 @@ def addrecords(services, address, records, pending):
         dongle = ScannerBluetoothDongle.objects.get(address=address)    
 
     for i in records:
-        handle_addrecord(services, i, dongle, pending)
+        handle_addrecord(i, dongle)
 
     return True
 
