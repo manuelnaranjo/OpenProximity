@@ -32,7 +32,7 @@ import net.aircable.openproximity.signals.scanner as scanner
 from net.aircable.fields import PickledField
 from net.aircable.utils import logger
 
-from openproximity.rpc.scheduler import Scheduler
+from openproximity.rpc.dispatcher import Dispatcher
 
 import errno
 
@@ -302,8 +302,8 @@ class MarketingCampaign(Campaign):
             record=qs.all()[0]
             logger.debug("got record, %s" % record)
             
-        previous=time.mktime(record.time.timetuple())
-        delta = time.mktime(time.gmtime())-previous
+        previous=time.mktime(record.time.timetuple())-time.timezone
+        delta = time.mktime(time.gmtime())-time.timezone-previous
         logger.info("delta: %s" % delta)
 
         if record.isTimeout():
@@ -313,7 +313,7 @@ class MarketingCampaign(Campaign):
                 #is it time all ready?
                 if delta >= self.tries_timeout:
                     return True
-            elif self.tries_count > self.getTriesCount(record.remote)):
+            elif self.tries_count > self.getTriesCount(record.remote):
                 #ok we still need to keep trying, is it time all ready?
                 if delta>=self.tries_timeout:
                     return True
@@ -323,7 +323,7 @@ class MarketingCampaign(Campaign):
 
             # reschedule to try in the future in case the device is non 
             # discoverable any more
-            next_time = previous+self.tries_timeout
+            next_time = previous + self.tries_timeout
         else:
             logger.info("record rejected")
             if self.rejected_count == -1:
@@ -331,7 +331,7 @@ class MarketingCampaign(Campaign):
                 #is it time all ready?
                 if delta >= self.rejected_timeout:
                     return True
-            elif self.rejected_count > self.getRejectedCount(record.remote)):
+            elif self.rejected_count > self.getRejectedCount(record.remote):
                 #ok we still need to keep trying, is it time all ready?
                 if delta>=self.rejected_timeout:
                     return True
@@ -339,11 +339,21 @@ class MarketingCampaign(Campaign):
                 # we reached the rejected count
                 return False
             next_time = previous + self.rejected_timeout
-        # check if no one is registered to try again before us
-        if len(Dispatcher.cueue) > 0:
-            
-        delta = next_time - time.mktime(time.gmtime())
-        
+
+        # register into the dispatcher for later operation
+        address = record.remote.address
+        c = Dispatcher.cueue
+        if not True in [ "remote_address" in b.kw and \
+                "klass" in b.kw and \
+                b.kw['remote_address'] == address and \
+                b.kw['klass'] == MarketingCampaign for b in c]:
+            Dispatcher.callLater(next_time, 
+                schedule_try_upload, 
+                klass=MarketingCampaign,
+                remote_address=record.remote.address, 
+                record_id=record.pk,
+                rule_id=self.pk)
+
         return False
 
     def matches(self, remote, record=None, *args, **kwargs):
@@ -703,4 +713,6 @@ def logline_signal(instance, **kwargs):
 models.signals.post_save.connect(bluetooth_dongle_signal)
 models.signals.post_save.connect(campaign_signal)
 models.signals.post_save.connect(logline_signal)
+
+from openproximity.rpc.common import schedule_try_upload
 
