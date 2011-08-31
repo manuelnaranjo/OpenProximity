@@ -206,7 +206,7 @@ cp -r "$CWD"/op_lib/plugins "$LIB_TARGET"
 cp -r "$CWD"/op_lib/django_restapi "$LIB_TARGET"
 cp "$CWD"/pair.sh .
 cp -r "$CWD"/remoteScanner .
-cp "$CWD"/django-web/setpaths.py remoteScanner
+cp "$CWD"/django-web/setpaths.py remoteScanner/
 cp "$CWD"/remote_scanner.sh .
 cp "$CWD"/rpc.sh .
 cp "$CWD"/run.sh .
