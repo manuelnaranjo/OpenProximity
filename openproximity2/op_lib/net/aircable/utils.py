@@ -29,7 +29,7 @@ def __initLog():
 	
 	logger=logging.getLogger('openproximity')
 	logger.setLevel(logging.DEBUG)
-	formatter=logging.Formatter('%(asctime)-12s %(pathname)s/%(module)s:%(funcName)s: %(levelno)-2s %(message)s')
+	formatter=logging.Formatter('%(module)s:%(funcName)s: %(message)s')
 	
 	if os.environ.get('LOG_FILE', None) is not None:
 	    log_=logging.handlers.RotatingFileHandler(
