@@ -19,13 +19,13 @@ from net.aircable.openproximity.signals import uploader as signals
 from net.aircable.utils import logger
 from openproximity.models import *
 
-from common import get_uploader, do_upload, is_known_dongle, isAIRcable
+from common import do_upload, is_known_dongle, isAIRcable
 
 #from pickle import loads
 
 import traceback
 
-def handle(services, signal, uploader, *args, **kwargs):
+def handle(signal, *args, **kwargs):
     logger.info("uploader signal: %s" % signals.TEXT[signal])
     logl = LogLine()
     logl.content += signals.TEXT[signal]
@@ -40,36 +40,30 @@ def handle(services, signal, uploader, *args, **kwargs):
     elif signal == signals.SDP_NORECORD:
         logl.content += ' %s' %( kwargs['address'])
         handle_sdp_norecord(
-                kwargs['dongle'], 
-                kwargs['address'], 
-                kwargs['pending']
-        )
+                kwargs['dongle'],
+                kwargs['address'])
         
     elif signal == signals.SDP_TIMEOUT:
         logl.content += ' %s' %( kwargs['address'])
         handle_sdp_timeout(
-            kwargs['dongle'], 
-            kwargs['address'], 
-            kwargs['pending'])
+            kwargs['dongle'],
+            kwargs['address'])
     elif signal == signals.FILE_UPLOADED:
         logl.content += ' %s' %( kwargs['address'])
         handle_file_uploaded(
-            kwargs['dongle'], 
-            kwargs['address'], 
-            kwargs['pending'], 
-            kwargs['port'], 
+            kwargs['dongle'],
+            kwargs['address'],
+            kwargs['port'],
             kwargs['files'])
     elif signal == signals.FILE_FAILED:
         logl.content += ' %s, ret:%s' %( kwargs['address'], kwargs['ret'])
         handle_file_failed(
-                kwargs['dongle'], 
-                kwargs['address'], 
-                kwargs['pending'], 
-                kwargs['port'], 
-                kwargs['files'], 
-                kwargs['ret'], 
-                kwargs['stderr'], 
-                services)
+                kwargs['dongle'],
+                kwargs['address'],
+                kwargs['port'],
+                kwargs['files'],
+                kwargs['ret'],
+                kwargs['stderr'])
     else:
         logger.error("signal ignored")
     
@@ -119,27 +113,36 @@ def handle_sdp_resolved(dongle, remote, channel):
         record.remote = remote
         record.save()
 
-def handle_sdp_norecord(dongle, remote, pending):
+def handle_sdp_norecord(dongle, remote):
     logger.info("No SDP: %s" % remote)
-    pending.pop(remote)
+    
+    from openproximity.rpc.server import OpenProximityService
+    OpenProximityService.removePending(remote)
+
     remote=RemoteDevice.objects.filter(address=remote).get()
     if RemoteBluetoothDeviceNoSDP.objects.filter(remote=remote).count() == 0:
         record = RemoteBluetoothDeviceNoSDP()
         record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
         record.remote = remote
         record.save()
-    
+
 def handle_sdp_timeout(dongle, remote, pending):
     logger.info("SDP timeout: %s" % remote )
-    pending.pop(remote)
+
+    from openproximity.rpc.server import OpenProximityService
+    OpenProximityService.removePending(remote)
+
     record = RemoteBluetoothDeviceSDPTimeout()
     record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
     record.setRemoteDevice(remote)
     record.save()
 
-def handle_file_uploaded(dongle, remote, pending, channel, files):
+def handle_file_uploaded(dongle, remote, channel, files):
     logger.info("files uploaded: %s[%s]: %s" % ( remote, channel, files) )
-    pending.pop(remote)
+
+    from openproximity.rpc.server import OpenProximityService
+    OpenProximityService.removePending(remote)
+
     for camp in get_campaign_rule(files):
         record = RemoteBluetoothDeviceFilesSuccess()
         record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
@@ -147,27 +150,32 @@ def handle_file_uploaded(dongle, remote, pending, channel, files):
         record.setRemoteDevice(remote)
         record.save()
 
-def handle_file_failed(dongle, remote, pending, channel, files, ret, err, services):
+def handle_file_failed(dongle, remote, channel, files, ret, err):
     logger.info("handle file failed %s[%s]: %s" % (remote, channel, files))
     logger.debug(err)
     try:
-        record = RemoteBluetoothDeviceFilesRejected()
-        record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
-        rule = get_campaign_rule(files)
-        if rule is None:
-            raise Exception("Couldn't find rule")
-        record.campaign = rule
-        record.ret_value = ret
-        record.setRemoteDevice(remote)
-        record.save()
-        
-        # from here we try again either on timeout or if rejected count is 
-        # smaller than filter
-        try_again = rule.tryAgain(record)
-        
+        rules = get_campaign_rule(files)
+        if rules is None:
+            raise Exception("No matching rule for files %s!" % files)
+        record = None
+        try_again = False
+
+        for rule in get_campaign_rule(files):
+            record = RemoteBluetoothDeviceFilesRejected()
+            record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
+            record.campaign = rule
+            record.ret_value = ret
+            record.setRemoteDevice(remote)
+            record.save()
+            # from here we try again either on timeout or if rejected count is 
+            # smaller than filter, for any of the matching rules
+            # if only 1 campaign matches we do it all over!
+            try_again = try_again | rule.tryAgain(record)
+
         logger.info("try again: %s" % try_again)
         if try_again:
-            uploader = get_uploader(services)
+            from openproximity.rpc.server import OpenProximityService
+            uploader = OpenProximityService.getUploader()
             if uploader:
                 logger.info("trying again")
                 return do_upload(uploader, files, remote)
@@ -177,5 +185,6 @@ def handle_file_failed(dongle, remote, pending, channel, files, ret, err, servic
         logger.error("OOOPS!!!")
         logger.exception(err)
     logger.info("taking out of pending list")
-    pending.pop(remote)
 
+    from openproximity.rpc.server import OpenProximityService
+    OpenProximityService.removePending(remote)
