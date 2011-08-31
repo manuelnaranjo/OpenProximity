@@ -12,7 +12,11 @@ from time import time as now
 class Task:
     def internal_callback(self):
         logger.debug("Timer timeout %s" % self)
-        self.callback(*self.a, **self.kw)
+        try:
+            self.callback(*self.a, **self.kw)
+        except Exception, err:
+            logger.error("Exception during callback")
+            logger.exception(err)
         Dispatcher.cueue.remove(self)
     
     def cancel(self):
@@ -40,6 +44,7 @@ class Dispatcher(Thread):
         Dispatcher.cueue = []
         self.cond = Condition(Lock())
         self.evt = Event()
+        self.daemon = True
     
     def run(self):
         while True:
@@ -68,8 +73,12 @@ class Dispatcher(Thread):
         return t
 
     @classmethod
-    def callLater(klass, triggerTime, callback, *a, **kw):
-        return klass.instance.__callLater(triggerTime, callback, *a, **kw)
+    def getPendings(klass):
+        return klass.cueue
+    
+    @classmethod
+    def callLater(klass__, triggerTime, callback, *a, **kw):
+        return klass__.instance.__callLater(triggerTime, callback, *a, **kw)
 
     @classmethod
     def cancelCallLater(klass, task):
