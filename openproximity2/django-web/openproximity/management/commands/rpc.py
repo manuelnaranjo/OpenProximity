@@ -21,7 +21,6 @@ SERVER_OPTIONS = {
     'server_group': settings.RPC_SERVER_GROUP,
 }
 
-
 class Command(BaseCommand):
     help = "RPyC Server for OpenProximity."
 
@@ -39,14 +38,14 @@ class Command(BaseCommand):
         in help messages and such.
         """
         print prog_name, subcommand
-	parser = OptionParser(prog=prog_name,
-	    usage=self.usage(subcommand),
-	    version=self.get_version(),
-	    option_list=self.option_list)
+        parser = OptionParser(prog=prog_name,
+            usage=self.usage(subcommand),
+            version=self.get_version(),
+            option_list=self.option_list)
 
-	configglue_parser = settings.__CONFIGGLUE_PARSER__
-	op, options, args = schemaconfigglue(configglue_parser, op=parser)
-	return op
+        configglue_parser = settings.__CONFIGGLUE_PARSER__
+        op, options, args = schemaconfigglue(configglue_parser, op=parser)
+        return op
 
 def change_uid_gid(uid, gid=None):
     """Try to change UID and GID to the provided values.
@@ -88,19 +87,19 @@ def start_server(options):
         change_uid_gid(options['server_user'], options['server_group'])
 
     if options['threaded']:
-	serv = ThreadedServer(server.OpenProximityService, options['host'],
-	    port = options['port'], auto_register = options['autoregister'])
+        serv = ThreadedServer(server.OpenProximityService, options['host'],
+            port = options['port'], auto_register = options['autoregister'])
     else:
-	print "Forking server is not a tested server!"
-	serv = ForkingServer(server.OpenProximityService, options['host'],
-	    port = options['port'], auto_register = options['autoregister'])
+        print "Forking server is not a tested server!"
+        serv = ForkingServer(server.OpenProximityService, options['host'],
+            port = options['port'], auto_register = options['autoregister'])
 
     try:
         serv.start()
-    except KeyboardInterrupt:
+    except KeyboardInterrupt, err:
         serv.stop()
-
-
+    
+    
 def runserver(argset=[], **kwargs):
     # Get the options
     options = SERVER_OPTIONS.copy()
@@ -108,8 +107,9 @@ def runserver(argset=[], **kwargs):
 
     if options['daemonize']:
         if not options['pidfile']:
-            options['pidfile'] = '/var/run/rpcserver_%s.pid' % options['port']
+            options['pidfile'] = '/var/run/openproximity_rpc_%s.pid' % options['port']
 
+        print "storing pid file in", options['pidfile']
         from django.utils.daemonize import become_daemon
         become_daemon()
 
@@ -120,6 +120,6 @@ def runserver(argset=[], **kwargs):
     # Start the rpc server
     print 'starting server with options %s' % options
     start_server(options)
-
+    
 if __name__ == '__main__':
     runserver(sys.argv[1:])
