@@ -30,8 +30,6 @@ from rpyc import Service, async
 from rpyc.utils.server import ThreadedServer, ForkingServer
 from dispatcher import Dispatcher
 
-services = set()
-pending = dict()
 enabled = True # useful when tables are been drop
 all_dongles = set()
 
@@ -48,32 +46,34 @@ def db_ready():
 class OpenProximityService(Service):
     dongles = None
     remote_quit = None
-    instance = None
 
     def __init__(self, *args, **kwargs):
         logger.info("New OpenProximityServer")
         Service.__init__(self, *args, **kwargs)
-        OpenProximityService.instance = self
+        OpenProximityService.instances.append(self)
 
     def on_connect(self):
-        services.add(self)
+        OpenProximityService.services.add(self)
 
     def on_disconnect(self):
-        a = [ p for p in pending if pending[p]==self]
+        a = [ p for p in OpenProximityService.pending \
+            if OpenProximityService.pending[p]==self]
         if len(a) > 0:
            logger.info("a client disconnected, clearing %s pending transactions" % len(a))
            for p in a:
-               pending.pop(p)
-        services.remove(self)
+               OpenProximityService.pending.pop(p)
+        OpenProximityService.instances.remove(self)
+        OpenProximityService.services.remove(self)
+        del self
 
     def exit(self, exit):
-        for ser in services:
+        for ser in OpenProximityService.services:
             if ser.remote_quit is not None:
                 try:
                     ser.remote_quit()
                 except:
                     pass
-        pending = set()
+        OpenProximityService.pending = dict()
         if exit:
             sys.exit(3) # restart me please
 
@@ -86,14 +86,11 @@ class OpenProximityService(Service):
             return
 
         logger.debug("exposed_listener %s %s %s" % ( signal, args, kwargs) )
-        kwargs['pending']=pending
 
         try:
             for plugin in pluginsystem.get_plugins('rpc'):
                 plugin.rpc['handle'](
                     signal=signal, 
-                    services=services, 
-                    manager=self, 
                     *args, **kwargs)
             transaction.commit() 
             # commit only after all the plugins have handled
@@ -104,9 +101,9 @@ class OpenProximityService(Service):
 
         try:
             if signals.isScannerSignal(signal):
-                scanner.handle(services, signal, self, *args, **kwargs)
+                scanner.handle(signal=signal, *args, **kwargs)
             elif signals.isUploaderSignal(signal):
-                uploader.handle(services, signal, self, *args, **kwargs)
+                uploader.handle(signal=signal, *args, **kwargs)
             transaction.commit()
             # commit only after scanner and upload has done it's work
         except Exception, err:
@@ -211,26 +208,57 @@ class OpenProximityService(Service):
 
     def exposed_getUploadersCount(self):
         count = 0
-        for ser in services:
+        for ser in OpenProximityService.services:
             if getattr(ser,'uploader',None) is not None:
                 count += 1
         return count
 
     def exposed_getScannersCount(self):
         count = 0
-        for ser in services:
+        for ser in OpenProximityService.services:
             if getattr(ser,'scanner',None) is not None:
                 count += 1
         return count
 
     def exposed_getDongles(self):
         def getDongles_internal(self):
-            for ser in services:
+            for ser in OpenProximityService.services:
                 if ser.dongles is not None:
                     for d in ser.dongles:
                         yield d
 
         return set(getDongles_internal(self))
+    
+    @classmethod
+    def getDongleForService(klass, attribute):
+        for service in klass.instances:
+            if attribute in dir(service):
+                return service
+        return None
+
+    @classmethod
+    def getUploader(klass):
+        return klass.getDongleForService('uploader')
+    
+    @classmethod
+    def getScanner(klass):
+        return klass.getDongleForService('scanner')
+    
+    @classmethod
+    def getPendings(klass):
+        return OpenProximityService.pending
+    
+    @classmethod
+    def isPending(klass, address):
+        return address in OpenProximityService.pending
+    
+    @classmethod
+    def removePending(klass, address):
+        return OpenProximityService.pending.pop(address)
+    
+    @classmethod
+    def addPending(klass, address, service):
+        OpenProximityService.pending[address]=service
 
     def __str__(self):
         return str(dir(self))
@@ -259,7 +287,7 @@ class OpenProximityService(Service):
         logger.info("getPIN request for %s->%s" % (local, remote) )
         remote = RemoteDevice.getRemoteDevice(address=remote)
         try:
-            for camp in getMatchingCampaigns(remote=remote, enabled=True)
+            for camp in getMatchingCampaigns(remote=remote, enabled=True):
                 if not camp.pin_code:
                     continue
                 logger.debug("pin code: %s" % camp.pin_code)
@@ -270,3 +298,7 @@ class OpenProximityService(Service):
         logger.info("No pin code")
 
         raise Exception("No pin code found")
+
+OpenProximityService.instances = []
+OpenProximityService.services = set()
+OpenProximityService.pending = dict()
