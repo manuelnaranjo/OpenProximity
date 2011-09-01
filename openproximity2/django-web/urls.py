@@ -27,8 +27,9 @@ from net.aircable.openproximity.pluginsystem import pluginsystem
 admin.autodiscover()
 
 urlpatterns = patterns ('',
-    (r'accounts/login', login, {'template_name': 'op/login.html'}),
-    (r'accounts/logout', logout),
+    (r'^accounts/$', login, {'template_name': 'op/login.html'}),
+    (r'^accounts/login', login, {'template_name': 'op/login.html'}),
+    (r'^accounts/', include('django.contrib.auth.urls')),
 
     # include needed interfaces    
 #    (r'^bluez/', include('bluez.urls')),
