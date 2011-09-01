@@ -2,74 +2,46 @@
 
 {% load i18n %}
 
-{% block extrahead %}
-<script type="text/javascript">
-
-function check_version(){
-    var reply=compare_version("{{version.current}}");
-    var foot =$('version_foot');
-    var p=P("{% trans "server version" %}: " + reply.latest + " {% trans "running version" %}: {{ version.current }}");
-    foot.appendChild(p)
-
-    if ( reply.new_available == true ){
-	var top = $('new_version_top');
-	var h1=H1()
-	var a = A({ 
-	    'href': 'http://code.google.com/p/proximitymarketing/',
-	    'innerHTML': "{% trans "There's a new version available" %}"
-	});
-	h1.appendChild(a);
-	top.appendChild(h1)
-	top.appendChild(P("{% trans "New Version" %}: " + reply.latest));
-        top.appendChild(P("{% trans "Your Version" %}: {{ version.current }}"));
-        top.style.display="";
-    }
-}
-
-addLoadEvent(check_version);
-</script>
-
-{% endblock %}
+{% block bodyid %}setup{% endblock %}
 
 {% block content %}
     <div id="new_version_top" style="display: none" class="content-main"></div>
 
     <div class="content-main" style="float: none">
-	<div class="inner">
-
-{% if done %}
-	<div class="setting">
-	    {% trans "Setup process is completed, you will be redirected in 5 seconds." %}
-	    <script type="text/javascript">
-		setTimeout("window.location.replace('.')", 5000);
-	    </script>
-    	</div>
-{% else %}
-	    <form action="" method="post">
-	    {% for hidden in user.hidden_fields %}
-                {{ hidden }}
-            {% endfor %}
-
-	    <fieldset>
-                <legend>{% trans "Server Setup" %}</legend>
-		<div class="setting">
-		    <div class="label">{% trans "DB Ready" %}</div>
-            	    <span class="value" id="stats_seen">{{ db_ready }}</span>
-        	</div>
-    		{% for field in user.visible_fields %}
-		    <div class="setting">
-		        <div class="label">{{ field.label_tag }}</div>
-		        <span class="value">{{ field }}</span>
-		        <div class="error">{{ field.errors }}</div>
-		    </div>
-		{% endfor %}
-	    </fieldset>
-	    <input type="submit" value="{% trans "Submit" %}" />
-	    </form>
-{% endif %}
-	</div>
+	    <div class="inner">
+            {% if done %}
+                <div class="setting">
+                    {% trans "Setup process is completed, you will be redirected in 5 seconds." %}
+                    <script type="text/javascript">
+                        setTimeout("window.location.replace('.')", 5000);
+                    </script>
+                </div>
+            {% else %}
+                <form action="" method="post">
+                    {% for hidden in user.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+            
+                    <fieldset>
+                        <legend>{% trans "Server Setup" %}</legend>
+                        <div class="setting">
+                            <div class="label">{% trans "DB Ready" %}</div>
+                                <span class="value" id="stats_seen">{{ db_ready }}</span>
+                            </div>
+                            
+                            {% for field in user.visible_fields %}
+                               <div class="setting">
+                                   <div class="label">{{ field.label_tag }}</div>
+                                   <span class="value">{{ field }}</span>
+                                   <div class="error">{{ field.errors }}</div>
+                               </div>
+                            {% endfor %}
+                    </fieldset>
+                    <input type="submit" value="{% trans "Submit" %}" />
+                </form>
+            {% endif %}
+        </div>
     </div>
-
 {% endblock %}
 
 {% block footer %}

@@ -5,204 +5,59 @@
 {% settings %}
 
 {% block extrahead %}
-<script type="text/javascript">
-	function update_field(el, val){
-		getElement(el).innerHTML=val
-	}
-    
-	function update_field_complex(el, id, val){
-		getElement(el+'_'+id).innerHTML=val
-	}
-	
-	function create_td(id, content){
-		var td = TD({ 'id': id, 'innerHTML': content })
-		return td
-	}
-
-	function update_stats(){
-		var defer;
-		defer = loadJSONDoc('rpc/stats');
-
-		var gotStats=function(stats){
-		    var td;
-		    
-		    update_field('stats_seen', stats.seen.total)
-		    
-		    for (var addr in stats.seen.perdongle){
-			var val = stats.seen.perdongle[addr]
-			update_field_complex('stats_count', val.address, val.count)
-		    }
-		    
-		    update_field('stats_valid', stats.valid)
-		    update_field('stats_tries', stats.tries)
-		    update_field('stats_timeout', stats.timeout)
-		    update_field('stats_rejected', stats.rejected)
-		    update_field('stats_accepted', stats.accepted)
-		};
-	
-		var statsFetchFailed = function(err){
-		    /*alert(err)*/
-		}
-		defer.addCallbacks(gotStats, statsFetchFailed);
-	}
-	
-	function create_button(id, text, href, bgColor){
-	    if (bgColor==null){
-		bgColor="#e4e4e4";
-	    }
-	    var inner;
-	    var out;
-	    var a;
-	    out=DIV({'id': id, 'class':'nav_button'})
-	    inner=DIV({'class': 'inner', 'style': 'height: 1.5em'})
-	    out.appendChild(inner)
-	    a=A({ 'href': href, 'innerHTML': text })
-	    inner.appendChild(a)
-	    roundElement(out, {bgColor: bgColor})
-	    return out
-	}
-
-	function update_known_dongles(dongles){
-	    var old_body=$('known').getElementsByTagName('tbody')[0];
-	    var new_body=TBODY();
-
-	    for (var i = 0; i<dongles.length; i++){
-		var val = dongles[i];
-		var tr = TR({ 
-		    'class': 'rpc_dongles', 
-		    'id': "rpc_dongles_"+val.address
-		});
-		tr.appendChild(create_td('dongle_address', val.address));
-		tr.appendChild(create_td('dongle_scan', val.isScanner));
-		tr.appendChild(create_td('dongle_scan_enabled', val.scan_enabled));
-		tr.appendChild(create_td('dongle_scan_priority', val.scan_pri));
-		tr.appendChild(create_td('dongle_upload', val.isUploader));
-		tr.appendChild(create_td('dongle_upload_enabled', val.upload_enabled));
-		tr.appendChild(create_td('dongle_upload_maxconn', val.max_conn));
-		var td=TD({
-		    'style': 'width: 10em;',
-		    'id': 'dongle_setup'
-		});
-		td.appendChild(
-		    create_button(
-			'configure_'+val.address, 
-			"{% trans "Configure" %}",
-			'configure/dongle/' + val.address,
-			'white'
-		    )
-		);
-		tr.appendChild(td);
-		new_body.appendChild(tr);
-	    }
-	    swapDOM(old_body, new_body);
-	}
-
-	function update_rpc_info(){
-		var defer;
-
-		defer = loadJSONDoc('rpc/info');
-
-		var gotInfo=function(info){
-			update_field('rpc_running', info.running)
-			update_field('rpc_uploadres', info.uploaders)
-			update_field('rpc_scanners', info.scanners)
-			update_known_dongles(info.dongles)
-		};
-	
-		var infoFetchFailed = function(err){
-			/*alert(err)*/
-		}
-		defer.addCallbacks(gotInfo, infoFetchFailed);
-	}
-
-
-function check_version(){
-    var reply=compare_version("{{version.current}}");
-    var foot =$('version_foot');
-    var p=P("{% trans "server version" %}: " + reply.latest + " {% trans "running version" %}: {{ version.current }}");
-    foot.appendChild(p)
-
-    if ( reply.new_available == true ){
-	var top = $('new_version_top');
-	var h1=H1()
-	var a = A({ 
-	    'href': 'http://code.google.com/p/proximitymarketing/',
-	    'innerHTML': "{% trans "There's a new version available" %}"
-	});
-	h1.appendChild(a);
-	top.appendChild(h1)
-	top.appendChild(P("{% trans "New Version" %}: " + reply.latest));
-        top.appendChild(P("{% trans "Your Version" %}: {{ version.current }}"));
-        top.style.display="";
-    }
-}
-
-setInterval("update_stats()", 20000) <!-- update each 20 seconds -->
-setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
-
-addLoadEvent(update_stats)
-addLoadEvent(update_rpc_info);
-addLoadEvent(check_version);
-</script>
-
 {% comment %} field line content refresh 'amount to show' 'first read' {% endcomment %}
 {% Tweet 'messages' 'fields.time' './microblog' 'post.fields.time.split(\' \')[1] + " " + post.fields.content + "<br/>"' 5 15 %}
-
 {% endblock %}
+
+{% block bodyid %}main-page{% endblock %}
 
 {% block content %}
     <div id="new_version_top" style="display: none" class="content-main"></div>
     
     <fieldset style="margin: 0px; padding: 0px; border: none">
-	<div style="width: 50%; float: left;" >
-	    <div class="content-main" style="float:bottom;"><div class="inner">{% include "op/imports/server_stats.html" %}</div></div>
-	    <div class="content-main" style="float:bottom;"><div class="inner">{% include "op/imports/server_status.html" %}</div></div>
-	</div>
-	<div style="width: 49%; float:right;">
-	    <fieldset style="margin: 0px; padding: 0px; border: none">
-	    <div class="log content-main" style="float:left; width: {% if settings.twitter %}70%{% else %}100%{% endif %}">
-		<div class="inner">
-		    <h1>{% trans "Server Log" %}</h1>
-		    <div id="messages"></div>
-		</div>
+	    <div style="width: 50%; float: left;" >
+	        <div class="content-main" style="float:bottom;"><div class="inner">{% include "op/imports/server_stats.html" %}</div></div>
+	        <div class="content-main" style="float:bottom;"><div class="inner">{% include "op/imports/server_status.html" %}</div></div>
+        </div>
+        <div style="width: 49%; float:right;">
+	        <fieldset style="margin: 0px; padding: 0px; border: none">
+	            <div class="log content-main" style="float:left; width: {% if settings.twitter %}70%{% else %}100%{% endif %}">
+	                <div class="inner">
+	                    <h1>{% trans "Server Log" %}</h1>
+	                    <div id="messages"></div>
+	                </div>
+	            </div>
+	            
+	            {% if settings.twitter %}
+	                <div  style="float:right; width: 29%">
+	                    <script src="http://widgets.twimg.com/j/2/widget.js"></script>
+	                    <script>
+	                        new TWTR.Widget({
+	                            version: 2, type: 'profile', rpp: 5, 
+	                            interval: 6000, width: '29%', height: 335,
+	                            features: {
+	                              scrollbar: true, loop: false, live: true,
+	                              hashtags: true, timestamp: true, avatars: false,
+	                              behavior: 'all'
+	                            }
+	                        }).render().setUser('aircable_manuel').start();
+	                    </script>
+	                </div>
+	            {% endif %}
+	        </fieldset>
 	    </div>
-	    {% if settings.twitter %}
-	    <div  style="float:right; width: 29%">
-	      <script src="http://widgets.twimg.com/j/2/widget.js"></script>
-	      <script>
-	      new TWTR.Widget({
-		version: 2,
-		type: 'profile',
-		rpp: 5,
-		interval: 6000,
-		width: '29%',
-		height: 335,
-		features: {
-		  scrollbar: true,
-		  loop: false,
-		  live: true,
-		  hashtags: true,
-		  timestamp: true,
-		  avatars: false,
-		  behavior: 'all'
-		}
-	      }).render().setUser('aircable_manuel').start();
-	      </script>
-	    </div>
-	    {% endif %}
-	    </fieldset>
-	</div>
-
     </fieldset>
+    
     <div class="content-main" style="float: none">
-	<div class="inner">
-	{% include "op/imports/known_dongles.html" %}
-	</div>
+	    <div class="inner">
+	        {% include "op/imports/known_dongles.html" %}
+	    </div>
     </div>
+    
     <div class="content-main" style="float: none">
-	<div class="inner">
-	{% include "op/imports/campaigns.html" %}
-	</div>
+	    <div class="inner">
+	        {% include "op/imports/campaigns.html" %}
+	    </div>
     </div>
 {% endblock %}
 
@@ -210,3 +65,4 @@ addLoadEvent(check_version);
     <div id='version_foot'></div>
     <script type="text/javascript" src="http://proximitymarketing.googlecode.com/svn/trunk/openproximity2/latest-version.js"></script>
 {% endblock %}
+

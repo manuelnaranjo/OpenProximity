@@ -11,50 +11,23 @@
 <head>
 <title>OpenProximity 2.0 {% block title %}{% endblock %}</title>
 
-<link rel="stylesheet" type="text/css" href="/site_media/openproximity.css" />
+<link rel="stylesheet" type="text/css" href="/site_media/css/openproximity.css" />
 
 <style type="text/css">
     .logo {
-	background: url(/site_media/{% if settings.logo %}{{ settings.logo }}{% else %}logo.gif{% endif %}) no-repeat;
+        background: url(/site_media/images/{% if settings.logo %}{{ settings.logo }}{% else %}logo.gif{% endif %}) no-repeat;
     }
 </style>
 
 {% block style %}
 {% endblock %}
 
-<script type="text/javascript">
-    function popitup(url, format){
-	if (format == null){
-	    format='height=200,width=800';
-	}
-	newwindow=window.open(url,'name', format)
-	if (window.focus){ 
-	    newwindow.focus();
-	}
-    }
-
-</script>
-<script type="text/javascript" src="/site_media/MochiKit.js"></script>
-<script type="text/javascript">
-var roundedCornersOnLoad = function(){
-    roundClass(null, "wrapper", null);
-    roundClass(null, 'nav_button');
-    roundClass(null, 'footer', {corners: 'tl tr'});
-    roundClass(null, 'btn', {bgColor: "#e4e4e4", color: "#A6D5E9"});
-    
-    if (/MSIE/.test(navigator.userAgent))
-	return;
-    roundClass(null, 'nav_button_grey', {bgColor: '#e4e4e4'});
-    roundClass(null, 'userinfo', {corners: 'bl br'});
-    roundClass(null, 'plugins', {corners: 'bl br'});
-    roundClass(null, 'content-main', null);
-    roundClass(null, 'rounded-white', {bgColor: "#e4e4e4", color: "white"});
-}
-addLoadEvent(roundedCornersOnLoad);
-</script>
+<script type="text/javascript" src="/site_media/js/MochiKit.js"></script>
+<script type="text/javascript" src="/site_media/js/openproximity.js"></script>
 
 {% block extrahead %}{% endblock %}
 </head>
+
 <body id="{% block bodyid %}page{% endblock %}">
 
     {% include "op/imports/userinfo.html" %} <!-- login information -->
@@ -62,32 +35,32 @@ addLoadEvent(roundedCornersOnLoad);
 
 
     <fieldset id="navigation" class="navigation"> 
-	<object class="logo">&nbsp;</object>
+        <object class="logo">&nbsp;</object>
         {% block navbar %}
-	    {% createNavButton "/" "nav_index" _("Index") %}
-	    {% createNavButton "javascript: popitup('http://wiki.openproximity.org/userdocumentation', '')" "nav_help" _("Documentation") %}
-	    {% createNavButton "javascript: popitup('/last-seen/')" "nav_seen" _("Last Seen") %}
-	    {% if settings.debug %}
-		{% createNavButton "/data/" "nav_data" _("Data Browse") %}
-		{% createNavButton "/treeview/" "nav_treeview" _("Data Browse<br />TreeView") %}
-	    {% endif %}
-	    {% createNavButton "/admin/openproximity/" "nav_admin" _("Admin Site") %}
-	    {% if settings.translate %}
-		{% createNavButton "/admin/translate/" "nav_trans" _("Translate") %}
-	    {% endif %}
-	{% endblock%}
+            {% createNavButton "/" "nav_index" _("Index") %}
+            {% createNavButton "javascript: popitup('http://wiki.openproximity.org/userdocumentation', '')" "nav_help" _("Documentation") %}
+            {% createNavButton "javascript: popitup('/last-seen/')" "nav_seen" _("Last Seen") %}
+            {% if settings.debug %}
+                {% createNavButton "/data/" "nav_data" _("Data Browse") %}
+                {% createNavButton "/treeview/" "nav_treeview" _("Data Browse<br />TreeView") %}
+            {% endif %}
+            {% createNavButton "/admin/openproximity/" "nav_admin" _("Admin Site") %}
+            {% if settings.translate %}
+                {% createNavButton "/admin/translate/" "nav_trans" _("Translate") %}
+            {% endif %}
+        {% endblock%}
     </fieldset>
-    
+
     <div class="{% block content_class %}content{% endblock %}"> <!-- user content -->
-	{% block content %}{% endblock %}
+        {% block content %}{% endblock %}
     </div>
-    
+
     <div class="footer">
-	<div class="inner"> <!-- little trick for accurate corner rounding -->
-	    {% block footer %}{% endblock %}
-	    <a href="http://code.google.com/p/proximitymarketing/">OpenProximity 2.0</a> Powered by <a href="http://www.aircable.net">AIRcable.net</a>
-	</div>
-	<br/>
+        <div class="inner"> <!-- little trick for accurate corner rounding -->
+            {% block footer %}{% endblock %}
+            <a href="http://code.google.com/p/proximitymarketing/">OpenProximity 2.0</a> Powered by <a href="http://www.aircable.net">AIRcable.net</a>
+        </div>
+        <br/>
     </div>
 </body>
 </html>

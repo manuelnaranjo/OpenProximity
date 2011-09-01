@@ -1,71 +1,19 @@
 {% extends "op/base.html" %}
 {% load i18n %}
 
+{% block bodyid %}treeview{% endblock %}
 {% block extrahead %}
-<script type="text/javascript" src="/site_media/lib/jquery.js"></script>
-<script type="text/javascript" src="/site_media/jquery.tree.js"></script>
+<script type="text/javascript" src="/site_media/js/lib/jquery.js"></script>
+<script type="text/javascript" src="/site_media/js/jquery.tree.js"></script>
 <script type="text/javascript" 
-    src="/site_media/plugins/jquery.tree.contextmenu.js"></script>
+    src="/site_media/js/plugins/jquery.tree.contextmenu.js"></script>
 
 <script type="text/javascript">
-
-function create_tree(){
-  t = $('#async_tree');
-
-  data = [];
-
-  data['data'] = []
-  data['data']['type'] = 'json';
-  data['data']['async'] = true;
-  data['data']['opts'] = [];
-  data['data']['opts']['method'] = "POST";
-  data['data']['opts']['url'] = "data";
-
-  data['ui'] = []
-  data['ui']['dots'] = false;
-  data['ui']['animation'] = 100;
-
-  data['lang'] = [];
-  data['lang']['loading'] = "{% trans "Loading" %} ...";
-  data['data']['opts']['url'] = "data";
-
-  data['plugins'] = []
-  data['plugins']['contextmenu'] = [];
-  data['plugins']['contextmenu']['items'] = [];
-  data['plugins']['contextmenu']['items']['remove'] = false;
-  data['plugins']['contextmenu']['items']['rename'] = false;
-  data['plugins']['contextmenu']['items']['create'] = false;
-  data['plugins']['contextmenu']['items']['refresh'] = [];
-  data['plugins']['contextmenu']['items']['refresh']['label'] = "{% trans "Refresh" %}";
-  data['plugins']['contextmenu']['items']['refresh']['icon'] = "refresh";
-  data['plugins']['contextmenu']['items']['refresh']['visible'] = function(node, tree){ return node.hasClass('leaf') != true };
-  data['plugins']['contextmenu']['items']['refresh']['action'] = function(node, tree){ tree.refresh(node)};
-  data['plugins']['contextmenu']['items']['delete'] = [];
-  data['plugins']['contextmenu']['items']['delete']['label'] = "{% trans "Delete" %}";
-  data['plugins']['contextmenu']['items']['delete']['icon'] = "remove";
-  data['plugins']['contextmenu']['items']['delete']['visible'] = function(node, tree){ return node.hasClass('deletable') };
-  data['plugins']['contextmenu']['items']['delete']['action'] = function(node, tree){
-	  var answer = confirm ("{% trans "You sure you want to delete?"%}");
-	  if ( ! answer ){
-	      return
-	  }
-	  var id = node[0].id;
-	  $("*").css("cursor", "progress");
-	  $.post("delete",
-	    { id: id },
-	    function(json){
-	      $("*").css("cursor", "auto");
-	      if (json.need_login){
-		alert("{% trans "You need to be loged as admin first"%}");
-		return
-	      }
-	      if (json.deleted){ tree.remove(node[0]); }
-	    }
-	  );
-      };
-  t.tree(data);
-}
-addLoadEvent(create_tree);
+    LOADING="{% trans "Loading" %}";
+    REFRESH="{% trans "Refresh" %}";
+    DELETE="{% trans "Delete" %}";
+    DELETE_MSG="{% trans "You sure you want to delete?" %}";
+    ADMIN_LOG="{% trans "You need to be loged as admin first" %}";
 </script>
 
 {% endblock %}
