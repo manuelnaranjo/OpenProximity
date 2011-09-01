@@ -26,6 +26,7 @@ This is the only css in the code, as it reflects configurable settings
 {% endblock %}
 
 <script type="text/javascript" src="/site_media/js/MochiKit.js"></script>
+<script type="text/javascript" src="/site_media/js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="/site_media/js/openproximity.js"></script>
 {% block extrahead %}{% endblock %}
 </head>
@@ -36,7 +37,7 @@ This is the only css in the code, as it reflects configurable settings
 </div>
 <div class="footer"><div class="inner">
     {% block footer %}{% endblock %}
-<p><a href="javascript:%20self.close()">{% trans "Close this Window"%}</a></p>
+<p><a class="close-window" href="javascript:%20self.close()">{% trans "Close this Window"%}</a></p>
 <p><a href="http://code.google.com/p/proximitymarketing/">OpenProximity 2.0</a> Powered by <a href="http://www.aircable.net">AIRcable.net</a></p>
 </div></div>
 </body>

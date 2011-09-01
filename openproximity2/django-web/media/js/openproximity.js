@@ -19,6 +19,11 @@
 //
 //
 
+// for IE
+if (!window.console) console = {
+    log: function() {}
+};
+
 // strings that will later be translated
 var LOADING="Loading";
 var REFRESH="Refresh";
@@ -151,7 +156,7 @@ function create_button(id, text, href, bgColor){
 }
 
 function update_known_dongles(dongles){
-    var old_body=$('known').getElementsByTagName('tbody')[0];
+    var old_body=$('#known').getElementsByTagName('tbody')[0];
     var new_body=TBODY();
     var val, tr, td;
 
@@ -204,21 +209,21 @@ function update_rpc_info(){
 
 function check_version(){
     var reply=compare_version(current_version);
-    var foot =$('version_foot');
+    var foot =$('#version_foot');
     var p=P(SERVER_VERSION+": " + reply.latest + " "+ RUNNING_VERSION +": " + current_version);
-    foot.appendChild(p)
+    foot.append(p)
 
     if ( reply.new_available == true ){
-        var top = $('new_version_top');
+        var top = $('#new_version_top');
         var h1=H1()
         var a = A({ 
                 'href': 'http://code.google.com/p/proximitymarketing/',
                 'innerHTML': NEW_VERSION_AVAILABLE
         });
-        h1.appendChild(a);
-        top.appendChild(h1)
-        top.appendChild(P(NEW_VERSION + ": " + reply.latest));
-        top.appendChild(P(YOUR_VERSION + ": " + current_version));
+        h1.append(a);
+        top.append(h1)
+        top.append(P(NEW_VERSION + ": " + reply.latest));
+        top.append(P(YOUR_VERSION + ": " + current_version));
         top.style.display="";
     }
 }
@@ -253,76 +258,107 @@ function create_tree(){
     var t = $('#async_tree');
     
     data = {
-        data: {
-            type: 'json',
-            async: true,
-            opts: {
-                method: "POST",
-                url: "data",
-            }
+        "plugins": [
+            "themes", "json_data", "ui", "contextmenu",
+        ],
+
+        "json_data": {
+            "ajax": {
+                "url": "data",
+                "data": function(n) {
+                    var out = {};
+                    out['id'] = n.attr ? n.attr("id") : null;
+                    return out;
+                },
+                "type": "POST",
+            },
+            "async": true,
+            "progressive_render": true,
         },
         
-        ui: {
-            dots: false,
-            animation: 100,
+        "themes": {
+            "dots": false,
         },
-
-        lang: {
-            loading: LOADING + "...",
-        },
-
-        plugins: {
-            contextmenu: {
-                items: {
-                    remove: false,
-                    rename: false,
-                    create: false,
-                    refresh: {
-                        label: REFRESH,
-                        icon: "refresh",
-                        visible: function(node, tree){
-                            return node.hasClass('leaf') != true;
-                        },
-                        action: function(node, tree){
-                            tree.refresh(node);
-                        }
-                    },
-                    delete: {
-                        label: DELETE,
-                        icon: "remove",
-                        visible: function(node, tree){
-                            return node.hasClass('deletable')
-                        },
-                        action: function(node, tree){
-                            var answer = confirm (DELETE_MSG);
-                            if ( ! answer )
-                                return
-                            var id = node[0].id;
-                            $("*").css("cursor", "progress");
-                            $.post("delete",
-                                { id: id },
-                                function(json){
-                                    $("*").css("cursor", "auto");
-                                    if (json.need_login){
-                                        alert(ADMIN_LOG);
-                                        return
-                                    }
-                                    if (json.deleted){ tree.remove(node[0]); }
-                                }
-                            );
-                        },
+        
+        "contextmenu": {
+            "items": {
+                "create": null,
+                "rename": null,
+                "ccp": null,
+                "remove": null,
+                "refresh": {
+                    "label": REFRESH,
+                    "icon": "refresh",
+                    "action": function(node){
+                        if ( node.hasClass("leaf") == true )
+                            return;
+                        var tree = $.jstree._reference(node);
+                        tree.refresh(node);
                     }
+                },
+                "delete": {
+                    "label": DELETE,
+                    "icon": "remove",
+                    "action": function(node){
+                        if (node.hasClass("deletable") == false)
+                            return;
+                        var answer = confirm (DELETE_MSG);
+                        if ( ! answer )
+                            return
+                        var id = node[0].id;
+                        $("*").css("cursor", "progress");
+                        $.post("delete",
+                            { id: id },
+                            function(json){
+                                $("*").css("cursor", "auto");
+                                if (json.need_login){
+                                    alert(ADMIN_LOG);
+                                    return
+                                }
+                                if (json.deleted){ 
+                                    var tree = $.jstree._reference(node);
+                                    tree.remove(node[0]); 
+                                }
+                            }
+                        );
+                    },
                 }
             }
         }
     };
-    t.tree(data);
+    t.jstree(data);
 }
 
 
 
+function ready($){
+    var display = $("body").attr("id")
+    console.log("ready for " + display);
+    
+    roundedCornersOnLoad();
+    
+    switch (display){
+        case "main-page":
+            update_stats();
+            update_rpc_info();
+            check_version();
+            setInterval("update_stats()", 20000);
+            setInterval("update_rpc_info()", 30000);
+            break;
+        case "last-seen":
+            update_seen_table();
+            setInterval("update_seen_table()", 10000);
+            break;
+        case "treeview":
+            create_tree();
+            break;
+    }
+}
 
-addLoadEvent(update_stats);
+$(document).ready(ready);
+
+
+/*addLoadEvent(update_stats);
 addLoadEvent(update_rpc_info);
 addLoadEvent(check_version);
 addLoadEvent(roundedCornersOnLoad);
@@ -330,4 +366,4 @@ addLoadEvent(create_tree);
 
 setInterval("update_stats()", 20000) <!-- update each 20 seconds -->
 setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
-
+*/

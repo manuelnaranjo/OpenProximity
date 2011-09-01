@@ -54,7 +54,7 @@ class Node(object):
     
     def getDict(self):
         out = {
-            "attributes": { 
+            "attr": { 
                 "id": self.id 
             },
             "data": self.data

@@ -13,6 +13,23 @@ set -u
 # exit if we get an error
 set -e
 
+function download(){
+    PACKAGE=$1
+    VERSION=$2
+    URL=$3
+    EXTENSION=$4
+    DESTINATION=$5
+
+    echo "processing $PACKAGE"
+
+    if [ ! -f "$CWD"/libs/$PACKAGE-$VERSION.$EXTENSION ]; then
+        echo "Downloading"
+        wget -P "$CWD"/libs $URL/$PACKAGE-$VERSION.$EXTENSION
+    fi
+
+    cp "$CWD"/libs/$PACKAGE-$VERSION.$EXTENSION $OP2/$DESTINATION/$PACKAGE-$VERSION.$EXTENSION
+}
+
 function download_and_uncompress(){
     PACKAGE=$1
     VERSION=$2
@@ -20,18 +37,18 @@ function download_and_uncompress(){
     URL=$4
 
     echo "processing $PACKAGE"
-    
+
     if [ ! -f "$CWD"/libs/$PACKAGE-$VERSION.tar.gz ]; then
         echo "Downloading"
         wget -P "$CWD"/libs $URL/$PACKAGE-$VERSION.tar.gz
     fi
-    
+
     echo "extracting $PACKAGE"
     gunzip -c "$CWD"/libs/$PACKAGE-$VERSION.tar.gz | tar -x
     if [ -d $PACKAGE-$VERSION ]; then
-	cd $PACKAGE-$VERSION; cp -r $FOLDER $LIB_TARGET
+        cd $PACKAGE-$VERSION; cp -r $FOLDER $LIB_TARGET
     else
-	cd $PACKAGE; cp -r $FOLDER $LIB_TARGET
+        cd $PACKAGE; cp -r $FOLDER $LIB_TARGET
     fi
 }
 
@@ -46,15 +63,15 @@ function download_and_uncompress_bitbucket(){
     if [ ! -f "$CWD"/libs/$PACKAGE-$VERSION.tar.gz ]; then
         echo "Downloading"
         wget -O test.tar.gz $URL/$VERSION.tar.gz
-	mv test.tar.gz "$CWD"/libs/$PACKAGE-$VERSION.tar.gz
+        mv test.tar.gz "$CWD"/libs/$PACKAGE-$VERSION.tar.gz
     fi
     
     echo "extracting $PACKAGE"
     gunzip -c "$CWD"/libs/$PACKAGE-$VERSION.tar.gz | tar -x
     if [ -d $PACKAGE-$VERSION ]; then
-	cd $PACKAGE-$VERSION; cp -r $FOLDER $LIB_TARGET
+        cd $PACKAGE-$VERSION; cp -r $FOLDER $LIB_TARGET
     else
-	cd $PACKAGE; cp -r $FOLDER $LIB_TARGET
+        cd $PACKAGE; cp -r $FOLDER $LIB_TARGET
     fi
 }
 
@@ -69,7 +86,7 @@ function download_jstree(){
     
     if [ ! -f "$CWD"/libs/$PACKAGE.$VERSION.zip ]; then
         echo "Downloading"
-        wget -O "$CWD"/libs/$PACKAGE.$VERSION.zip $URL/$URL_P.$VERSION.zip
+        wget -O "$CWD"/libs/$PACKAGE.$VERSION.zip $URL/${URL_P}_${VERSION}.zip
     fi
     
     echo "extracting $PACKAGE"
@@ -79,10 +96,9 @@ function download_jstree(){
     cd orig ; unzip "$CWD"/libs/$PACKAGE.$VERSION.zip ; cd ..
     mkdir out
     cd out
-    cp ../orig/jquery.tree.js .
-    mkdir lib && cp ../orig/lib/jquery.js lib/
-    mkdir plugins && cp ../orig/plugins/jquery.tree.contextmenu.js plugins/
-    mkdir themes && cp -r ../orig/themes/default themes/
+    mkdir -p js && cp ../orig/jquery.jstree.js js/
+#    mkdir -p js/plugins && cp ../orig/plugins/jquery.tree.contextmenu.js js/plugins/
+    mkdir -p js/themes && cp -r ../orig/themes/default js/themes/
     cp -r * $OP2/openproximity2/django-web/media/
 }
 
@@ -166,7 +182,7 @@ function git_egg(){
 function tinymce(){
     # we need this function because tinymce has been badly packaged
     if [ ! -f "$CWD"/libs/tinymce_3_2_7.zip ]; then
-	wget -P "$CWD"/libs http://ufpr.dl.sourceforge.net/project/tinymce/TinyMCE/3.2.7/tinymce_3_2_7.zip
+        wget -P "$CWD"/libs http://ufpr.dl.sourceforge.net/project/tinymce/TinyMCE/3.2.7/tinymce_3_2_7.zip
     fi
     
     echo "extracting tinymce"
@@ -179,7 +195,7 @@ function tinymce(){
 function mark_emptyfiles(){
     pushd $OP2
     for i in $( find . -size 0 ); do
-	echo "#empty file" > $i;
+        echo "#empty file" > $i;
     done
     popd
 }
@@ -232,10 +248,11 @@ download_and_uncompress poster 0.4 poster http://pypi.python.org/packages/source
 download_and_uncompress PyOFC2 0.1.1dev pyofc2 http://pypi.python.org/packages/source/P/PyOFC2
 download_and_uncompress django-notification 0.1.5 notification http://pypi.python.org/packages/source/d/django-notification/
 download_and_uncompress django-mailer 0.1.0 mailer http://pypi.python.org/packages/source/d/django-mailer/
-download_jstree jstree v.0.9.9a2 http://jstree.googlecode.com/files jsTree
+download_jstree jstree pre1.0_fix_1 https://github.com/downloads/vakata/jstree jstree
 #svn_download django_restapi 81 http://django-rest-interface.googlecode.com/svn/trunk/ 81
 git_download timezones 2b903a38 git://github.com/brosner/django-timezones.git 2b903a38da1ff9df4b2aba8e4f5429d967f73881
 download_and_uncompress south 0.7.3 south http://www.aeracode.org/releases/south/
+download jquery 1.6.2.min code.jquery.com js openproximity2/django-web/media/js
 
 #some ideas on a WYSIWYG template editor
 #download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/
