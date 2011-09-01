@@ -21,8 +21,8 @@ DJANGO_PATH=os.path.dirname(os.path.realpath(__file__))
 OP_PATH=os.path.dirname(DJANGO_PATH)
 
 paths = list()
-paths.append(os.path.join(OP_PATH, "django-web"))
 paths.append(os.path.join(OP_PATH, "libs"))
+paths.append(os.path.join(OP_PATH, "django-web"))
 paths.append(os.path.join("usr", "lib", "openproximity"))
 paths.append(os.path.expanduser(os.path.join('~', '.openproximity')))
 
@@ -32,6 +32,6 @@ def find_all_eggs(parent):
       yield os.path.join(par, par, f)
 
 for p in list(paths):
-  paths.extend(p)
+  paths.extend(find_all_eggs(p))
 
-sys.path.extend(paths)
+sys.path = paths + sys.path
