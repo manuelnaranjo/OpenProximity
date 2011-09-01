@@ -19,6 +19,22 @@
 //
 //
 
+// strings that will later be translated
+var LOADING="Loading";
+var REFRESH="Refresh";
+var DELETE="Delete";
+var DELETE_MSG="You sure you want to delete?";
+var ADMIN_LOG="You need to be loged as admin first";
+var CONFIGURE="Configure";
+var SERVER_VERSION="server version";
+var RUNNING_VERSION="running version";
+var NEW_VERSION_AVAILABLE="There's a new version available";
+var NEW_VERSION="New Version";
+var YOUR_VERSION="Your Version";
+
+// replaced by template
+var current_version = "TBD";
+
 // DOM functions
 function update_field(el, val){
     getElement(el).innerHTML=val
@@ -27,7 +43,7 @@ function update_field(el, val){
 function update_field_complex(el, id, val){
     getElement(el+'_'+id).innerHTML=val
 }
-	
+
 function create_td(id, content){
     var td = TD({ 'id': id, 'innerHTML': content })
     return td
@@ -55,9 +71,9 @@ function update_seen_info(address){
         var i, td;
         var fields=['valid', 'timeout', 'rejected', 'accepted'];
         //'tries', 
-	
+
         t=getElement('seen_' + address);
-	
+
         for ( i in fields){
             td = TD();
             td.innerHTML=stats[fields[i]];
@@ -76,7 +92,7 @@ function update_seen_table(){
 
     var gotLastSeen = function(stats){
         var i;
-	
+
         t=getElement('last_seen_body');
         replaceChildNodes(t);
         for ( i in stats){
@@ -96,14 +112,14 @@ function update_stats(){
 
     var gotStats=function(stats){
         var td;
-        
+
         update_field('stats_seen', stats.seen.total);
-        
+
         for (var addr in stats.seen.perdongle){
             var val = stats.seen.perdongle[addr]
             update_field_complex('stats_count', val.address, val.count);
         }
-        
+
         update_field('stats_valid', stats.valid);
         update_field('stats_tries', stats.tries);
         update_field('stats_timeout', stats.timeout);
@@ -114,10 +130,10 @@ function update_stats(){
     var statsFetchFailed = function(err){
         /*alert(err)*/
     };
-    
+
     defer.addCallbacks(gotStats, statsFetchFailed);
 }
-	
+
 function create_button(id, text, href, bgColor){
     if (bgColor==null)
         bgColor="#e4e4e4";
@@ -140,33 +156,33 @@ function update_known_dongles(dongles){
     var val, tr, td;
 
     for (var i = 0; i<dongles.length; i++){
-		val = dongles[i];
-		tr = TR({ 
-		    'class': 'rpc_dongles', 
-		    'id': "rpc_dongles_"+val.address
-		});
-		tr.appendChild(create_td('dongle_address', val.address));
-		tr.appendChild(create_td('dongle_scan', val.isScanner));
-		tr.appendChild(create_td('dongle_scan_enabled', val.scan_enabled));
-		tr.appendChild(create_td('dongle_scan_priority', val.scan_pri));
-		tr.appendChild(create_td('dongle_upload', val.isUploader));
-		tr.appendChild(create_td('dongle_upload_enabled', val.upload_enabled));
-		tr.appendChild(create_td('dongle_upload_maxconn', val.max_conn));
-		td=TD({
-		    'style': 'width: 10em;',
-		    'id': 'dongle_setup'
-		});
-		td.appendChild(
-		    create_button(
-			'configure_'+val.address, 
-			"{% trans "Configure" %}",
-			'configure/dongle/' + val.address,
-			'white'
-		    )
-		);
-		tr.appendChild(td);
-		new_body.appendChild(tr);
-	}
+        val = dongles[i];
+        tr = TR({ 
+            'class': 'rpc_dongles', 
+            'id': "rpc_dongles_"+val.address
+        });
+        tr.appendChild(create_td('dongle_address', val.address));
+        tr.appendChild(create_td('dongle_scan', val.isScanner));
+        tr.appendChild(create_td('dongle_scan_enabled', val.scan_enabled));
+        tr.appendChild(create_td('dongle_scan_priority', val.scan_pri));
+        tr.appendChild(create_td('dongle_upload', val.isUploader));
+        tr.appendChild(create_td('dongle_upload_enabled', val.upload_enabled));
+        tr.appendChild(create_td('dongle_upload_maxconn', val.max_conn));
+        td=TD({
+            'style': 'width: 10em;',
+            'id': 'dongle_setup'
+        });
+        td.appendChild(
+            create_button(
+                'configure_'+val.address, 
+                CONFIGURE,
+                'configure/dongle/' + val.address,
+                'white'
+            )
+        );
+        tr.appendChild(td);
+        new_body.appendChild(tr);
+    }
     swapDOM(old_body, new_body);
 }
 
@@ -187,9 +203,9 @@ function update_rpc_info(){
 }
 
 function check_version(){
-    var reply=compare_version("{{version.current}}");
+    var reply=compare_version(current_version);
     var foot =$('version_foot');
-    var p=P("{% trans "server version" %}: " + reply.latest + " {% trans "running version" %}: {{ version.current }}");
+    var p=P(SERVER_VERSION+": " + reply.latest + " "+ RUNNING_VERSION +": " + current_version);
     foot.appendChild(p)
 
     if ( reply.new_available == true ){
@@ -197,12 +213,12 @@ function check_version(){
         var h1=H1()
         var a = A({ 
                 'href': 'http://code.google.com/p/proximitymarketing/',
-                'innerHTML': "{% trans "There's a new version available" %}"
+                'innerHTML': NEW_VERSION_AVAILABLE
         });
         h1.appendChild(a);
         top.appendChild(h1)
-        top.appendChild(P("{% trans "New Version" %}: " + reply.latest));
-        top.appendChild(P("{% trans "Your Version" %}: {{ version.current }}"));
+        top.appendChild(P(NEW_VERSION + ": " + reply.latest));
+        top.appendChild(P(YOUR_VERSION + ": " + current_version));
         top.style.display="";
     }
 }
@@ -215,29 +231,23 @@ function roundedCornersOnLoad() {
     roundClass(null, 'btn', {bgColor: "#e4e4e4", color: "#A6D5E9"});
     if (/MSIE/.test(navigator.userAgent))
         return;
-	    
-	roundClass(null, 'nav_button_grey', {bgColor: '#e4e4e4'});
-	roundClass(null, 'userinfo', {corners: 'bl br'});
-	roundClass(null, 'content-main', null); 
-	roundClass(null, 'plugins', {corners: 'bl br'});
-	roundClass(null, 'rounded-white', {bgColor: "#e4e4e4", color: "white"});
+
+    roundClass(null, 'nav_button_grey', {bgColor: '#e4e4e4'});
+    roundClass(null, 'userinfo', {corners: 'bl br'});
+    roundClass(null, 'content-main', null); 
+    roundClass(null, 'plugins', {corners: 'bl br'});
+    roundClass(null, 'rounded-white', {bgColor: "#e4e4e4", color: "white"});
 }
 
 function popitup(url, format){
     // pops up a window
     if (format == null)
         format='height=200,width=800';
-	newwindow=window.open(url,'name', format)
-	if (window.focus) 
-	    newwindow.focus();
+    newwindow=window.open(url,'name', format)
+    if (window.focus) 
+        newwindow.focus();
 }
 
-// strings that will later be translated
-var LOADING="Loading";
-var REFRESH="Refresh";
-var DELETE="Delete";
-var DELETE_MSG="You sure you want to delete?";
-var ADMIN_LOG="You need to be loged as admin first";
 
 function create_tree(){
     var t = $('#async_tree');
@@ -256,11 +266,11 @@ function create_tree(){
             dots: false,
             animation: 100,
         },
-        
+
         lang: {
-            loading: LOADING + "...";          
+            loading: LOADING + "...",
         },
-        
+
         plugins: {
             contextmenu: {
                 items: {
@@ -278,7 +288,7 @@ function create_tree(){
                         }
                     },
                     delete: {
-                        label: DELETE;
+                        label: DELETE,
                         icon: "remove",
                         visible: function(node, tree){
                             return node.hasClass('deletable')

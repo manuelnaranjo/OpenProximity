@@ -5,26 +5,26 @@
 <div class="content-main" style="float: none">
     <div class="inner">
 
-	{% if form.errors %}
-	    <p class="error">{% trans "Sorry, that's not a valid username or password" %}</p>
-	{% endif %}
-	<form action='.' method='post'>
-	<div class="setting">
-	    <label class="label" for="username">{% trans "Username:" %}</label>
-	    <span><input type="text" name="username" value="" id="username"></span>
-	</div>
+    {% if form.errors %}
+        <p class="error">{% trans "Sorry, that's not a valid username or password" %}</p>
+    {% endif %}
+    <form action='.' method='post'>
+        {% csrf_token %}
+        <div class="setting">
+            <label class="label" for="username">{% trans "Username:" %}</label>
+            <span><input type="text" name="username" value="" id="username"></span>
+        </div>
 
-	<div class="setting">
-	    <label class="label" for="password">{% trans "Password:" %}</label>
-	    <input type="password" name="password" value="" id="password">
-	</div>
+        <div class="setting">
+            <label class="label" for="password">{% trans "Password:" %}</label>
+            <input type="password" name="password" value="" id="password">
+        </div>
 
-	<div class="setting">
-	    <input type="submit" value="{% trans "Login" %}" />
-	    <input type="hidden" name="next" value="{{ next|escape }}" />
-	</div>
-	<form action='.' method='post'>
-
+        <div class="setting">
+            <input type="submit" value="{% trans "Login" %}" />
+            <input type="hidden" name="next" value="{{ next|escape }}" />
+        </div>
+    </form>
     </div>
 </div>
 {% endblock %}

@@ -25,6 +25,24 @@
 <script type="text/javascript" src="/site_media/js/MochiKit.js"></script>
 <script type="text/javascript" src="/site_media/js/openproximity.js"></script>
 
+<script type="text/javascript">
+    // translate strings
+    LOADING = "{% trans "Loading" %}";
+    REFRESH = "{% trans "Refresh" %}";
+    DELETE = "{% trans "Delete" %}";
+    DELETE_MSG = "{% trans "You sure you want to delete?" %}";
+    ADMIN_LOG = "{% trans "You need to be loged as admin first" %}";
+    CONFIGURE = "{% trans "Configure" %}";
+    SERVER_VERSION = "{% trans "server version" %}";
+    RUNNING_VERSION = "{% trans "running version" %}";
+    NEW_VERSION_AVAILABLE = "{% trans "There's a new version available" %}";
+    NEW_VERSION = "{% trans "New Version" %}";
+    YOUR_VERSION = "{% trans "Your Version" %}";
+
+    // replacesable strings
+    current_version = "{{ version.current }}";
+</script>
+
 {% block extrahead %}{% endblock %}
 </head>
 
