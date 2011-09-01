@@ -226,7 +226,7 @@ def stats_restart(request):
     model  = models.get_app('openproximity')
     drop = ""
     
-    drop_table = sql.sql_delete(model, no_style())
+    drop_table = sql.sql_delete(model, no_style(), connection)
     
     for line in drop_table:
         table_name = line.split()[2].replace('"', '').replace(';','')
@@ -248,7 +248,8 @@ def stats_restart(request):
     logger.info("about to drop")
     for line in drop.splitlines():
         try:
-            connection.cursor().execute(line)       
+            logger.debug(line)
+            connection.cursor().execute(line)
         except Exception, err:
             logger.error("%s failed" %line)
             logger.exception(err)
@@ -264,7 +265,7 @@ def stats_restart(request):
 
     logger.info("calling syncdb")
     management.call_command('syncdb', migrate_all=True)
-    
+
     try:
         server=rpyc.connect('localhost', 8010)
         server.root.Unlock()
