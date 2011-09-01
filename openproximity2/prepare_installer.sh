@@ -225,7 +225,7 @@ mkdir tmp
 cd tmp
 
 download_and_uncompress rpyc 3.0.6 rpyc http://ufpr.dl.sourceforge.net/sourceforge/rpyc
-download_and_uncompress Django 1.1 django http://media.djangoproject.com/releases/1.1
+download_and_uncompress Django 1.3 django http://media.djangoproject.com/releases/1.3
 download_and_uncompress django-rosetta 0.4.7 rosetta http://django-rosetta.googlecode.com/files
 download_and_uncompress wadofstuff-django-serializers 1.0.0 wadofstuff http://wadofstuff.googlecode.com/files
 download_and_uncompress poster 0.4 poster http://pypi.python.org/packages/source/p/poster/
@@ -235,7 +235,7 @@ download_and_uncompress django-mailer 0.1.0 mailer http://pypi.python.org/packag
 download_jstree jstree v.0.9.9a2 http://jstree.googlecode.com/files jsTree
 #svn_download django_restapi 81 http://django-rest-interface.googlecode.com/svn/trunk/ 81
 git_download timezones 2b903a38 git://github.com/brosner/django-timezones.git 2b903a38da1ff9df4b2aba8e4f5429d967f73881
-download_and_uncompress south 0.7.1 south http://www.aeracode.org/releases/south/
+download_and_uncompress south 0.7.3 south http://www.aeracode.org/releases/south/
 
 #some ideas on a WYSIWYG template editor
 #download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/
