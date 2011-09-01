@@ -1,7 +1,8 @@
 {% extends "admin/change_form.html" %}
 {% load i18n %}
 {% block object-tools %}
-{% if time_zone %}
-    <div id="time_zone" style="display:none" value="{{time_zone}}"></div>
-{% endif %}
+    {{ block.super }}
+    {% if time_zone %}
+        <div id="time_zone" style="display:none" value="{{time_zone}}"></div>
+    {% endif %}
 {% endblock %}
