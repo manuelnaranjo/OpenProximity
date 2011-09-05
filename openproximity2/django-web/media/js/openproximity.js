@@ -371,6 +371,9 @@ function ready($){
             break;
     }
     $(".corners").corner();
+    
+    fix_change_form();
+    fix_change_list();
 }
 
 $(document).ready(ready);
