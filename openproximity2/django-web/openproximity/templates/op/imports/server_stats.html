@@ -1,52 +1,52 @@
 {% load i18n openproximity %}
 <div class="stats">
     <fieldset>
-	<legend>{% trans "Server Statistics" %}</legend>
-	<div class="setting">
-	    <div class="label">{% trans "Seen" %}</div>
-	    <span class="value" id="stats_seen">{{ stats.seen.total }}</span>
-	</div>
-	<div class="setting">
-	    <fieldset>
-		<legend>{% trans "Per Dongle" %}</legend>
-		{% for d in stats.seen.perdongle %}
-		    <div class="setting">
-			<div class="label">{{ d.address}}</div>
-			<span class="value" id="stats_count_{{ d.address }}">{{ d.count }}</span>
-		    </div>
-		{% endfor %}
-	    </fieldset>
-	</div>
-	<div class="setting">
-	    <div class="label">{% trans "Valid Obex" %}</div>
-	    <span class="value" id="stats_valid">{{ stats.valid }}</span>
-	</div>
-	<div class="setting">
-	    <div class="label">{% trans "Tried" %}</div>
-	    <span class="value" id="stats_tries">{{ stats.tries }}</span>
-	</div>
-	<div class="setting">
-	    <div class="label">{% trans "Timeout" %}</div>
-	    <span class="value" id="stats_timeout">{{ stats.timeout }}</span>
-	</div>
-	<div class="setting">
-	    <div class="label">{% trans "Rejected" %}</div>
-	    <span class="value" id="stats_rejected">{{ stats.rejected }}</span>
-	</div>
-	<div class="setting">
-	    <div class="label">{% trans "Accepted" %}</div>
-	    <span class="value" id="stats_accepted">{{ stats.accepted }}</span>
-	</div>
-	{% if stats.error %}
-	    <div class="setting error" id="error">
-		<div class="label">{% trans "Error Message" %}</div>
-		<span class="value">{{ stats.error }}</span>
-	    </div>
-	{% endif %}
-    <div class="nav_button_grey" style="width: 20em; color: #E4E4E4">
-	<div class="inner" style="height: 2em;">
-	    <a id="reset-stats" href="/stats/restart" >{% trans "Reset Statistics" %}</a>
-	</div>
+        <legend>{% trans "Server Statistics" %}</legend>
+        <div class="setting">
+            <div class="label">{% trans "Seen" %}</div>
+            <span class="value" id="stats_seen">{{ stats.seen.total }}</span>
+        </div>
+        <div class="setting">
+            <fieldset>
+                <legend>{% trans "Per Dongle" %}</legend>
+                {% for d in stats.seen.perdongle %}
+                    <div class="setting">
+                        <div class="label">{{ d.address}}</div>
+                        <span class="value" id="stats_count_{{ d.address }}">{{ d.count }}</span>
+                    </div>
+                {% endfor %}
+            </fieldset>
+        </div>
+        <div class="setting">
+            <div class="label">{% trans "Valid Obex" %}</div>
+            <span class="value" id="stats_valid">{{ stats.valid }}</span>
+        </div>
+        <div class="setting">
+            <div class="label">{% trans "Tried" %}</div>
+            <span class="value" id="stats_tries">{{ stats.tries }}</span>
+        </div>
+        <div class="setting">
+            <div class="label">{% trans "Timeout" %}</div>
+            <span class="value" id="stats_timeout">{{ stats.timeout }}</span>
+        </div>
+        <div class="setting">
+            <div class="label">{% trans "Rejected" %}</div>
+            <span class="value" id="stats_rejected">{{ stats.rejected }}</span>
+        </div>
+        <div class="setting">
+            <div class="label">{% trans "Accepted" %}</div>
+            <span class="value" id="stats_accepted">{{ stats.accepted }}</span>
+        </div>
+        {% if stats.error %}
+            <div class="setting error" id="error">
+                <div class="label">{% trans "Error Message" %}</div>
+                <span class="value">{{ stats.error }}</span>
+            </div>
+        {% endif %}
+        <div class="button corners" id="reset-stats" onclick="reset_stats();">
+            {% trans "Reset Statistics" %}
+        </div>
+
     </div>
     </fieldset>
 </div>

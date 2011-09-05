@@ -27,12 +27,12 @@ def do_settings(parser, token):
 class SettingsNode(template.Node):
     def render(self, context):
         context['settings'] = {
-    	    'logo': settings.OP2_LOGO,
-    	    'debug': settings.OP2_DEBUG,
-    	    'translate': settings.OP2_TRANSLATE,
-    	    'twitter': settings.OP2_TWITTER,
+            'logo': settings.OP2_LOGO,
+            'debug': settings.OP2_DEBUG,
+            'translate': settings.OP2_TRANSLATE,
+            'twitter': settings.OP2_TWITTER,
         }
-	return ''
+        return ''
 
 register.tag('settings', do_settings)
 
@@ -42,16 +42,12 @@ def do_plugins(parser, token):
 class PluginsNode(template.Node):
     def render(self, context):
         context['plugins'] = pluginsystem.get_plugins('urls')
-	return ''
+        return ''
 
 register.tag('plugins', do_plugins)
 
 @register.simple_tag
 def createNavButton(ref, rid, text, style=None):
-    return '''
-<div class="nav_button" id="%s">
-    <div class="inner">
-    	    <a style="%s"  href="%s">%s</a>
-    </div>
-</div>''' % (rid, style if style else ';', ref, text)
-
+    return '''<div class="nav_button button" 
+            id="%(id)s" onclick="%(href)s">%(text)s</div>''' % { 
+                'id': rid, 'href': ref, 'text': text, 'style': style or ''}

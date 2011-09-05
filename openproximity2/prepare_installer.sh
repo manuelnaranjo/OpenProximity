@@ -30,6 +30,78 @@ function download(){
     cp "$CWD"/libs/$PACKAGE-$VERSION.$EXTENSION $OP2/$DESTINATION/$PACKAGE-$VERSION.$EXTENSION
 }
 
+function download2(){
+    PACKAGE=$1
+    URL=$2
+    EXTENSION=$3
+    DESTINATION=$4
+
+    echo "processing $PACKAGE"
+
+    if [ ! -f "$CWD"/libs/$PACKAGE.$EXTENSION ]; then
+        echo "Downloading"
+        wget -P "$CWD"/libs $URL/$PACKAGE.$EXTENSION
+    fi
+
+    cp "$CWD"/libs/$PACKAGE.$EXTENSION $OP2/$DESTINATION/$PACKAGE.$EXTENSION
+}
+
+
+function download_jqueryui(){
+    PACKAGE="jquery-ui"
+    VERSION=$1
+    URL=$2
+    THEME=$3
+    POST_DATA="t-name=${THEME}&ui-version=${VERSION}&download=true&theme="\
+"?ffDefault=Lucida Grande%2C Lucida Sans%2C Arial%2C sans-serif&"\
+"fwDefault=bold&fsDefault=1.1em&cornerRadius=6px&"\
+"bgColorHeader=deedf7&bgTextureHeader=03_highlight_soft.png&"\
+"bgImgOpacityHeader=100&borderColorHeader=aed0ea&fcHeader=222222&"\
+"iconColorHeader=72a7cf&bgColorContent=f2f5f7&"\
+"bgTextureContent=04_highlight_hard.png&bgImgOpacityContent=100&"\
+"borderColorContent=dddddd&fcContent=362b36&iconColorContent=72a7cf&"\
+"bgColorDefault=d7ebf9&bgTextureDefault=02_glass.png&"\
+"bgImgOpacityDefault=80&borderColorDefault=aed0ea&fcDefault=2779aa&"\
+"iconColorDefault=3d80b3&bgColorHover=e4f1fb&bgTextureHover=02_glass.png&"\
+"bgImgOpacityHover=100&borderColorHover=74b2e2&fcHover=0070a3&"\
+"iconColorHover=2694e8&bgColorActive=3baae3&bgTextureActive=02_glass.png&"\
+"bgImgOpacityActive=50&borderColorActive=2694e8&fcActive=ffffff&"\
+"iconColorActive=ffffff&bgColorHighlight=ffef8f&"\
+"bgTextureHighlight=03_highlight_soft.png&bgImgOpacityHighlight=25&"\
+"borderColorHighlight=f9dd34&fcHighlight=363636&iconColorHighlight=2e83ff&"\
+"bgColorError=cd0a0a&bgTextureError=01_flat.png&bgImgOpacityError=15&"\
+"borderColorError=cd0a0a&fcError=ffffff&iconColorError=ffffff&"\
+"bgColorOverlay=eeeeee&bgTextureOverlay=08_diagonals_thick.png&"\
+"bgImgOpacityOverlay=90&opacityOverlay=80&bgColorShadow=000000&"\
+"bgTextureShadow=04_highlight_hard.png&bgImgOpacityShadow=70&"\
+"opacityShadow=30&thicknessShadow=7px&offsetTopShadow=-7px&"\
+"offsetLeftShadow=-7px&cornerRadiusShadow=8px"
+
+    echo "processing $PACKAGE"
+
+    if [ ! -f "$CWD"/libs/$PACKAGE-$VERSION.min.js ]; then
+        echo "Downloading jquery ui from CDN"
+        wget -P "$CWD"/libs $URL/$VERSION/$PACKAGE.min.js
+        mv "$CWD"/libs/$PACKAGE.min.js "$CWD"/libs/$PACKAGE-$VERSION.min.js 
+    fi
+    
+    if [ ! -f "$CWD"/libs/$PACKAGE-$THEME-$VERSION.zip ]; then
+        echo "Downloading theme"
+        
+        wget --post-data "${POST_DATA}" -O $PACKAGE-$THEME-$VERSION.zip http://jqueryui.com/download
+        mv $PACKAGE-$THEME-$VERSION.zip "$CWD"/libs/
+    fi
+
+    cp "$CWD"/libs/$PACKAGE-$VERSION.min.js $OP2/openproximity2/django-web/media/js
+    
+    mkdir $PACKAGE-$THEME-$VERSION
+    pushd $PACKAGE-$THEME-$VERSION
+    unzip "$CWD"/libs/$PACKAGE-$THEME-$VERSION.zip
+    cp -r css/$THEME $OP2/openproximity2/django-web/media/css
+    popd
+}
+
+
 function download_and_uncompress(){
     PACKAGE=$1
     VERSION=$2
@@ -253,6 +325,9 @@ download_jstree jstree pre1.0_fix_1 https://github.com/downloads/vakata/jstree j
 git_download timezones 2b903a38 git://github.com/brosner/django-timezones.git 2b903a38da1ff9df4b2aba8e4f5429d967f73881
 download_and_uncompress south 0.7.3 south http://www.aeracode.org/releases/south/
 download jquery 1.6.2.min code.jquery.com js openproximity2/django-web/media/js
+download_jqueryui 1.8.16 https://ajax.googleapis.com/ajax/libs/jqueryui/ cupertino
+download2 jquery.corner https://raw.github.com/malsup/corner/master/ js openproximity2/django-web/media/js
+download2 jquery.tweet https://raw.github.com/seaofclouds/tweet/master/tweet/ js openproximity2/django-web/media/js
 
 #some ideas on a WYSIWYG template editor
 #download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/

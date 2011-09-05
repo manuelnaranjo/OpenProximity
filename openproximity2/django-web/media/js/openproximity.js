@@ -50,8 +50,7 @@ function update_field_complex(el, id, val){
 }
 
 function create_td(id, content){
-    var td = TD({ 'id': id, 'innerHTML': content })
-    return td
+    return $("<td />").attr("id", id).text(content);
 }
 
 function create_tr_seen(content){
@@ -67,76 +66,6 @@ function create_tr_seen(content){
     }
     update_info(content.address);
     return tr;
-}
-
-function update_seen_info(address){
-    var defer=loadJSONDoc('/rpc/device-info?address='+address);
-
-    var gotDeviceInfo = function(stats){
-        var i, td;
-        var fields=['valid', 'timeout', 'rejected', 'accepted'];
-        //'tries', 
-
-        t=getElement('seen_' + address);
-
-        for ( i in fields){
-            td = TD();
-            td.innerHTML=stats[fields[i]];
-            t.appendChild(td);
-        }
-    }
-    
-    var deviceInfoFailed = function(err){
-    }
-
-    defer.addCallbacks(gotDeviceInfo, deviceInfoFailed);
-}
-
-function update_seen_table(){
-    var defer=loadJSONDoc('/rpc/last-seen');
-
-    var gotLastSeen = function(stats){
-        var i;
-
-        t=getElement('last_seen_body');
-        replaceChildNodes(t);
-        for ( i in stats){
-            tr=create_tr_seen(stats[i]);
-            t.appendChild(tr);
-        }
-    }
-    
-    var lastSeenFailed = function(err){
-    }
-
-    defer.addCallbacks(gotLastSeen, lastSeenFailed);
-}
-
-function update_stats(){
-    var defer = loadJSONDoc('rpc/stats');
-
-    var gotStats=function(stats){
-        var td;
-
-        update_field('stats_seen', stats.seen.total);
-
-        for (var addr in stats.seen.perdongle){
-            var val = stats.seen.perdongle[addr]
-            update_field_complex('stats_count', val.address, val.count);
-        }
-
-        update_field('stats_valid', stats.valid);
-        update_field('stats_tries', stats.tries);
-        update_field('stats_timeout', stats.timeout);
-        update_field('stats_rejected', stats.rejected);
-        update_field('stats_accepted', stats.accepted);
-    };
-
-    var statsFetchFailed = function(err){
-        /*alert(err)*/
-    };
-
-    defer.addCallbacks(gotStats, statsFetchFailed);
 }
 
 function create_button(id, text, href, bgColor){
@@ -156,76 +85,35 @@ function create_button(id, text, href, bgColor){
 }
 
 function update_known_dongles(dongles){
-    var old_body=$('#known').getElementsByTagName('tbody')[0];
-    var new_body=TBODY();
+    var old_body=$('#known tbody');
+    var new_body=$("<tbody />");
     var val, tr, td;
 
     for (var i = 0; i<dongles.length; i++){
         val = dongles[i];
-        tr = TR({ 
-            'class': 'rpc_dongles', 
-            'id': "rpc_dongles_"+val.address
-        });
-        tr.appendChild(create_td('dongle_address', val.address));
-        tr.appendChild(create_td('dongle_scan', val.isScanner));
-        tr.appendChild(create_td('dongle_scan_enabled', val.scan_enabled));
-        tr.appendChild(create_td('dongle_scan_priority', val.scan_pri));
-        tr.appendChild(create_td('dongle_upload', val.isUploader));
-        tr.appendChild(create_td('dongle_upload_enabled', val.upload_enabled));
-        tr.appendChild(create_td('dongle_upload_maxconn', val.max_conn));
-        td=TD({
-            'style': 'width: 10em;',
-            'id': 'dongle_setup'
-        });
-        td.appendChild(
-            create_button(
-                'configure_'+val.address, 
-                CONFIGURE,
-                'configure/dongle/' + val.address,
-                'white'
-            )
+        new_body.append(
+                $("<tr />").
+                    attr("class", "rpc_dongles").
+                    attr("id", "rpc_dongles_"+val.address).
+                    append(create_td('dongle_address', val.address)).
+                    append(create_td('dongle_scan', val.isScanner)).
+                    append(create_td('dongle_scan_enabled', val.scan_enabled)).
+                    append(create_td('dongle_scan_priority', val.scan_pri)).
+                    append(create_td('dongle_upload', val.isUploader)).
+                    append(create_td('dongle_upload_enabled', val.upload_enabled)).
+                    append(create_td('dongle_upload_maxconn', val.max_conn)).
+                    append(
+                        $("<div />").
+                            attr("id", 'configure_'+val.address).
+                            attr("address", val.address).
+                            text(CONFIGURE).
+                            attr("onclick", 'do_dongle_configure(this);').
+                        addClass("button").addClass("corners").corner()
+                    )
         );
-        tr.appendChild(td);
-        new_body.appendChild(tr);
     }
-    swapDOM(old_body, new_body);
-}
-
-function update_rpc_info(){
-    var defer = loadJSONDoc('rpc/info');
-
-    var gotInfo=function(info){
-        update_field('rpc_running', info.running);
-        update_field('rpc_uploadres', info.uploaders);
-        update_field('rpc_scanners', info.scanners);
-        update_known_dongles(info.dongles);
-    };
-
-    var infoFetchFailed = function(err){
-        /*alert(err)*/
-    }
-    defer.addCallbacks(gotInfo, infoFetchFailed);
-}
-
-function check_version(){
-    var reply=compare_version(current_version);
-    var foot =$('#version_foot');
-    var p=P(SERVER_VERSION+": " + reply.latest + " "+ RUNNING_VERSION +": " + current_version);
-    foot.append(p)
-
-    if ( reply.new_available == true ){
-        var top = $('#new_version_top');
-        var h1=H1()
-        var a = A({ 
-                'href': 'http://code.google.com/p/proximitymarketing/',
-                'innerHTML': NEW_VERSION_AVAILABLE
-        });
-        h1.append(a);
-        top.append(h1)
-        top.append(P(NEW_VERSION + ": " + reply.latest));
-        top.append(P(YOUR_VERSION + ": " + current_version));
-        top.style.display="";
-    }
+    old_body.remove()
+    $("#known").append(new_body);
 }
 
 function roundedCornersOnLoad() {
@@ -244,11 +132,109 @@ function roundedCornersOnLoad() {
     roundClass(null, 'rounded-white', {bgColor: "#e4e4e4", color: "white"});
 }
 
+
+// AJAX functions
+function update_seen_info(address){
+    $.ajax('/rpc/device-info?address='+address, {
+        'cache': false,
+        'success': function(stats){
+            var i, td;
+            var fields=['valid', 'timeout', 'rejected', 'accepted'];
+
+            t=$('#seen_' + address);
+
+            for ( i in fields){
+                td = TD();
+                td.innerHTML=stats[fields[i]];
+                t.appendChild(td);
+            }
+
+        }
+    });
+}
+
+function update_seen_table(){
+    $.ajax('/rpc/last-seen',{
+        'cache': false,
+        'success': function(stats){
+            var i;
+
+            t=$('#last_seen_body');
+            replaceChildNodes(t);
+            for ( i in stats){
+                tr=create_tr_seen(stats[i]);
+                t.appendChild(tr);
+            }
+        }
+    });
+}
+
+function update_stats(){
+    $.ajax('rpc/stats', {
+        'cache': false,
+        'success': function(stats){
+            var td;
+
+            $("#stats_seen").text(stats.seen.total);
+
+            for (var addr in stats.seen.perdongle){
+                var val = stats.seen.perdongle[addr]
+                $("#stats_count_" + val.address).text(val.count);
+            }
+            
+            $("#stats_valid").text(stats.valid);
+            $('#stats_valid').text(stats.valid);
+            $('#stats_tries').text(stats.tries);
+            $('#stats_timeout').text(stats.timeout);
+            $('#stats_rejected').text(stats.rejected);
+            $('#stats_accepted').text(stats.accepted);
+        }
+    });
+}
+
+
+
+function update_rpc_info(){
+    $.ajax('rpc/info', {
+        'cache': false,
+        'success': function(info){
+            $('#rpc_running').text(info.running);
+            $('#rpc_uploadres').text(info.uploaders);
+            $('#rpc_scanners').text(info.scanners);
+            if (info.dongles != undefined)
+                update_known_dongles(info.dongles);
+        }
+    });
+}
+
+function check_version(){
+    var reply=compare_version(current_version);
+    var foot =$('#footer .version');
+    if (foot.length==0)
+        return;
+    foot.text(SERVER_VERSION+": " + reply.latest + "\n"+ RUNNING_VERSION +": " + current_version);
+
+    if ( reply.new_available == true ){
+        $("#new_version_top").append(
+            $("<h1/>").append(
+                $("<a/>").
+                    attr("href", 
+                        'http://wiki.openproximity.org/userdocumentation').
+                    attr("target", "_blank").
+                    text(NEW_VERSION_AVAILABLE)
+            ).append( $("<p/>").text(NEW_VERSION + ": " + reply.latest) ).
+            append( $("<p/>").text(YOUR_VERSION + ": " + current_version) )
+        ).css("display", "");
+    } else
+        $("#new_version_top").parent().remove();
+}
+
+
 function popitup(url, format){
     // pops up a window
     if (format == null)
         format='height=200,width=800';
-    newwindow=window.open(url,'name', format)
+    newwindow=window.open(url,'_blank', format)
     if (window.focus) 
         newwindow.focus();
 }
@@ -329,19 +315,50 @@ function create_tree(){
     t.jstree(data);
 }
 
+function initialize_tweets(){
+    $("#tweets .aircable_manuel").tweet({
+        username: "aircable_manuel",
+        count: 5,
+        refresh_interval: 600,
+        avatar_size: 32,
+        template: "{avatar}{text}"
+    }).bind("full", function(){
+        $(this).find(".tweet_text").each(function(i, line){
+            line = $(line)
+            if (line.text().match(/\[.*\]\s(\S+)\s([^-]+)\s-\s([0-9]+)\scommits/) == null)
+                return;
 
+            var t = line.text();
+            t = t.match(/\[.*\]\s(\S+)\s([^-]+)\s-\s([0-9]+)\scommits/);
+            var a = $("<a/>");
+            a.attr('href', t[1]);
+            a.attr("target", "_blank");
+            a.text(t[2] + " " + t[3] + " commits");
+            line.text("");
+            line.append(a);
+        })
+    })
+
+    $("#tweets .aircable_net").tweet({
+        username: "aircable_net",
+        count: 5,
+        refresh_interval: 600,
+        avatar_size: 32,
+        template: "{avatar}{text}"
+    })
+}
 
 function ready($){
     var display = $("body").attr("id")
     console.log("ready for " + display);
     
-    roundedCornersOnLoad();
+    check_version();
     
     switch (display){
         case "main-page":
             update_stats();
             update_rpc_info();
-            check_version();
+            initialize_tweets();
             setInterval("update_stats()", 20000);
             setInterval("update_rpc_info()", 30000);
             break;
@@ -353,17 +370,44 @@ function ready($){
             create_tree();
             break;
     }
+    $(".corners").corner();
 }
 
 $(document).ready(ready);
 
+/* button callbacks */
+function do_dongle_configure(c){
+    window.location="/configure/dongle/"+$(c).attr("address")
+}
 
-/*addLoadEvent(update_stats);
-addLoadEvent(update_rpc_info);
-addLoadEvent(check_version);
-addLoadEvent(roundedCornersOnLoad);
-addLoadEvent(create_tree);
+function generic_restart(caption, url, success){
+    if ( confirm (caption) == false )
+        return;
+    $("#loading").show();
+    $.ajax({
+        url: url,
+        success: function() {
+            $("#loading").hide();
+            alert(success);
+        },
+        error: function() {
+            $("#loading").hide();
+            alert("Something failed, check the logs");
+        }
+    })
 
-setInterval("update_stats()", 20000) <!-- update each 20 seconds -->
-setInterval("update_rpc_info()", 30000) <!-- update each 30 seconds -->
-*/
+}
+
+function reset_stats(){
+    generic_restart(
+        "Are you sure you want to drop the statistics? This action can't be recovered",
+        '/stats/restart',
+        "Successfully Deleted!");
+}
+
+function reset_server() {
+    generic_restart(
+        "Are you sure you want to reset the RPC server? Current connections will be dropped",
+        '/rpc/server/restart',
+        "Successfully Restarted!");
+}

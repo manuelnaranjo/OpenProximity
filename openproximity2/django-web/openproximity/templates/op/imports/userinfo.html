@@ -1,15 +1,21 @@
 {% load i18n %}
-<div id="login" class="userinfo">
-    <span class="inner" style="padding: 0 2em"> <!-- little trick to get Mochikit round correctly-->
-    {% if user.is_authenticated %}
-        {% trans 'Welcome,' %}
-        <strong>{% firstof user.first_name user.username %}</strong>
-        <a href="/accounts/password_change/">{% trans "Change password" %}</a> /
-        <a href="/accounts/logout/">{% trans "Log out" %}</a>
-    {% else %}
-        {% trans 'Welcome,' %}
-        <strong>{% trans 'Anonymous' %}</strong>
+
+{% if user.is_authenticated %}
+    <li class="username">
+        <span>{% trans 'Welcome,' %} <strong>{% firstof user.first_name user.username %}</strong></span>
+    </li>
+    <li>
+        <a href="/accounts/password_change">{% trans "Change password" %}</a>
+    </li>
+    <li>
+        <a href="/accounts/logout">{% trans "Log out" %}</a>
+    </li>
+{% else %}
+    <li class="username">
+        <span>{% trans 'Welcome,' %} <strong>{% trans 'Anonymous' %}</strong></span>
+    </li>
+    <li>
         <a href="/accounts/login/">{% trans "Log in" %}</a>
-    {% endif %}
-    </span>
-</div>
+    </li>
+{% endif %}
+

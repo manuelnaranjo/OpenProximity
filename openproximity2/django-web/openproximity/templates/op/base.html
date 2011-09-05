@@ -11,19 +11,29 @@
 <head>
 <title>OpenProximity 2.0 {% block title %}{% endblock %}</title>
 
+
 <link rel="stylesheet" type="text/css" href="/site_media/css/openproximity.css" />
+<link rel="stylesheet" type="text/css" href="/site_media/css/base.css" />
+<link rel="stylesheet" type="text/css" href="/site_media/css/openproximity2.css" />
+<link rel="stylesheet" type="text/css" href="/site_media/css/cupertino/jquery-ui-1.8.16.custom.css" />
 
 <style type="text/css">
-    .logo {
+    h1.logo, h1.logo a {
         background: url(/site_media/images/{% if settings.logo %}{{ settings.logo }}{% else %}logo.gif{% endif %}) no-repeat;
+        height: 66px;
+        width: 206px;
     }
 </style>
 
 {% block style %}
 {% endblock %}
 
-<script type="text/javascript" src="/site_media/js/MochiKit.js"></script>
 <script type="text/javascript" src="/site_media/js/jquery-1.6.2.min.js"></script>
+<script type="text/javascript" src="/site_media/js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="/site_media/js/jquery.corner.js"></script>
+<script type="text/javascript" src="/site_media/js/jquery.vertical.align.js"></script>
+<!--script type="text/javascript" src="/site_media/js/jquery.center.packed.js"></script-->
+<script type="text/javascript" src="/site_media/js/jquery.valign.js"></script>
 <script type="text/javascript" src="/site_media/js/openproximity.js"></script>
 
 <script type="text/javascript">
@@ -48,39 +58,93 @@
 </head>
 
 <body id="{% block bodyid %}page{% endblock %}">
-
-    {% include "op/imports/userinfo.html" %} <!-- login information -->
-    {% include "op/imports/plugins.html" %} <!-- plugins information -->
-
-
-    <fieldset id="navigation" class="navigation"> 
-        <object class="logo">&nbsp;</object>
-        {% block navbar %}
-            {% createNavButton "/" "nav_index" _("Index") %}
-            {% createNavButton "javascript: popitup('http://wiki.openproximity.org/userdocumentation', '')" "nav_help" _("Documentation") %}
-            {% createNavButton "javascript: popitup('/last-seen/')" "nav_seen" _("Last Seen") %}
-            {% if settings.debug %}
-                {% createNavButton "/data/" "nav_data" _("Data Browse") %}
-                {% createNavButton "/treeview/" "nav_treeview" _("Data Browse<br />TreeView") %}
-            {% endif %}
-            {% createNavButton "/admin/openproximity/" "nav_admin" _("Admin Site") %}
-            {% if settings.translate %}
-                {% createNavButton "/admin/translate/" "nav_trans" _("Translate") %}
-            {% endif %}
-        {% endblock%}
-    </fieldset>
-
-    <div class="{% block content_class %}content{% endblock %}"> <!-- user content -->
-        {% block content %}{% endblock %}
+    <div id="loading">
+        <h1>{% trans "Loading..." %}</h1>
     </div>
-
-    <div class="footer">
-        <div class="inner"> <!-- little trick for accurate corner rounding -->
-            {% block footer %}{% endblock %}
-            <a href="http://code.google.com/p/proximitymarketing/">OpenProximity 2.0</a> Powered by <a href="http://www.aircable.net">AIRcable.net</a>
+    <div id="wrapper">
+        <div id="banner">
+            <h1 class="logo">
+                <a href="http://www.aircable.net" title="AIRcable.net"><span>AIRcable.net</span></a>
+            </h1>
+            <div id="dock">
+                <div class="left"></div>
+                <ul>
+                    {% include "op/imports/userinfo.html" %} <!-- login information -->
+                    {% include "op/imports/plugins.html" %} <!-- plugins information -->
+                </ul>
+                <div class="right"></div>
+            </div>
+            
+            <div id="navigation">
+                <div class="left"></div>
+                <ul>
+                    <li>
+                        <a id="nav_index" href="/">{% trans "Index" %}</a>
+                    </li>
+                    <li>
+                        <a id="nav_documentation" 
+                            href="javascript: popitup('http://wiki.openproximity.org/userdocumentation', '')"
+                            >{% trans "Documentation" %}</a>
+                    </li>
+                    <li>
+                        <a id="nav_last_seen"
+                            href="javascript: popitup('/last-seen/', '')"
+                            >{% trans "Last Seen" %}</a>
+                    </li>
+                    {% if settings.debug %}
+                        <li>
+                            <a id="nav_data" href="/data/">{% trans "Data Browse" %}</a>
+                        </li>
+                        <li>
+                            <a id="nav_treeview" href="/treeview">{% trans "Data Tree" %}</a>
+                        </li>
+                    {% endif %}
+                    <li {% if not settings.translate %} class="last" {% endif %}>
+                        <a id="nav_admin" href="/admin/openproximity">{% trans "Admin Site" %}</a>
+                    </li>
+                    {% if settings.translate %}
+                        <li class="last">
+                            <a id="nav_translate" href="javascript: popitup('/admin/translate')">{% trans "Translate" %}</a>
+                        </li>
+                    {% endif %}
+                </ul>
+                <div class="right"></div>
+            </div>
         </div>
-        <br/>
-    </div>
-</body>
-</html>
+    
+        <div id="content-wrapper"> 
+            <div id="content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+        
 
+        <div id="footer">
+            <div class="bg"></div>
+            <div class="inner">
+                <p>
+                    <span class="first">Sponsored by: </span>
+                    <a class="block aircable" href="http://www.aircable.net">
+                        <img src="http://www.aircable.net/images/logo/aircable/aircable-logo.png" />
+                    </a>
+                   
+                    {% block footer %}{% endblock %}
+                    <span class="version first"></span>
+                    
+                    <span class="first" style="float: right; padding-right: 12px;">                      
+                        © 2011, 2008 <a href="http://code.google.com/p/proximitymarketing/">OpenProximity 2.0</a>
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="right-sidebar">
+        {% block right_sidebar %}{% endblock %}
+    </div>
+
+</body>
+
+<script type="text/javascript" src="http://proximitymarketing.googlecode.com/svn/trunk/openproximity2/latest-version.js"></script>
+
+</html>
