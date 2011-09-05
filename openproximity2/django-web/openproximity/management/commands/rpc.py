@@ -7,7 +7,7 @@ from rpyc.utils.server import ThreadedServer, ForkingServer
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from optparse import make_option, OptionParser
-from configglue.pyschema import schemaconfigglue
+from configglue.glue import schemaconfigglue
 
 
 SERVER_OPTIONS = {
