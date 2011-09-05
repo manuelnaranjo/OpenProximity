@@ -328,7 +328,8 @@ download jquery 1.6.2.min code.jquery.com js openproximity2/django-web/media/js
 download_jqueryui 1.8.16 https://ajax.googleapis.com/ajax/libs/jqueryui/ cupertino
 download2 jquery.corner https://raw.github.com/malsup/corner/master/ js openproximity2/django-web/media/js
 download2 jquery.tweet https://raw.github.com/seaofclouds/tweet/master/tweet/ js openproximity2/django-web/media/js
-
+download2 DateTime https://raw.github.com/mochi/mochikit/master/MochiKit/ js openproximity2/django-web/media/js
+download2 Base https://raw.github.com/mochi/mochikit/master/MochiKit/ js openproximity2/django-web/media/js
 #some ideas on a WYSIWYG template editor
 #download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/
 #tinymce

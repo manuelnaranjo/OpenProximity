@@ -44,8 +44,8 @@ function getTimeZone(){
 
 
 function fix_datetime_p(element, time_zone){
-    var date_element=element.find("#vDateField");
-    var time_element=element.find("#vTimeField");
+    var date_element=element.find(".vDateField");
+    var time_element=element.find(".vTimeField");
     var date=date_element.attr("value");
     var time=time_element.attr("value");
     
@@ -65,7 +65,7 @@ function fix_change_form(){
     var time_zone = getTimeZone();
 
     $(".datetime").each(function(i, element){
-        fix_datetime_p(element, time_zone);
+        fix_datetime_p($(element), time_zone);
     })
 }
 
@@ -85,6 +85,11 @@ function fix_change_list(){
     var time_zone = getTimeZone();
 
     $(".datetimezulu").each(function(i, element){
-        fix_datetime_div(element, time_zone);
+        fix_datetime_div($(element), time_zone);
     });
 }
+
+$(document).ready(function(){
+    fix_change_form();
+    fix_change_list();
+});
