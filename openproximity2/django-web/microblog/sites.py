@@ -50,9 +50,11 @@ class TweetSite(object):
         """
             This view will return which is the latest entry in the table.
         """
-        data = serializers.serialize('json',(self.klass.objects.latest('pk'),))
+        try:
+            data = serializers.serialize('json',(self.klass.objects.latest('pk'),))
+        except:
+            data = None
         return HttpResponse(data, mimetype="application/json")
-        
 
     def posts_view(self, request):
         """
