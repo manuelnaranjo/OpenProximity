@@ -307,7 +307,7 @@ def generate_rpc_information():
         rpc['dongles'] = [ dongle_information(a) for a in 
                 server.root.getDongles()]
     except Exception, err:
-        rpc['error'] = err
+        rpc['error'] = repr(err)
 
     return rpc
 
@@ -341,7 +341,7 @@ def generate_stats():
         stats['tries'] = accepted+non_accepted
 
     except Exception, err:
-        stats['error'] = err
+        stats['error'] = repr(err)
 
     return stats
 
@@ -360,7 +360,7 @@ def index(request):
     try:
         version['current'] = os.environ['OP2_VERSION'].strip().upper()
     except Exception, err:
-        version['error'] = err
+        version['error'] = repr(err)
 
     return render_to_response("op/index.html", {
                                                "rpc": rpc,

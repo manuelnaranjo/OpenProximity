@@ -139,3 +139,28 @@ body {
     text-align: center;
     margin-top: 30px;
 }
+
+@media screen and (max-width: 1280px) {
+    /* fit into smaller screens */
+    
+    #navigation {
+        top: 80px;
+        clear: both;
+        left: 0px;
+    }
+    
+    #banner {
+        height: 110px;
+    }
+    
+    #wrapper {
+        width: 90%;
+        margin: 0 auto;
+    }
+    
+    #right-sidebar {
+        right: -105px;
+        top: 130px;
+    }
+}
+

@@ -371,9 +371,9 @@ function ready($){
             break;
     }
     $(".corners").corner();
-    
-    fix_change_form();
-    fix_change_list();
+
+/*    fix_change_form();
+    fix_change_list();*/
 }
 
 $(document).ready(ready);
@@ -414,3 +414,4 @@ function reset_server() {
         '/rpc/server/restart',
         "Successfully Restarted!");
 }
+
