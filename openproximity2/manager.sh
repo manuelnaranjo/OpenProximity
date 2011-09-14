@@ -10,8 +10,5 @@ LOG_FILE=$LOG_DIR/manager.log
 
 export LOG_FILE
 
-OP2_VERSION=$(cat latest-version)
-export OP2_VERSION
-
 cd django-web
 exec python manage.py $@

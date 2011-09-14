@@ -4,13 +4,6 @@
 
 source common.sh
 
-LOG_DIR=/var/log/aircable
-LOG_FILE=$LOG_DIR/rpyc.log
-export LOG_FILE
-
-OP2_VERSION=$(cat latest-version)
-export OP2_VERSION
-
 cd django-web
 echo "Starting RPyC server"
 

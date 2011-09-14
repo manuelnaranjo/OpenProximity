@@ -35,3 +35,9 @@ for p in list(paths):
   paths.extend(find_all_eggs(p))
 
 sys.path = paths + sys.path
+
+try:
+    from openproximity import version
+except:
+    version = 'na'
+os.environ['OP2_VERSION'] = version

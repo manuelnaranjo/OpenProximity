@@ -7,8 +7,8 @@ LOG_DIR=/var/log/aircable
 
 function work(){
     while [ 1 ]; do
-	python "$@" &>/dev/null
-	sleep 5 # 5 seconds out
+        python "$@" &>/dev/null
+        sleep 5 # 5 seconds out
     done
 }
 
