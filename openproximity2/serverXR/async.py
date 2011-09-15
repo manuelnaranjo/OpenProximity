@@ -27,10 +27,8 @@ import dbus, sys, gobject, os
 from lxml import etree
 import logging
 
-logger = logging.getLogger("async_handler")
-logger.setLevel(logging.DEBUG)
-console=logging.StreamHandler()
-logger.addHandler(console)
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 
 # channel extractor
 CHANNEL_XPATH=etree.XPath("/record/attribute[@id='0x0004']/sequence/sequence/uuid[@value='0x0003']/../uint8/@value")
@@ -49,26 +47,15 @@ FTP_UUID='00001106-0000-1000-8000-00805f9b34fb'
 
 # a helper function don't pay much attention to it
 def generate_arguments(*args, **kwargs):
-  ''' a function to generate the long list of needed arguments '''
-  yield '/usr/bin/obexftp'
-  yield '-d'
-  yield str(kwargs['dongle'])
-  yield '-r'
-  yield str(kwargs['retries'])
-  if kwargs['service']=='opp':
-    yield '-U'
-    yield 'none'
-    yield '-H'
-  yield '-S'
-  yield '-T'
-  yield str(kwargs['timeout'])
-  yield '-b'
-  yield str(kwargs['target'])
-  yield '-B'
-  yield str(kwargs['channel'])
-  for f in kwargs['files']:
-    yield '-p'
-    yield f
+    ''' a function to generate the long list of needed arguments '''
+    out = ['/usr/bin/obexftp', '-d', kwargs['dongle'], '-r', kwargs['retries']]
+    if kwargs['service']=='opp':
+        out.extend(['-U', 'none', '-H'])
+    out.extend(['-S', '-T', kwargs['timeout'], '-b', kwargs['target'], 
+        '-B', kwargs['channel']])
+    for f in kwargs['files']:
+        out.extend(['-p', f])
+    return [ str(x) for x in out ]
 
 class ServiceNotProvided(Exception):
   '''

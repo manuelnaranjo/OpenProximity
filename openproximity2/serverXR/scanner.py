@@ -14,7 +14,8 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 import dbus, rpyc, time, traceback, gobject
-from net.aircable.utils import logger
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 from net.aircable.openproximity.signals.scanner import *
 from net.aircable.wrappers import Adapter
 from rpyc.utils.lib import ByValWrapper

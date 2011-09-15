@@ -23,6 +23,9 @@ from errors import *
 from sppBase import *
 from xml.dom.minidom import parseString
 
+from net.aircable.utils import getLogger
+logger=getLogger(__name__)
+
 class sppServer(sppBase):
 	__RecHandle = 0
 	

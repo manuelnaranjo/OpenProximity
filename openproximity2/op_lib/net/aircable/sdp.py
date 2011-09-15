@@ -19,7 +19,8 @@ import sys
 import dbus
 import re
 
-from utils import logger
+from utils import getLogger
+logger=getLogger(__name__)
 
 from lxml import etree
 

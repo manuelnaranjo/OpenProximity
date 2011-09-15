@@ -82,7 +82,6 @@ class ResourceBase(object):
         """
         url = reverse('%s:index' % (self.site.name), current_app=self.site.name)
         url += '%s/' % self.baseurl
-        print "ResourceBase.reverse", url
         return url
 
     def getAPI(self, request, extra_context=None):
@@ -119,16 +118,15 @@ class ResourceBase(object):
         out =  patterns('',)
         if self.api:
             out+= patterns('', 
-        	url (r'^API/$', self.getAPI, name="API") 
-    	    )
+                url (r'^API/$', self.getAPI, name="API") 
+            )
         out+= patterns('', 
-    		url(r'^([^/]*)/?$', self, name="index") 
-    	    )
+            url(r'^([^/]*)/?$', self, name="index") 
+        )
         return out
 
     def urls(self):
-	print "Resource.urls", self.baseurl, self
-	return self.get_urls()
+        return self.get_urls()
     urls = property(urls)
 
     # The four CRUD methods that any class that 

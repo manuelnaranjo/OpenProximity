@@ -26,6 +26,9 @@ from xml.dom.minidom import parseString
 import net.aircable.sdp as sdp
 import net.aircable.const as const
 
+from net.aircable.utils import getLogger
+logger=getLogger(__name__)
+
 class sppClient(sppBase):
 	target = None
 	

@@ -10,7 +10,8 @@ The enqueue() function is used to queue function calls.
 """
 import multiprocessing, functools
 from multiprocessing import Lock, Semaphore
-from net.aircable.utils import logger
+from net.aircable.utils import getLogger
+logger=getLogger(__name__)
 
 __all__=['Manager', 'Lock', 'Semaphore']
 

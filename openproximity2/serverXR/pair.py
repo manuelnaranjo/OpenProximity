@@ -28,8 +28,10 @@ import setpaths
 import gobject
 import sys, os
 import dbus, dbus.service, dbus.mainloop.glib
-from net.aircable.utils import logger
 import rpyc
+
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 
 DEFAULT_PIN=os.environ.get("PIN_CODE", "1234")
 # default pin to use when no server is available.

@@ -1,8 +1,8 @@
 # Modified by Manuel Naranjo for OpenProximity2 <manuel@aircable.net> 2009
 # This autoreloader will reload on different events:
-#	* RELOAD variable is TRUE (allowing incode reload)
-#	* code changed
-#	* SIGUSR1 is recieved
+#   * RELOAD variable is TRUE (allowing incode reload)
+#   * code changed
+#   * SIGUSR1 is recieved
 # Autoreloader will kill childs when parent dies
 # sigusr1 to parent triggers parent killing
 #
@@ -37,7 +37,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os, sys, time, signal, threading
-from net.aircable.utils import logger
+from net.aircable.utils import getLogger
+logger=getLogger(__name__)
 
 __all__=['isParent', 'main', 'RESTART']
 

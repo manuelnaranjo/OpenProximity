@@ -23,7 +23,9 @@ A plugin manager.
 import os, re, StringIO, zipfile
 import ConfigParser, pkgutil, traceback
 import sys,functools
-from net.aircable.utils import logger
+
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 
 __all__=['pluginsystem']
 

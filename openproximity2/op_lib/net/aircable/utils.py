@@ -19,91 +19,107 @@ import logging
 import logging.handlers
 import os, sys, time
 
+logging.basicConfig()
+
 def isAIRcable(address):
-	return address[:8].upper() in const.AIRCABLE_MAC
+    return address[:8].upper() in const.AIRCABLE_MAC
 
-#init logging
-def __initLog():
-	logger=logging.getLogger()
-	logger.setLevel(logging.NOTSET)
-	
-	logger=logging.getLogger('openproximity')
-	logger.setLevel(logging.DEBUG)
-	formatter=logging.Formatter('%(module)s:%(funcName)s: %(message)s')
-	
-	if os.environ.get('LOG_FILE', None) is not None:
-	    log_=logging.handlers.RotatingFileHandler(
-		os.environ.get('LOG_FILE'),
-		maxBytes=1024*512, #512KB,
-		backupCount=5 #2.5MB log
-	    )
-	    format=logging.Formatter('%(asctime)-12s %(levelname)-8s %(pathname)s/%(module)s:%(funcName)s[%(thread)d]\t%(message)s')
-	    log_.setLevel(logging.DEBUG)
-	    log_.setFormatter(format)
-	    logger.addHandler(log_)
-	
-	
-	if os.environ.get('CONSOLE_LOG') == 'yes' or \
-		os.environ.get('DEBUG')=="yes":
-	    console=logging.StreamHandler()
-	    console.setFormatter(formatter)
-	    logger.addHandler(console)
+import preset as settings
 
-	if os.environ.get('LOG_PORT') is not None:
-	    socketHandler=logging.handlers.SocketHandler('localhost',
-		os.environ.get('LOG_PORT'))
-	    socketHandler.addFormatter(formatter)
-	    logger.addHandler(socketHandler)
-	
-	
-	return logger
-	
-def logmain(app):
-    logger.info("%s start up, arguments %s" % (app, sys.argv))
+clogger = logging.StreamHandler()
+clogger.setFormatter(logging.Formatter(settings.DEBUG_CONSOLE_FORMAT))
+clogger.setLevel(getattr(logging, settings.DEBUG_CONSOLE, logging.NOTSET))
 
-# some shared variables
-logger = __initLog()
+print logging.getLevelName(clogger.level)
+
+global LOG_FLAG
+LOG_FLAG=False
+
+flogger = None
+flogger_file=None
+flogger_file = os.path.join(settings.DEBUG_PATH, settings.DEBUG_FILENAME)
+
+try:
+    open(flogger_file, "w")
+    flogger=logging.handlers.RotatingFileHandler(flogger_file, 
+        maxBytes=1024*settings.DEBUG_MAXSIZE,
+        backupCount=settings.DEBUG_COUNT
+    )
+    format=logging.Formatter(settings.DEBUG_FORMAT)
+    flogger.setLevel(getattr(logging, settings.DEBUG_LEVEL, logging.NOTSET))
+    flogger.setFormatter(format)
+except:
+    LOG_FLAG = True
+    flogger = logging.NullHandler()
+
+loggers={}
+
+def getLogger(name=None):
+    global LOG_FLAG
+    if name in loggers:
+        return loggers[name]
+
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.NOTSET)
+
+    if name and name in settings.DEBUG_DISABLES:
+        logging.getLogger(None).info("disabled")
+        return logger
+
+    #print name, clogger, clogger.level
+    logger.addHandler(clogger)
+
+    if LOG_FLAG:
+        LOG_FLAG = False
+        logger.warning("Can't write to log file at %s" % flogger_file)
+    logger.addHandler(flogger)
+
+    loggers[name]=logger
+    logging.getLogger(None).info("Added logger for %s" % name)
+    return logger
+
+getLogger(None).setLevel(logging.NOTSET)
 
 def trace():
     try:
-#	from pydbgr.api import debug as set_trace
-	from pudb import set_trace
+        #from pydbgr.api import debug as set_trace
+        from pudb import set_trace
         import urwid
         def t(*args, **kwargs):
-	    pass
-	urwid.raw_display.Screen.signal_init=t
-	urwid.raw_display.Screen.signal_restore=t
+            pass
+        urwid.raw_display.Screen.signal_init=t
+        urwid.raw_display.Screen.signal_restore=t
     except Exception, err:
-	logger.warning("Using non multithreaded pdb")
-    	from pdb import set_trace 
+        logger.warning("Using non multithreaded pdb")
+        from pdb import set_trace 
     return set_trace()
 
 def register_debug_shell():
-  ''' 
-    a helper function that will allow to start pdb or pudb
-    when CTRL-C is received
-  '''
-  if 'PDB' not in os.environ:
-      return
+    ''' 
+        a helper function that will allow to start pdb or pudb
+        when CTRL-C is received
+    '''
+    if 'PDB' not in os.environ:
+        return
 
-  logger.debug("Registering PDB debugger")
-  def signal_handler(signal, frame):
-	trace()
-  import signal
-  signal.signal(signal.SIGINT, signal_handler)
+    logger.debug("Registering PDB debugger")
+    def signal_handler(signal, frame):
+        trace()
+    import signal
+    signal.signal(signal.SIGINT, signal_handler)
 
 register_debug_shell()
 
 def get_subclass(object):
     for related in object._meta.get_all_related_objects():
-	if type(object) in related.model._meta.get_parent_list():
-	    if hasattr(object,related.var_name):
-		return get_subclass(getattr(object, related.var_name))
+        if type(object) in related.model._meta.get_parent_list():
+            if hasattr(object,related.var_name):
+                return get_subclass(getattr(object, related.var_name))
     return object
 
 def get_subclasses(klass):
     out = [klass, ]
     if len(klass.__subclasses__()) > 0:
-	for k in klass.__subclasses__():
-	    out.extend(get_subclasses(k))
+        for k in klass.__subclasses__():
+            out.extend(get_subclasses(k))
     return out

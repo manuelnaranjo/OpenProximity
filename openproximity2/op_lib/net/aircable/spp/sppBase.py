@@ -27,7 +27,8 @@ from errors import *
 from select import select
 
 try:
-    from net.aircable.utils import logger
+    from net.aircable.utils import getLogger
+    logger = getLogger(__name__)
 except:
     import logging
     logger = logging.getLogger('sppAIRcable')
