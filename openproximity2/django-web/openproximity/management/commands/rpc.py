@@ -37,7 +37,6 @@ class Command(BaseCommand):
         Add all our SchemaConfigParser's options so they can be shown
         in help messages and such.
         """
-        print prog_name, subcommand
         parser = OptionParser(prog=prog_name,
             usage=self.usage(subcommand),
             version=self.get_version(),
@@ -105,20 +104,26 @@ def runserver(argset=[], **kwargs):
     options = SERVER_OPTIONS.copy()
     options.update(kwargs)
 
+    from net.aircable.utils import getLogger
+    logger = getLogger(__name__)
+
     if options['daemonize']:
         if not options['pidfile']:
             options['pidfile'] = '/var/run/openproximity_rpc_%s.pid' % options['port']
 
-        print "storing pid file in", options['pidfile']
+        logger.info("storing pid file in %s" % options['pidfile'])
         from django.utils.daemonize import become_daemon
+        
+        logger.info("daemonizing")
         become_daemon()
+        logger.info("daemonized")
 
         fp = open(options['pidfile'], 'w')
         fp.write("%d\n" % os.getpid())
         fp.close()
 
     # Start the rpc server
-    print 'starting server with options %s' % options
+    logger.debug('starting server with options %s' % options)
     start_server(options)
     
 if __name__ == '__main__':

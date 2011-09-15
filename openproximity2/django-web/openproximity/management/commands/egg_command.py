@@ -18,16 +18,22 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.utils.importlib import import_module
 
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
+
 class Command(BaseCommand):
     help = "try running a command inside an egg, pass as argument the wanted command"
-    
-    def handle(self, command="", *args, **kwargs):
-	for app in settings.INSTALLED_APPS:
-	    try:
-	        mod = import_module("%s.management.commands.%s" % (app, command))
-	        print "found command"
-	    except :
-		continue
 
-	    return mod.Command().handle(*args, **kwargs)
-	
+    def handle(self, command="", *args, **kwargs):
+        logger.debug("searching for %s command" % command)
+        for app in settings.INSTALLED_APPS:
+            logger.debug("trying with %s" % app)
+            try:
+                mod = import_module("%s.management.commands.%s" % (app, command))
+                logger.debug("found it!")
+                return mod.Command().handle(*args, **kwargs)
+            except :
+                continue
+
+        logger.info("Not provided")
+        raise Exception, "%s is not available" % command

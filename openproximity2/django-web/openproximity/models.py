@@ -30,7 +30,8 @@ import rpyc, time, os.path
 import net.aircable.openproximity.signals.scanner as scanner
 
 from net.aircable.fields import PickledField
-from net.aircable.utils import logger
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 
 from openproximity.rpc.dispatcher import Dispatcher
 

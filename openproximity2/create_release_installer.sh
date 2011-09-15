@@ -5,8 +5,9 @@ source prepare_installer.sh
 
 VERSION=$(cat $CWD/latest-version)
 cd $OP2
-mv openproximity2 openproximity2-$VERSION
 echo "version='$VERSION'" >> openproximity2/django-web/openproximity/__init__.py
+
+mv openproximity2 openproximity2-$VERSION
 
 echo "creating official release $VERSION" 
 

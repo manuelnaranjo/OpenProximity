@@ -30,7 +30,8 @@ from django.conf import settings
 
 from datetime import datetime
 from net.aircable.openproximity.pluginsystem import pluginsystem
-from net.aircable.utils import logger
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 
 from re import compile
 from mimetypes import guess_type as guess_mime

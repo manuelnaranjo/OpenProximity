@@ -18,7 +18,8 @@ from django.conf import settings
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext as _
 from net.aircable.openproximity.signals import scanner as signals
-from net.aircable.utils import logger
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 from openproximity.models import *
 from rpyc import async
 from common import found_action, is_known_dongle

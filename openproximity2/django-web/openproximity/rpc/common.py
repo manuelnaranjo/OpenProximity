@@ -21,8 +21,11 @@ from re import compile
 from rpyc import async
 from rpyc.utils.lib import ByValWrapper
 from net.aircable.openproximity.pluginsystem import pluginsystem
-from net.aircable.utils import logger, trace
+from net.aircable.utils import trace
 import traceback, sys
+
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 
 def is_known_dongle(address, klass):
     return klass.objects.filter(address=address).count() > 0

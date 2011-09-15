@@ -17,7 +17,8 @@
 #   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import gc
-from net.aircable.utils import logger, logmain
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 from net.aircable.openproximity.pluginsystem import pluginsystem
 import net.aircable.openproximity.signals as signals
 import scanner, uploader

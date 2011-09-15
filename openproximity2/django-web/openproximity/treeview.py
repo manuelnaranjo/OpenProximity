@@ -37,7 +37,10 @@ import django.conf.urls.defaults as urls
 
 # imports from aircable libs
 from net.aircable.openproximity.pluginsystem import pluginsystem
-from net.aircable.utils import logger, get_subclass, get_subclasses
+from net.aircable.utils import get_subclass, get_subclasses
+
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 
 # imports from op libs
 import models

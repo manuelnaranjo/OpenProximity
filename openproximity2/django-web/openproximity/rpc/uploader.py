@@ -16,7 +16,8 @@
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from net.aircable.openproximity.signals import uploader as signals
-from net.aircable.utils import logger
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 from openproximity.models import *
 
 from common import do_upload, is_known_dongle, isAIRcable
@@ -73,7 +74,7 @@ def get_dongles(dongles):
     out = list()
     
     for address in dongles:
-        print address
+        logger.debug(address)
         try:
             if not is_known_dongle(address, UploaderBluetoothDongle) and \
                                                             isAIRcable(address):
