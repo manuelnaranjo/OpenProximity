@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import django, os
+import django, os, sys
 from configglue.schema import ( Section, StringOption, IntOption, BoolOption,
                                 DictOption, TupleOption, ListOption )
 from django_configglue.schema import Django112Schema
@@ -103,6 +103,30 @@ class OpenProximitySchema(Django112Schema):
     rpyc.rpc_server_group = StringOption(default='www-data',
                                             help="group to daemonized process")
 
+    ################################################
+    # debugging settings
+    ################################################
+    debug = Section('debug')
+    debug.debug_console = StringOption(default = 'INFO',
+        help='console debug level, default INFO')
+    debug.debug_level = StringOption(default = 'DEBUG',
+        help='in file debug level, default DEBUG')
+    debug.debug_path = StringOption(default='/var/log/openproximity',
+        help='default path used for storing log files')
+    debug.debug_maxsize = IntOption(default=10, 
+        help='max log file in MB, defaults to 10')
+    debug.debug_count = IntOption(default=5,
+        help='amount of log files to store when rotating, defaults to 2')
+    debug.debug_filename=StringOption(default=sys.argv[1],
+        help='file name used for this debug session, defaults to sys.argv[1]')
+    debug.debug_console_format = StringOption(
+        default='%(name)s %(module)s:%(funcName)s: %(message)s',
+        help='console log formatting')
+    debug.debug_format = StringOption(
+        default='%(asctime)-12s - %(levelname)5s - %(name)10s - %(funcName)-12s: %(message)s',
+        help='file log formatting')
+    debug.debug_disables = StringOption( default='', 
+        help='comma separated list of disable log modules')
 
 if os.path.isfile('/etc/timezone'):
     OpenProximitySchema.django.time_zone.default = file('/etc/timezone').readline().strip()

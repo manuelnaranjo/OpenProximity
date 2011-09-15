@@ -41,3 +41,5 @@ try:
 except:
     version = 'na'
 os.environ['OP2_VERSION'] = version
+
+print os.environ['OP2_VERSION']

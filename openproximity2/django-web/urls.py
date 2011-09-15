@@ -15,7 +15,9 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from django.conf.urls.defaults import *
 from django.contrib.auth.views import login, logout
-from net.aircable.utils import logger
+
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin

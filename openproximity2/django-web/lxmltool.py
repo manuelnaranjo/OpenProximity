@@ -18,7 +18,9 @@
 from lxml import etree
 from re import compile
 from exceptions import IOError
-from net.aircable.utils import logger
+
+from net.aircable.utils import getLogger
+logger = getLogger(__name__)
 
 VALID_ADDRESS=compile("([0-9a-f]{2}\:){5}([0-9a-f]{2})")
 
