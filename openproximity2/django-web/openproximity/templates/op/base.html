@@ -12,14 +12,14 @@
 <title>OpenProximity 2.0 {% block title %}{% endblock %}</title>
 
 
-<link rel="stylesheet" type="text/css" href="/site_media/css/openproximity.css" />
-<link rel="stylesheet" type="text/css" href="/site_media/css/base.css" />
-<link rel="stylesheet" type="text/css" href="/site_media/css/openproximity2.css" />
-<link rel="stylesheet" type="text/css" href="/site_media/css/cupertino/jquery-ui-1.8.16.custom.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/openproximity.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/base.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/openproximity2.css" />
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/cupertino/jquery-ui-1.8.16.custom.css" />
 
 <style type="text/css">
     h1.logo, h1.logo a {
-        background: url(/site_media/images/{% if settings.logo %}{{ settings.logo }}{% else %}logo.gif{% endif %}) no-repeat;
+        background: url({{ STATIC_URL }}images/{% if settings.logo %}{{ settings.logo }}{% else %}logo.gif{% endif %}) no-repeat;
         height: 66px;
         width: 206px;
     }
@@ -28,13 +28,13 @@
 {% block style %}
 {% endblock %}
 
-<script type="text/javascript" src="/site_media/js/jquery-1.6.2.min.js"></script>
-<script type="text/javascript" src="/site_media/js/jquery-ui-1.8.16.min.js"></script>
-<script type="text/javascript" src="/site_media/js/jquery.corner.js"></script>
-<!-- script type="text/javascript" src="/site_media/js/jquery.vertical.align.js"></script -->
-<!-- script type="text/javascript" src="/site_media/js/jquery.center.packed.js"></script -->
-<!-- script type="text/javascript" src="/site_media/js/jquery.valign.js"></script -->
-<script type="text/javascript" src="/site_media/js/openproximity.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.6.2.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-ui-1.8.16.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.corner.js"></script>
+<!-- script type="text/javascript" src="{{ STATIC_URL }}js/jquery.vertical.align.js"></script -->
+<!-- script type="text/javascript" src="{{ STATIC_URL }}js/jquery.center.packed.js"></script -->
+<!-- script type="text/javascript" src="{{ STATIC_URL }}js/jquery.valign.js"></script -->
+<script type="text/javascript" src="{{ STATIC_URL }}js/openproximity.js"></script>
 
 <script type="text/javascript">
     // translate strings

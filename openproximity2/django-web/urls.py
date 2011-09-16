@@ -15,6 +15,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from django.conf.urls.defaults import *
 from django.contrib.auth.views import login, logout
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from net.aircable.utils import getLogger
 logger = getLogger(__name__)
@@ -69,3 +70,4 @@ urlpatterns += patterns('',
     (r'', include('openproximity.urls'),{},"openproximity")
 )
 
+urlpatterns += staticfiles_urlpatterns()

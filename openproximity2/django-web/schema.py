@@ -2,7 +2,7 @@
 import django, os, sys
 from configglue.schema import ( Section, StringOption, IntOption, BoolOption,
                                 DictOption, TupleOption, ListOption )
-from django_configglue.schema import Django112Schema
+from django_configglue.schema import Django13Schema
 from ConfigParser import MAX_INTERPOLATION_DEPTH
 
 class _Context(object):
@@ -35,7 +35,7 @@ def _interpolate(self, section, option, rawval, vars):
           raise InterpolationDepthError(option, section, rawval)
       return value
 
-class OpenProximitySchema(Django112Schema):
+class OpenProximitySchema(Django13Schema):
     ################################################
     # openproximity general settings
     ################################################

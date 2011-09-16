@@ -56,10 +56,10 @@ class CampaignFileAdmin(admin.StackedInline):
 class MarketingCampaignAdmin(admin.ModelAdmin):
     class Media:
         js = (
-            "/site_media/js/jquery-1.6.2.min.js",
-            "/site_media/js/Base.js",
-            "/site_media/js/DateTime.js",
-            "/site_media/js/date.js",
+            "/static/js/jquery-1.6.2.min.js",
+            "/static/js/Base.js",
+            "/static/js/DateTime.js",
+            "/static/js/date.js",
         )
 
     fieldsets = (
