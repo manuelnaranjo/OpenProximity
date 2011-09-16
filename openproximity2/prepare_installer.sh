@@ -92,12 +92,12 @@ function download_jqueryui(){
         mv $PACKAGE-$THEME-$VERSION.zip "$CWD"/libs/
     fi
 
-    cp "$CWD"/libs/$PACKAGE-$VERSION.min.js $OP2/openproximity2/django-web/media/js
+    cp "$CWD"/libs/$PACKAGE-$VERSION.min.js $OP2/openproximity2/django-web/openproximity/static/js
     
     mkdir $PACKAGE-$THEME-$VERSION
     pushd $PACKAGE-$THEME-$VERSION
     unzip "$CWD"/libs/$PACKAGE-$THEME-$VERSION.zip
-    cp -r css/$THEME $OP2/openproximity2/django-web/media/css
+    cp -r css/$THEME $OP2/openproximity2/django-web/openproximity/static/css
     popd
 }
 
@@ -171,7 +171,7 @@ function download_jstree(){
     mkdir -p js && cp ../orig/jquery.jstree.js js/
 #    mkdir -p js/plugins && cp ../orig/plugins/jquery.tree.contextmenu.js js/plugins/
     mkdir -p js/themes && cp -r ../orig/themes/default js/themes/
-    cp -r * $OP2/openproximity2/django-web/media/
+    cp -r * $OP2/openproximity2/django-web/openproximity/static/
 }
 
 
@@ -259,8 +259,8 @@ function tinymce(){
     
     echo "extracting tinymce"
     unzip "$CWD"/libs/tinymce_3_2_7.zip
-    mkdir -p $OP2/openproximity2/django-web/media/js
-    cp -r tinymce/jscripts/tiny_mce/* $OP2/openproximity2/django-web/media/js/
+    mkdir -p $OP2/openproximity2/django-web/openproximity/static/js
+    cp -r tinymce/jscripts/tiny_mce/* $OP2/openproximity2/django-web/openproximity/static/js/
     rm -rf tinymce
 }
 
@@ -324,12 +324,12 @@ download_jstree jstree pre1.0_fix_1 https://github.com/downloads/vakata/jstree j
 #svn_download django_restapi 81 http://django-rest-interface.googlecode.com/svn/trunk/ 81
 git_download timezones 2b903a38 git://github.com/brosner/django-timezones.git 2b903a38da1ff9df4b2aba8e4f5429d967f73881
 download_and_uncompress south 0.7.3 south http://www.aeracode.org/releases/south/
-download jquery 1.6.2.min code.jquery.com js openproximity2/django-web/media/js
+download jquery 1.6.2.min code.jquery.com js openproximity2/django-web/openproximity/static/js
 download_jqueryui 1.8.16 https://ajax.googleapis.com/ajax/libs/jqueryui/ cupertino
-download2 jquery.corner https://raw.github.com/malsup/corner/master/ js openproximity2/django-web/media/js
-download2 jquery.tweet https://raw.github.com/seaofclouds/tweet/master/tweet/ js openproximity2/django-web/media/js
-download2 DateTime https://raw.github.com/mochi/mochikit/master/MochiKit/ js openproximity2/django-web/media/js
-download2 Base https://raw.github.com/mochi/mochikit/master/MochiKit/ js openproximity2/django-web/media/js
+download2 jquery.corner https://raw.github.com/malsup/corner/master/ js openproximity2/django-web/openproximity/static/js
+download2 jquery.tweet https://raw.github.com/seaofclouds/tweet/master/tweet/ js openproximity2/django-web/openproximity/static/js
+download2 DateTime https://raw.github.com/mochi/mochikit/master/MochiKit/ js openproximity2/django-web/openproximity/static/js
+download2 Base https://raw.github.com/mochi/mochikit/master/MochiKit/ js openproximity2/django-web/openproximity/static/js
 #some ideas on a WYSIWYG template editor
 #download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/
 #tinymce
