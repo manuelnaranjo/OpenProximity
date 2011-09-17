@@ -55,5 +55,3 @@ def __get_match_dongle(options, address):
 
 GETSCANNERDONGLE=partial(__get_match_dongle, locals()['OP2_SCANNERS'])
 GETUPLOADERDONGLE=partial(__get_match_dongle, locals()['OP2_UPLOADERS'])
-
-print locals()['DATABASES']
