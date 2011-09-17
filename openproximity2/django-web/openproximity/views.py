@@ -357,17 +357,10 @@ def index(request):
     # generate stastics information
     stats = generate_stats()
 
-    version = dict()
-    try:
-        version['current'] = os.environ['OP2_VERSION'].strip().upper()
-    except Exception, err:
-        version['error'] = repr(err)
-
     return render_to_response("op/index.html", {
                                                "rpc": rpc,
                                                "camps": getMatchingCampaigns(),
                                                "stats": stats,
-                                                "version": version, 
             }, 
             context_instance=RequestContext(request))
 
