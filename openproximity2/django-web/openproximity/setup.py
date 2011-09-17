@@ -25,7 +25,7 @@ from django.utils.encoding import smart_unicode
 from django.views.generic import list_detail
 from django.utils.translation import ugettext as _
 from django.contrib.admin.views import decorators
-
+from django.db import transaction
 from django.conf import settings
 
 from datetime import datetime
@@ -90,15 +90,18 @@ class UserForm(forms.Form):
 
         return cleaned_data
 
+@transaction.commit_manually
 def db_ready():
+    out = False
     try:
         from models import BluetoothDongle, UserProfile
         BluetoothDongle.objects.count()
-        if UserProfile.objects.count() > 0:
-            return True
+        out = UserProfile.objects.count() > 0
     except:
         pass
-    return False
+    finally:
+        transaction.rollback()
+    return out
 
 def CreateDB():
     from django.core import management
@@ -157,20 +160,13 @@ def index(request):
                 form.cleaned_data['email'],
                 form.cleaned_data['time_zone']
             )
-            return render_to_response("op/setup.html", { "done": True })
+            return render_to_response("op/setup.html", { 
+                "done": True,
+            }, context_instance=RequestContext(request))
     else:
         form = UserForm()
-
-    version = dict()
-    try:
-        version['current'] = os.environ['OP2_VERSION'].strip().upper()
-    except Exception, err:
-        version['error'] = err
 
     return render_to_response("op/setup.html", {
             "db_ready": db_ready(),
             "user": form,
-            "version": version, 
         }, context_instance=RequestContext(request))
-    
- 
