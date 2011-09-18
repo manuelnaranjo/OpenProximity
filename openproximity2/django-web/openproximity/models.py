@@ -516,7 +516,6 @@ class DeviceRecord(models.Model):
         super(DeviceRecord, self).save(force_insert, force_update)
 DeviceRecord.deletable = True # needed for treeview
 
-
 class RemoteBluetoothDeviceRecord(DeviceRecord):
     remote = models.ForeignKey(
         RemoteDevice, 
@@ -543,6 +542,35 @@ class RemoteBluetoothDeviceRecord(DeviceRecord):
 
     class Meta:
         ordering = ['time']
+
+ACTIONS = [
+    'sdp-resolving',
+    'pairing',
+    'upload'
+]
+
+ACTIONS = map( lambda x,y: (x,y), range(len(ACTIONS)), ACTIONS)
+
+class RemoteBluetoothDevicePendingAction(RemoteBluetoothDeviceRecord):
+    '''
+    A class that describes current and past actions made by OpenProximity
+    '''
+    action = models.IntegerField(
+        choices = ACTIONS,
+        help_text="Kind of action taken"
+    )
+    end = models.DateTimeField( null = True,
+        help_text="time when this action completed"
+    )
+    length = models.FloatField(
+        null=True,
+        help_text="time it took this action to complete in seconds"
+    )
+
+    def endAction(self):
+        self.end = datetime.utcnow()
+        self.length = (self.end-self.time).total_seconds()
+
 
 class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
     __rssi = models.CommaSeparatedIntegerField(
@@ -571,7 +599,7 @@ class RemoteBluetoothDeviceFoundRecord(RemoteBluetoothDeviceRecord):
 class RemoteBluetoothDeviceSDP(RemoteBluetoothDeviceRecord):
     channel = models.IntegerField(
         help_text=_("bluetooth rfcomm channel that provides the used service"))
-    
+
     def __unicode__(self):
         return "%s, %s, %s" % (
             self.remote.address,
@@ -584,6 +612,17 @@ class RemoteBluetoothDeviceNoSDP(RemoteBluetoothDeviceRecord):
 
 class RemoteBluetoothDeviceSDPTimeout(RemoteBluetoothDeviceRecord):
     pass
+
+PAIRING = ['Passed', 'Rejected', 'Timeout']
+PAIRING = map(lambda x,y: (x,y), range(len(PAIRING)), PAIRING)
+
+class RemoteBluetoothDevicePairing(RemoteBluetoothDeviceRecord):
+    '''
+    A class to describe a pairing action
+    '''
+    state = models.IntegerField(
+        choices = PAIRING
+    )
 
 class RemoteBluetoothDeviceFileTry(RemoteBluetoothDeviceRecord):
     campaign = models.ForeignKey(MarketingCampaign)
@@ -717,3 +756,5 @@ models.signals.post_save.connect(logline_signal)
 
 from openproximity.rpc.common import schedule_try_upload
 
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([], ["^timezones\.fields\.TimeZoneField"])
