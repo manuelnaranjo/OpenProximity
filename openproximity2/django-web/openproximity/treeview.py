@@ -271,7 +271,8 @@ def delete(request):
         content_type="application/json")
 
 def index(request):
-    return render_to_response("op/treeview.html")
+    return render_to_response("op/treeview.html", 
+        context_instance=RequestContext(request))
 
 urlpatterns = urls.patterns('',
     (r'delete', delete),
