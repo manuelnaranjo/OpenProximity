@@ -25,7 +25,9 @@ from net.aircable.wrappers import Adapter
 from rpyc.utils.lib import ByValWrapper
 import async
 
-MEDIA_ROOT = os.environ.get('MEDIA_ROOT', '/tmp/aircable/media')
+from django.conf import settings
+
+MEDIA_ROOT = settings.MEDIA_ROOT
 TIMEOUT = os.environ.get('TIMEOUT', '20')
      
 class UploadAdapter(Adapter):
