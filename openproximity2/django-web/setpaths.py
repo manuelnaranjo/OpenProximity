@@ -39,7 +39,5 @@ sys.path = paths + sys.path
 try:
     from openproximity import version
 except:
-    version = 'na'
+    version = 'ND'
 os.environ['OP2_VERSION'] = version
-
-print os.environ['OP2_VERSION']
