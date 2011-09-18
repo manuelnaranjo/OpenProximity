@@ -251,6 +251,18 @@ function git_egg(){
     cp "$CWD"/libs/$PACKAGE-$VERSION.egg "$LIB_TARGET"
 }
 
+function pip_download() {
+    echo "downloading $1"
+    
+    set +e
+    pip install -I \
+        --install-option=--no-compile \
+        --install-option=--install-lib=/tmp/$1 $1
+    set -e
+    cp -rfv /tmp/$1/* "$LIB_TARGET"
+    rm -rf /tmp/$1
+}
+
 function tinymce(){
     # we need this function because tinymce has been badly packaged
     if [ ! -f "$CWD"/libs/tinymce_3_2_7.zip ]; then
@@ -322,7 +334,7 @@ download_and_uncompress django-notification 0.1.5 notification http://pypi.pytho
 download_and_uncompress django-mailer 0.1.0 mailer http://pypi.python.org/packages/source/d/django-mailer/
 download_jstree jstree pre1.0_fix_1 https://github.com/downloads/vakata/jstree jstree
 #svn_download django_restapi 81 http://django-rest-interface.googlecode.com/svn/trunk/ 81
-git_download timezones 2b903a38 git://github.com/brosner/django-timezones.git 2b903a38da1ff9df4b2aba8e4f5429d967f73881
+git_download timezones ce12f4538f git://github.com/brosner/django-timezones.git 2b903a38da1ff9df4b2aba8e4f5429d967f73881
 download_and_uncompress south 0.7.3 south http://www.aeracode.org/releases/south/
 download jquery 1.6.2.min code.jquery.com js openproximity2/django-web/openproximity/static/js
 download_jqueryui 1.8.16 https://ajax.googleapis.com/ajax/libs/jqueryui/ cupertino
@@ -330,6 +342,7 @@ download2 jquery.corner https://raw.github.com/malsup/corner/master/ js openprox
 download2 jquery.tweet https://raw.github.com/seaofclouds/tweet/master/tweet/ js openproximity2/django-web/openproximity/static/js
 download2 DateTime https://raw.github.com/mochi/mochikit/master/MochiKit/ js openproximity2/django-web/openproximity/static/js
 download2 Base https://raw.github.com/mochi/mochikit/master/MochiKit/ js openproximity2/django-web/openproximity/static/js
+pip_download django-extensions
 #some ideas on a WYSIWYG template editor
 #download_and_uncompress django-tinymce 1.5 tinymce http://django-tinymce.googlecode.com/files/
 #tinymce
