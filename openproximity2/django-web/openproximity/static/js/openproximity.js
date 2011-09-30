@@ -351,8 +351,8 @@ function initialize_tweets(){
 function ready($){
     var display = $("body").attr("id")
     console.log("ready for " + display);
-    
-    check_version();
+   
+    //check_version();
     
     switch (display){
         case "main-page":
@@ -371,6 +371,13 @@ function ready($){
             break;
     }
     $(".corners").corner();
+    $(".foldable").click(function(){
+        if ($(this).next().hasClass('extended')){
+            $(this).next().addClass('folded').removeClass('extended')
+        } else {
+            $(this).next().removeClass('folded').addClass('extended')
+        }
+    });
 
 /*    fix_change_form();
     fix_change_list();*/
