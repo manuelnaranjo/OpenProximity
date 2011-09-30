@@ -334,7 +334,7 @@ download_and_uncompress django-mailer 0.1.0 mailer http://pypi.python.org/packag
 download_jstree jstree pre1.0_fix_1 https://github.com/downloads/vakata/jstree jstree
 #svn_download django_restapi 81 http://django-rest-interface.googlecode.com/svn/trunk/ 81
 git_download timezones ce12f4538f git://github.com/brosner/django-timezones.git 2b903a38da1ff9df4b2aba8e4f5429d967f73881
-download_and_uncompress OpenProximity-django-notification 0.1.5-final-openproximity notification https://github.com/downloads/manuelnaranjo/OpenProximity-django-notification
+download_and_uncompress OpenProximity-django-notification 0.1.6-final-openproximity notification https://github.com/downloads/manuelnaranjo/OpenProximity-django-notification
 download_and_uncompress south 0.7.3 south http://www.aeracode.org/releases/south/
 download jquery 1.6.2.min code.jquery.com js openproximity2/django-web/openproximity/static/js
 download_jqueryui 1.8.16 https://ajax.googleapis.com/ajax/libs/jqueryui/ cupertino
