@@ -1,23 +1,22 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 ; Mode: python; tab-width: 4 ; indent-tabs-mode: nil -*-
 #
-#    OpenProximity2.0 is a proximity marketing OpenSource system.
-#    Copyright (C) 2010 Naranjo Manuel Francisco <manuel@aircable.net>
+# OpenProximity2.0 is a proximity marketing OpenSource system.
+# Copyright (C) 2010 Naranjo Manuel Francisco <manuel@aircable.net>
 #
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation version 2 of the License.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation version 2 of the License.
 #
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License along
-#    with this program; if not, write to the Free Software Foundation, Inc.,
-#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-#
-# -*- coding: utf-8 -*-
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 """
 Helper classes for handling asynchronous SDP resolving and file uploading
 through OBEX.
@@ -31,7 +30,8 @@ from net.aircable.utils import getLogger
 logger = getLogger(__name__)
 
 # channel extractor
-CHANNEL_XPATH=etree.XPath("/record/attribute[@id='0x0004']/sequence/sequence/uuid[@value='0x0003']/../uint8/@value")
+CHANNEL_XPATH=etree.XPath(
+    "/record/attribute[@id='0x0004']/sequence/sequence/uuid[@value='0x0003']/../uint8/@value")
 
 # state machine 
 IDLE = 0
@@ -40,8 +40,13 @@ FIND_DEVICE = 2
 GET_PROPERTIES = 4
 DISCOVER_SERVICES = 8
 DONE_SDP = 16
+PAIR_IN_PROGRESS = 32
 
 # valid uuids
+def create_paired_device_cb(self, *args, **kwargs):
+        logger.debug("create_paired_device_cb %s %s" % (args, kwargs))
+        self.state = IDLE
+        self.reply_callback()
 OBEX_UUID='00001105-0000-1000-8000-00805f9b34fb'
 FTP_UUID='00001106-0000-1000-8000-00805f9b34fb'
 
@@ -58,18 +63,18 @@ def generate_arguments(*args, **kwargs):
     return [ str(x) for x in out ]
 
 class ServiceNotProvided(Exception):
-  '''
-  Exception used to tell the other end when a certain service is not provided by
-  the target.
-  '''
-  path = None
+    '''
+    Exception used to tell the other end when a certain service is not 
+    provided by the target.
+    '''
+    path = None
 
-  def __init__(self, path, *args, **kwargs):
-    super(Exception, self).__init__(*args, **kwargs)
-    self.path = path
+    def __init__(self, path, *args, **kwargs):
+        super(Exception, self).__init__(*args, **kwargs)
+        self.path = path
 
-  def __str__(self):
-    return "ServiceNotProvided(%s)" % self.path
+    def __str__(self):
+        return "ServiceNotProvided(%s)" % self.path
 
 def property_changed_cb(name, value, path):
     '''
@@ -130,7 +135,8 @@ class UploadTarget(object):
 
     def __ReturnError__(self, error):
         if callable(self.error_callback):
-            self.error_callback(self, error=error, state=self.state, connected=self.connected)
+            self.error_callback(self, error=error, state=self.state, 
+                                connected=self.connected)
         self.cleanup()
         self.state = IDLE
 
@@ -235,7 +241,41 @@ class UploadTarget(object):
         self.state = DONE_SDP
         if callable(self.reply_callback):
             self.reply_callback(self, channel)
+
+    def PairDevice(self, address, agent, reply_callback, error_callback):
+        self.reply_callback = reply_callback
+        self.error_callback = error_callback
+        self.CreatePairedDevice(address, agent)
+
+    def CreatePairedDevice(self, target, agent):
+        logger.debug("createPairedDevice")
+        self.state = PAIR_IN_PROGRESS
+        self.dongle.CreatePairedDevice(
+            target,
+            agent,
+            "NoInputNoOutput",
+            reply_handler=self.create_paired_device_cb, 
+            error_handler=self.create_paired_device_err,
+            timeout=3000 # so we don't get timeouts so soon!
+        )
     
+    def create_paired_device_cb(self, *args, **kwargs):
+        logger.debug("create_paired_device_cb %s %s" % (args, kwargs))
+        self.state = IDLE
+        self.reply_callback(target=self)
+
+    def create_paired_device_err(self, reason):
+        logger.debug("create_paired_device_err %s %s" % (reason, type(reason)))
+        self.state = IDLE
+        if reason.get_dbus_name().find('AlreadyExists')>-1:
+            self.reply_callback(target=self)
+        else:
+            self.error_callback(target=self,
+                            connected=self.connected,
+                            error=reason.get_dbus_message(),
+                            exception=reason.get_dbus_name()
+                            )
+
     def SendFiles(self, 
                     files, 
                     retries=1, 
@@ -299,34 +339,34 @@ class SpawnAplication(gobject.GObject):
     
     def Run(self):
         self.pid, stdin, self.stdout, self.stderr = gobject.spawn_async(
-                                        self.argv,
-                                        flags = gobject.SPAWN_DO_NOT_REAP_CHILD, 
-                                            # make sure we can handle it's exit
-                                        standard_input=False,
-                                        standard_output=True,
-                                        standard_error=True
-                                )   
+            self.argv,
+            flags = gobject.SPAWN_DO_NOT_REAP_CHILD, 
+            # make sure we can handle it's exit
+            standard_input=False,
+            standard_output=True,
+            standard_error=True
+            )   
         gobject.child_watch_add(self.pid, self.__HandleExit)
     
     def __HandleExit(self, pid, status):
-	def read_and_close(io):
-	    t = gobject.IOChannel(io)
-	    out = t.read()
-	    t.close()
-	    return out
-	
-	def get_retcode(status):
-	    if os.WIFEXITED(status):
-		# completed correctly calling exit
-		return os.WEXITSTATUS(status)
-	    elif os.WIFSIGNALED(status):
-		logger.debug("exited with a signal")
-		return 0xff00 + os.WTERMSIG(status)
-	    else:
-		logger.debug("unknown return condition")
-		return 0xffff
-	
-	retcode = get_retcode(status)
+        def read_and_close(io):
+            t = gobject.IOChannel(io)
+            out = t.read()
+            t.close()
+            return out
+
+        def get_retcode(status):
+            if os.WIFEXITED(status):
+                # completed correctly calling exit
+                return os.WEXITSTATUS(status)
+            elif os.WIFSIGNALED(status):
+                logger.debug("exited with a signal")
+                return 0xff00 + os.WTERMSIG(status)
+            else:
+                logger.debug("unknown return condition")
+                return 0xffff
+
+        retcode = get_retcode(status)
         logger.debug("HandleExit pid: %s, retcode: %s" % (pid, retcode) )
 
         stdout = read_and_close(self.stdout)
@@ -392,9 +432,11 @@ if __name__=='__main__':
         sys.exit(0)
 
     bus = dbus.SystemBus()
-    manager = dbus.Interface(bus.get_object("org.bluez", "/"), "org.bluez.Manager")
-    adapter = dbus.Interface(bus.get_object("org.bluez", manager.DefaultAdapter()),
-                            "org.bluez.Adapter")
+    manager = dbus.Interface(bus.get_object("org.bluez", "/"), 
+                             "org.bluez.Manager")
+    adapter = dbus.Interface(bus.get_object("org.bluez", 
+                                            manager.DefaultAdapter()),
+                             "org.bluez.Adapter")
     files = [ sys.argv[1], ]
     targets = sys.argv[2:]
     
