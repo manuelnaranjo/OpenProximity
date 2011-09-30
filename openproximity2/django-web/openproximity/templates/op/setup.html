@@ -1,7 +1,7 @@
 {% extends "op/base.html" %}
 
 {% block extrahead %}
-    <script type="text/javascript" src="{{ STATIC_URL }}js/date.js"></script>
+    <!--script type="text/javascript" src="{{ STATIC_URL }}js/date.js"></script-->
 {% endblock %}
 
 {% load i18n %}
@@ -12,10 +12,6 @@
     <form action="" method="post">
         <table id="main-content" cellspacing="0" cellpadding="0" class="layout-grid">
         <tbody>
-            <tr class="spacer"><td /></tr>
-            <tr>
-                <td class="holder corners" id="new_version_top"></td>
-            </tr>
             <tr class="spacer"><td /></tr>
             {% if done %}
             	<tr>
