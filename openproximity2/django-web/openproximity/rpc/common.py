@@ -1,19 +1,19 @@
-# -*- coding: utf-8 -*-
-#    OpenProximity2.0 is a proximity marketing OpenSource system.
-#    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+# -*- coding: utf-8 ; Mode: python; tab-width: 4 ; indent-tabs-mode: nil -*-
+# OpenProximity2.0 is a proximity marketing OpenSource system.
+# Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation version 2 of the License.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation version 2 of the License.
 #
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License along
-#    with this program; if not, write to the Free Software Foundation, Inc.,
-#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from net.aircable.openproximity.signals import scanner as signals
 from openproximity.models import *
 from random import random
@@ -46,13 +46,27 @@ def do_upload(uploader,
     logger.info("do_upload")
     logger.debug("About to call upload")
 
-    uploader.upload(ByValWrapper(files), 
-        remote, 
-        service, 
-        dongle_name=dongle_name, 
-        channel=channel,
-        uploader=dongle.address if dongle else None)
-    logger.debug("upload called async")
+    
+    if not channel:
+        logger.info("asking for sdp resolving")
+        uploader.resolve_service( remote, service, 
+                                  dongle.address if dongle else None )
+    elif not RemoteBluetoothDevicePairing.isPaired(remote):
+        uploader.start_pairing(remote, 
+                               dongle=dongle.address if dongle else None)
+    else:
+        dongles = RemoteBluetoothDevicePairing.getDonglesForRemote(remote)
+        if dongle and dongle.address in dongles:
+            dongle = dongle.address
+        else:
+            dongle = dongles[-1] # use last paired device
+        uploader.upload(ByValWrapper(files), 
+                        remote, 
+                        service, 
+                        dongle_name=dongle_name, 
+                        channel=channel,
+                        uploader=str(dongle))
+        logger.debug("upload called async")
     
 def get_files_from_campaign(camp, record):
     if camp.hasAccepted(record.remote):
