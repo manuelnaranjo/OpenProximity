@@ -117,7 +117,7 @@ class OpenProximitySchema(Django13Schema):
         help='max log file in MB, defaults to 10')
     debug.debug_count = IntOption(default=5,
         help='amount of log files to store when rotating, defaults to 2')
-    debug.debug_filename=StringOption(default=sys.argv[1],
+    debug.debug_filename=StringOption(default=None,
         help='file name used for this debug session, defaults to sys.argv[1]')
     debug.debug_console_format = StringOption(
         default='%(name)s %(module)s:%(funcName)s: %(message)s',
