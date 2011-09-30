@@ -80,32 +80,34 @@
                     <li>
                         <a id="nav_index" href="/">{% trans "Index" %}</a>
                     </li>
-                    <li>
-                        <a id="nav_documentation" 
-                            href="javascript: popitup('http://wiki.openproximity.org/userdocumentation', '')"
-                            >{% trans "Documentation" %}</a>
-                    </li>
-                    <li>
-                        <a id="nav_last_seen"
-                            href="javascript: popitup('/last-seen/', '')"
-                            >{% trans "Last Seen" %}</a>
-                    </li>
-                    {% if settings.debug %}
+                    {% block navbar %}
                         <li>
-                            <a id="nav_data" href="/data/">{% trans "Data Browse" %}</a>
+                            <a id="nav_documentation" 
+                                href="javascript: popitup('http://wiki.openproximity.org/userdocumentation', '')"
+                                >{% trans "Documentation" %}</a>
                         </li>
                         <li>
-                            <a id="nav_treeview" href="/treeview">{% trans "Data Tree" %}</a>
+                            <a id="nav_last_seen"
+                                href="javascript: popitup('/last-seen/', '')"
+                                >{% trans "Last Seen" %}</a>
                         </li>
-                    {% endif %}
-                    <li {% if not settings.translate %} class="last" {% endif %}>
-                        <a id="nav_admin" href="/admin/openproximity">{% trans "Admin Site" %}</a>
-                    </li>
-                    {% if settings.translate %}
-                        <li class="last">
-                            <a id="nav_translate" href="javascript: popitup('/admin/translate')">{% trans "Translate" %}</a>
+                        {% if settings.debug %}
+                            <li>
+                                <a id="nav_data" href="/data/">{% trans "Data Browse" %}</a>
+                            </li>
+                            <li>
+                                <a id="nav_treeview" href="/treeview">{% trans "Data Tree" %}</a>
+                            </li>
+                        {% endif %}
+                        <li {% if not settings.translate %} class="last" {% endif %}>
+                            <a id="nav_admin" href="/admin/openproximity">{% trans "Admin Site" %}</a>
                         </li>
-                    {% endif %}
+                        {% if settings.translate %}
+                            <li class="last">
+                                <a id="nav_translate" href="javascript: popitup('/admin/translate')">{% trans "Translate" %}</a>
+                            </li>
+                        {% endif %}
+                    {% endblock %}
                 </ul>
                 <div class="right"></div>
             </div>
@@ -144,6 +146,6 @@
 
 </body>
 
-<script type="text/javascript" src="http://proximitymarketing.googlecode.com/svn/trunk/openproximity2/latest-version.js"></script>
+<!--script type="text/javascript" src="http://proximitymarketing.googlecode.com/svn/trunk/openproximity2/latest-version.js"></script-->
 
 </html>
