@@ -1,19 +1,20 @@
-# -*- coding: utf-8 -*-
-#    OpenProximity2.0 is a proximity marketing OpenSource system.
-#    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+# -*- coding: utf-8 ; Mode: python; tab-width: 4 ; indent-tabs-mode: nil -*-
+# OpenProximity2.0 is a proximity marketing OpenSource system.
+# Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation version 2 of the License.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation version 2 of the License.
 #
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License along
-#    with this program; if not, write to the Free Software Foundation, Inc.,
-#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 import dbus, dbus.service, time, os, rpyc
 import net.aircable.const as const
 import net.aircable.utils as utils
@@ -23,13 +24,17 @@ from net.aircable.openproximity.signals.uploader import *
 from net.aircable.utils import *
 from net.aircable.wrappers import Adapter
 from rpyc.utils.lib import ByValWrapper
+from functools import partial
+from agent import Agent, PATH
 import async
+
+logger = utils.getLogger(__name__)
 
 from django.conf import settings
 
 MEDIA_ROOT = settings.MEDIA_ROOT
 TIMEOUT = os.environ.get('TIMEOUT', '20')
-     
+
 class UploadAdapter(Adapter):
     '''
     Class to wrap an uploader. All the process is done async, this means we
@@ -96,7 +101,8 @@ class UploadAdapter(Adapter):
 
     def FileFailed(self, target, retcode, stdout, stderr, *args, **kwargs):
         '''
-        Callback that lets us know when an upload process completed with a failure.
+        Callback that lets us know when an upload process completed with a 
+        failure.
         '''
         logger.info("File Failed %s" % target.target)
         self.manager.tellListeners(
@@ -125,7 +131,7 @@ class UploadAdapter(Adapter):
             port = channel
         )
         target.channel = channel
-        self.do_upload(target)
+        self.completed(target)
 
     def do_upload(self, target):
         '''
@@ -144,7 +150,8 @@ class UploadAdapter(Adapter):
         '''
         Callback that will get call when channel resolving failed.
         '''
-        logger.info("ServiceNotProvided %s %s %s" % (target.target, error, connected))
+        logger.info("ServiceNotProvided %s %s %s" % (target.target, error, 
+                                                     connected))
         signal = SDP_NORECORD if connected else SDP_TIMEOUT 
         
         self.manager.tellListeners(
@@ -166,6 +173,69 @@ class UploadAdapter(Adapter):
                 return slot
         raise Exception("No slot available")
 
+    def resolveService(self, uuid, address = None, target = None):
+        assert address or target
+        if not target:
+            target = async.UploadTarget( self.dbus_interface, address, self.bus, 
+                                     loop=self.loop)
+            target.slot = self.getSlot()
+            target.uuid = uuid
+    
+        target.ResolveChannel(uuid, self.ChannelResolved, 
+                              self.ServiceNotProvided)
+
+    def pairSuccess(self, target = None):
+        '''
+        Callback that will get call when pairing has been successfull.
+        '''
+        logger.info("Pairing success %s" % target.target)
+        signal = PAIR_SUCCESS 
+        
+        self.manager.tellListeners(
+            signal = signal,
+            dongle = self.bt_address,
+            address = str(target.target)
+        )
+        self.completed(target)
+
+    def pairFailed(self, error=None, target=None, connected=False, exception=None):
+        '''
+        Callback that will get call when pairing has failed
+        '''
+        logger.info("Pairing failed %s %s" % (target.target, error))
+        signal = PAIR_TIMEOUT if not connected else PAIR_REJECT
+        
+        self.manager.tellListeners(
+            signal = signal,
+            dongle = self.bt_address,
+            address = str(target.target),
+            reason = str(error),
+            exception = str(exception)
+        )
+        self.completed(target)
+        
+
+    def pairDevice(self, address=None, target=None, agent=None):
+        assert address or target
+        assert agent
+        if not target:
+            target = async.UploadTarget( 
+                self.dbus_interface, 
+                address, 
+                self.bus,
+                loop=self.loop)
+            target.slot = self.getSlot()
+
+        try:
+            logger.debug("pairing to address %s", address)
+            target.PairDevice(address, 
+                              PATH,
+                              self.pairSuccess, 
+                              self.pairFailed)
+        except Exception, err:
+            logger.exception(err)
+            raise err
+
 
     def upload(self, files, target, uuid, service, channel=None):
         '''
@@ -181,7 +251,6 @@ class UploadAdapter(Adapter):
                         target, 
                         self.bus, 
                         loop=self.loop)
-        self.slots[sl]
     
         target.files = files
         target.slot = sl
@@ -189,15 +258,12 @@ class UploadAdapter(Adapter):
         target.uuid = uuid
     
         if not channel:
-          target.ResolveChannel(
-            uuid, 
-            self.ChannelResolved,
-            self.ServiceNotProvided)
+            self.resolveService(uuid, target = target) 
         else:
-          target.channel=int(channel)
-          logger.debug("Using fixed channel %s" % channel)
-          self.do_upload(target)
-  
+            target.channel=int(channel)
+            logger.debug("Using fixed channel %s" % channel)
+            self.do_upload(target)
+
 class UploadManager:
     '''
     A manager that will handle the work for the different dongles we have 
@@ -223,14 +289,20 @@ class UploadManager:
     uploaders = dict()
     # dongles the server told us to use, this dict has address and priority
 
+    agent = None
+
     def __init__(self, bus, rpc=None, loop=None):
         logger.debug("UploadManager created")
         self.bus = bus
-        self.manager = dbus.Interface(bus.get_object(const.BLUEZ, const.BLUEZ_PATH), const.BLUEZ_MANAGER)
+        self.manager = dbus.Interface(bus.get_object(const.BLUEZ, 
+                                                     const.BLUEZ_PATH), 
+                                      const.BLUEZ_MANAGER)
         self.rpc = rpc
         self.loop = loop
         if self.rpc:
             self.remote_listener=rpyc.async(self.rpc.root.listener)
+        
+        self.agent = Agent(self.rpc, bus, PATH)
 
     def exposed_refreshUploaders(self):
         '''
@@ -313,8 +385,8 @@ class UploadManager:
     def exposed_upload(self, files, target, service='opp', dongle_name=None, 
             channel=None, uploader=None):
         '''
-        Exposed method that lets the server tell us it has an upload request for 
-        us.
+        Exposed method that lets the server tell us it has an upload request 
+        for us.
         '''
         try:
             dongle = None
@@ -336,12 +408,14 @@ class UploadManager:
             if dongle_name:
                 dongle.dbus_interface.SetProperty('Name', dongle_name)
 
-            logger.debug("uploading %s %s %s %s" % ( files, target, uuid, channel ) )
+            logger.debug("uploading %s %s %s %s" % ( files, target, uuid, 
+                                                     channel ) )
 
             for file_, fk in files:
                 f = os.path.join(MEDIA_ROOT, file_)
                 d = os.path.dirname(f)
-                if not os.path.isdir(d) or os.path.basename(f) not in os.listdir( d ):
+                if not os.path.isdir(d) or \
+                        os.path.basename(f) not in os.listdir( d ):
                     logger.debug("grabbing file %s" % d)
                     os.system('mkdir -p %s' % d )
                     A=file(f, 'w')
@@ -376,7 +450,31 @@ class UploadManager:
             except:
                 pass
 
-    # signal callback
+    def getDongle4Address(self, address):
+        if not address:
+            self.__index = self.__index or 0
+            dongle = self.__sequence[self.__index]
+        else:
+            dongle = self.manager.getAdapter(address)
+        return self.__dongles[dongle.bt_address]
+
+
+    def exposed_start_pairing(self, address, dongle=None):
+        try:
+            logger.debug("pairing to address %s", address)
+            uploader = self.getDongle4Address(dongle)
+            uploader.pairDevice(address, agent=self.agent)
+        except Exception, err:
+            logger.exception(err)
+            raise err
+
+    def exposed_resolve_service(self, address, service='opp', dongle=None):
+        dongle = self.getDongle4Address(dongle)
+        dongle.resolveService(
+            uuid=getattr(const.UUID, service, const.UUID['opp']), 
+            address=address
+            )
+
 
 if __name__=='__main__':
     def listen(signal, **kwargs):
