@@ -33,6 +33,11 @@ SDP_RESOLVED=BASE_SIGNAL+40
 SDP_NORECORD=BASE_SIGNAL+41
 SDP_TIMEOUT=BASE_SIGNAL+42
 
+PAIR_IN_PROGRESS=BASE_SIGNAL+50
+PAIR_SUCCESS=BASE_SIGNAL+51
+PAIR_TIMEOUT=BASE_SIGNAL+52
+PAIR_REJECT=BASE_SIGNAL+53
+
 TEXT = {
 	DONGLES_ADDED:		'Dongles added',
 	NO_DONGLES: 		'No dongles to add',
@@ -44,7 +49,12 @@ TEXT = {
 	
 	SDP_RESOLVED:		'Service found',
 	SDP_NORECORD:		'Service not provided',
-	SDP_TIMEOUT:		'Failed to retrieve services'
+	SDP_TIMEOUT:		'Failed to retrieve services',
+
+	PAIR_IN_PROGRESS:   'Tryingto pair',
+	PAIR_SUCCESS:       'Paired successfully',
+	PAIR_TIMEOUT:       'User did\'t reply to pair request',
+	PAIR_REJECT:        'Pairing rejected',
 }
 
 POST = {
@@ -59,4 +69,9 @@ POST = {
 	SDP_RESOLVED:		'uploader_sdp_ok',
 	SDP_NORECORD:		'uploader_sdp_no',
 	SDP_TIMEOUT:		'uploader_sdp_timeout',
+
+	PAIR_IN_PROGRESS:	'uploader_pair_start',
+	PAIR_SUCCESS:		'uploader_pair_success',
+	PAIR_TIMEOUT:		'uploader_pair_timeout',
+	PAIR_REJECT:        'uploader_pair_reject'
 }
