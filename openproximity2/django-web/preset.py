@@ -28,7 +28,8 @@ from django_configglue.utils import update_settings
 from functools import partial
 import schema
 
-OPENPROXIMITY_CONFIG_FILE=os.environ.get('OPENPROXIMITY_CONFIG_FILE', "/etc/openproximity2.conf")
+OPENPROXIMITY_CONFIG_FILE=os.environ.get('OPENPROXIMITY_CONFIG_FILE', 
+                                         "/etc/openproximity2.conf")
 
 # parse config files
 parser=SchemaConfigParser(schema.OpenProximitySchema())
@@ -50,3 +51,6 @@ locals()['DEBUG_DISABLES']=locals()['DEBUG_DISABLES'].split(',')
 
 # keep a reference to the parser
 __CONFIGGLUE_PARSER__ = parser
+
+if locals()['DEBUG_FILENAME'] == None:
+	locals()['DEBUG_FILENAME'] = sys.argv[-1]
