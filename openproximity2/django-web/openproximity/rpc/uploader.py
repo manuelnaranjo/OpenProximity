@@ -1,18 +1,18 @@
-#    OpenProximity2.0 is a proximity marketing OpenSource system.
-#    Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+# OpenProximity2.0 is a proximity marketing OpenSource system.
+# Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation version 2 of the License.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation version 2 of the License.
 #
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License along
-#    with this program; if not, write to the Free Software Foundation, Inc.,
-#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from net.aircable.openproximity.signals import uploader as signals
@@ -20,7 +20,7 @@ from net.aircable.utils import getLogger
 logger = getLogger(__name__)
 from openproximity.models import *
 
-from common import do_upload, is_known_dongle, isAIRcable
+from common import do_upload, is_known_dongle, isAIRcable, found_action
 
 #from pickle import loads
 
@@ -65,6 +65,11 @@ def handle(signal, *args, **kwargs):
                 kwargs['files'],
                 kwargs['ret'],
                 kwargs['stderr'])
+    elif signal == signals.PAIR_SUCCESS:
+        handle_paired(kwargs['dongle'], kwargs['address'])
+    elif signal in [signals.PAIR_TIMEOUT, signals.PAIR_REJECT]:
+        handle_pair_error(kwargs['dongle'], kwargs['address'], kwargs['reason'],
+            kwargs['exception'])
     else:
         logger.error("signal ignored")
     
@@ -104,6 +109,7 @@ def get_dongles(dongles):
     return out
 
 def handle_sdp_resolved(dongle, remote, channel):
+    from openproximity.rpc.server import OpenProximityService
     logger.info("Valid SDP: %s %s" % (remote, channel) )
     remote=RemoteDevice.objects.filter(address=remote).get()
     if RemoteBluetoothDeviceSDP.objects.filter(remote=remote).count() == 0:
@@ -113,6 +119,9 @@ def handle_sdp_resolved(dongle, remote, channel):
         record.channel = channel
         record.remote = remote
         record.save()
+    logger.info("Starting bonding process")
+    uploader = OpenProximityService.getUploader()
+    uploader.start_pairing(remote.address)
 
 def handle_sdp_norecord(dongle, remote):
     logger.info("No SDP: %s" % remote)
@@ -127,7 +136,7 @@ def handle_sdp_norecord(dongle, remote):
         record.remote = remote
         record.save()
 
-def handle_sdp_timeout(dongle, remote, pending):
+def handle_sdp_timeout(dongle, remote):
     logger.info("SDP timeout: %s" % remote )
 
     from openproximity.rpc.server import OpenProximityService
@@ -137,6 +146,34 @@ def handle_sdp_timeout(dongle, remote, pending):
     record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
     record.setRemoteDevice(remote)
     record.save()
+
+def handle_paired(dongle, remote):
+    logger.info("Paired with %s on %s" % (dongle, remote))
+    
+    record = RemoteBluetoothDevicePairing()
+    record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
+    record.setRemoteDevice(remote)
+    record.state = RemoteBluetoothDevicePairing.STATES["Passed"]
+    record.save()
+    found_action(remote, dongle=dongle, record=record)
+
+def handle_pair_error(dongle, remote, msg, exception):
+    logger.info("Paired failed %s on %s, %s:%s" % (dongle, remote, msg,
+        exception))
+    
+    record = RemoteBluetoothDevicePairing()
+    record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
+    record.setRemoteDevice(remote)
+    if 'reject' in exception.lower():
+        record.state = RemoteBluetoothDevicePairing.STATES["Rejected"]
+    else:
+        record.state = RemoteBluetoothDevicePairing.STATES["Timeout"]
+    record.msg = msg
+    record.exception = exception
+    record.save()
+    
+    from openproximity.rpc.server import OpenProximityService
+    OpenProximityService.removePending(remote)
 
 def handle_file_uploaded(dongle, remote, channel, files):
     logger.info("files uploaded: %s[%s]: %s" % ( remote, channel, files) )
