@@ -623,6 +623,37 @@ class RemoteBluetoothDevicePairing(RemoteBluetoothDeviceRecord):
     state = models.IntegerField(
         choices = PAIRING
     )
+    msg = models.CharField( null = True, blank = True, max_length = 50)
+    exception = models.CharField( null = True, blank = True, max_length = 50 )
+    
+    @classmethod
+    def isPaired(klass, remote):
+        logger.debug("isPaired %s" % remote )
+        return klass.objects.filter(remote__address=remote, 
+            state=klass.PAIRED).count() > 0
+    
+    @classmethod
+    def rejectedCount(klass, remote):
+        logger.debug("rejectedCount %s" % remote)
+        return klass.objects.filter(remote=remote, state=klass.REJECTED).count()
+
+    @classmethod
+    def timeoutCount(klass, remote):
+        logger.debug("timeoutCount %s" % remote)
+        return klass.objects.filter(remote=remote, state=klass.TIMEOUT).count()
+
+    @classmethod
+    def getDonglesForRemote(klass, remote):
+        logger.debug("getDonglesForRemote %s" % remote)
+        return [ a['dongle__address'] for a in \
+            klass.objects.filter(remote__address="70:05:14:02:4D:DF"). \
+                values('dongle__address') ]
+
+STATES = dict([(a[1], a[0]) for a in PAIRING])
+RemoteBluetoothDevicePairing.STATES = STATES
+RemoteBluetoothDevicePairing.PAIRED = STATES['Passed']
+RemoteBluetoothDevicePairing.REJECTED = STATES['Rejected']
+RemoteBluetoothDevicePairing.TIMEOUT = STATES['Timeout']
 
 class RemoteBluetoothDeviceFileTry(RemoteBluetoothDeviceRecord):
     campaign = models.ForeignKey(MarketingCampaign)
