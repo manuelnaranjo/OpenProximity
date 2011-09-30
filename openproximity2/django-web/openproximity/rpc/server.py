@@ -183,6 +183,8 @@ class OpenProximityService(Service):
         self.dongles = set()
         self.add_dongle = async(client.add_dongle)
         self.upload = async(client.upload)
+        self.resolve_service = async(client.resolve_service)
+        self.start_pairing = async(client.start_pairing)
         self.remote_quit = async(remote_quit)
         self.refreshUploaders = async(client.refreshUploaders)
 
