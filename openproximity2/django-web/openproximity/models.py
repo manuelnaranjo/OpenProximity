@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-#   OpenProximity2.0 is a proximity marketing OpenSource system.
-#   Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
+# OpenProximity2.0 is a proximity marketing OpenSource system.
+# Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
-#   This program is free software; you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation version 2 of the License.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation version 2 of the License.
 #
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License along
-#   with this program; if not, write to the Free Software Foundation, Inc.,
-#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 from datetime import datetime
 import time
 
@@ -285,24 +285,46 @@ class MarketingCampaign(Campaign):
     def hasAccepted(self, remote):
         return RemoteBluetoothDeviceFilesSuccess.objects.filter(
             campaign=self, remote=remote).count()>0
-                
+
     def getAcceptedCount(self):
         return RemoteBluetoothDeviceFilesSuccess.\
             objects.filter(campaign=self).count()
+
+    
+    def __getRecordForRemote(self, remote):
+        '''
+        Internal method used to recover the record needed to match
+        the given campaign, when trying to determinate if we should try
+        again or not on this device.
+        '''
+        pair_tries = RemoteBluetoothDevicePairing.objects.filter(
+            remote=remote.address).order_by('-time')[:1]
+        file_tries = RemoteBluetoothDeviceFilesRejected.objects.filter(
+            campaign=self, remote=remote).order_by('-time')[:1]
+        if pair_tries.count() == 0 and files_tries.count() == 0:
+            return None
+        if pair_tries.count() == 0:
+            return files_tries[0]
+        if files_tries.count() == 0:
+            return pair_tries[0]
+        
+        # we want to return the oldest record
+        if pair_tries[0].time > file_tries[0].time:
+            return pair_tries[0]
+        return file_tries[0]
+
 
     def tryAgain(self, record=None, remote=None):
         assert record or remote, "Can't pass both record and remote as none"
 
         if remote:
-            qs = RemoteBluetoothDeviceFilesRejected.\
-                objects.filter(campaign=self, remote=remote).order_by('-time')
-            if qs.count() == 0:
+            record = self.__getRecordForRemote(remote)
+            if not record:
                 logger.info("first time ever")
                 return True
 
-            record=qs.all()[0]
             logger.debug("got record, %s" % record)
-            
+
         previous=time.mktime(record.time.timetuple())-time.timezone
         delta = time.mktime(time.gmtime())-time.timezone-previous
         logger.info("delta: %s" % delta)
@@ -625,7 +647,13 @@ class RemoteBluetoothDevicePairing(RemoteBluetoothDeviceRecord):
     )
     msg = models.CharField( null = True, blank = True, max_length = 50)
     exception = models.CharField( null = True, blank = True, max_length = 50 )
-    
+
+    # --- methods that emulate RemoteBluetoothDeviceFileTry API ---
+    def isTimeout(self):
+        return self.state == self.TIMEOUT
+
+    # --- end of api mimic methods ---
+
     @classmethod
     def isPaired(klass, remote):
         logger.debug("isPaired %s" % remote )
@@ -641,6 +669,11 @@ class RemoteBluetoothDevicePairing(RemoteBluetoothDeviceRecord):
     def timeoutCount(klass, remote):
         logger.debug("timeoutCount %s" % remote)
         return klass.objects.filter(remote=remote, state=klass.TIMEOUT).count()
+
+    @classmethod
+    def triesCount(klass, remote):
+        logger.debug("triesCount %s" % remote)
+        return klass.objects.filter(remote=remote).count()
 
     @classmethod
     def getDonglesForRemote(klass, remote):
