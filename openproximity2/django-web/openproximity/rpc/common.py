@@ -133,6 +133,7 @@ def found_action_upload(remote, record = None, line=None):
           channel = camp.fixed_channel
         if camp.upload_on_discovered:
             use_same = True
+
     sdp = RemoteBluetoothDeviceSDP.objects.filter(remote__pk=record.remote.pk)
     if sdp.count() > 0:
         channel = sdp.order_by("-time")[0].channel
