@@ -42,14 +42,16 @@ function update_posts(){
             while ( queue.length > {{ amount }})
                 queue.shift()
 
-            mesg.innerHTML=""
+            var out = "";
 
             for ( var i in queue ){
                 var post = queue[i]
                 {% autoescape off %}
-                    mesg.text({{ line_format }}+mesg.text());
+                    out = {{ line_format }} + out;
                 {% endautoescape %}
             }
+            mesg.clear();
+            mesg.append($("<pre>"+out+"</pre>"));
         },
         'error': function(){
             var mesg = $("#{{ element }}");
