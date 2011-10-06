@@ -679,7 +679,7 @@ class RemoteBluetoothDevicePairing(RemoteBluetoothDeviceRecord):
     def getDonglesForRemote(klass, remote):
         logger.debug("getDonglesForRemote %s" % remote)
         return [ a['dongle__address'] for a in \
-            klass.objects.filter(remote__address="70:05:14:02:4D:DF"). \
+            klass.objects.filter(remote__address=remote). \
                 values('dongle__address') ]
 
 STATES = dict([(a[1], a[0]) for a in PAIRING])
