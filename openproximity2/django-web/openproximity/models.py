@@ -655,32 +655,41 @@ class RemoteBluetoothDevicePairing(RemoteBluetoothDeviceRecord):
     # --- end of api mimic methods ---
 
     @classmethod
+    def __count(klass, remote, state=None):
+        qs = klass.objects.all()
+        if state:
+            qs=qs.filter(state=state)
+        if isinstance(remote, str):
+            return qs.filter(remote__address=remote)
+        else:
+            return qs.filter(remote=remote)
+
+    @classmethod
     def isPaired(klass, remote):
         logger.debug("isPaired %s" % remote )
-        return klass.objects.filter(remote__address=remote, 
-            state=klass.PAIRED).count() > 0
+        klass.__count(remote, klass.PAIRED).count() > 0
     
     @classmethod
     def rejectedCount(klass, remote):
         logger.debug("rejectedCount %s" % remote)
-        return klass.objects.filter(remote=remote, state=klass.REJECTED).count()
+        return klass.__count(remote=remote, state=klass.REJECTED).count()
 
     @classmethod
     def timeoutCount(klass, remote):
         logger.debug("timeoutCount %s" % remote)
-        return klass.objects.filter(remote=remote, state=klass.TIMEOUT).count()
+        return klass.__count(remote=remote, state=klass.TIMEOUT).count()
 
     @classmethod
     def triesCount(klass, remote):
         logger.debug("triesCount %s" % remote)
-        return klass.objects.filter(remote=remote).count()
+        return klass.__count(remote=remote).count()
 
     @classmethod
     def getDonglesForRemote(klass, remote):
         logger.debug("getDonglesForRemote %s" % remote)
-        return [ a['dongle__address'] for a in \
-            klass.objects.filter(remote__address=remote). \
-                values('dongle__address') ]
+
+        return [ a['dongle__address'] for a in 
+            klass.__count(remote=remote).values('dongle__address') ]
 
 STATES = dict([(a[1], a[0]) for a in PAIRING])
 RemoteBluetoothDevicePairing.STATES = STATES

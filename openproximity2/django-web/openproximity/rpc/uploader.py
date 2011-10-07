@@ -43,7 +43,6 @@ def handle(signal, *args, **kwargs):
         handle_sdp_norecord(
                 kwargs['dongle'],
                 kwargs['address'])
-        
     elif signal == signals.SDP_TIMEOUT:
         logl.content += ' %s' %( kwargs['address'])
         handle_sdp_timeout(
@@ -164,7 +163,8 @@ def handle_pair_error(dongle, remote, msg, exception):
     record = RemoteBluetoothDevicePairing()
     record.dongle = UploaderBluetoothDongle.objects.get(address=dongle)
     record.setRemoteDevice(remote)
-    if 'reject' in exception.lower():
+    exc = exception.lower()
+    if 'reject' in exc or 'failed' in exc:
         record.state = RemoteBluetoothDevicePairing.STATES["Rejected"]
     else:
         record.state = RemoteBluetoothDevicePairing.STATES["Timeout"]
