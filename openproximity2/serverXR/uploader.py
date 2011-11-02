@@ -74,6 +74,9 @@ class UploadAdapter(Adapter):
         self.slots = dict( [ (i, None) for i in range(max_uploads) ] )
         self.manager = manager
         self.loop = loop
+        self.hci_path = self.dbus_path.split("/")[-1]
+        for i in range(0, max_uploads):
+            Agent(self.bus, self.hci_path)
         logger.debug("Initializated UploaderDongle")
 
     def completed(self, target):
@@ -198,7 +201,8 @@ class UploadAdapter(Adapter):
         )
         self.completed(target)
 
-    def pairFailed(self, error=None, target=None, connected=False, exception=None):
+    def pairFailed(self, error=None, target=None, connected=False, 
+                   exception=None):
         '''
         Callback that will get call when pairing has failed
         '''
@@ -215,9 +219,8 @@ class UploadAdapter(Adapter):
         self.completed(target)
         
 
-    def pairDevice(self, address=None, target=None, agent=None):
+    def pairDevice(self, address=None, target=None):
         assert address or target
-        assert agent
         if not target:
             target = async.UploadTarget( 
                 self.dbus_interface, 
@@ -228,8 +231,9 @@ class UploadAdapter(Adapter):
 
         try:
             logger.debug("pairing to address %s", address)
+            agent = Agent.getAgent(self.hci_path)
             target.PairDevice(address, 
-                              PATH,
+                              agent.path,
                               self.pairSuccess, 
                               self.pairFailed)
         except Exception, err:
@@ -289,8 +293,6 @@ class UploadManager:
     uploaders = dict()
     # dongles the server told us to use, this dict has address and priority
 
-    agent = None
-
     def __init__(self, bus, rpc=None, loop=None):
         logger.debug("UploadManager created")
         self.bus = bus
@@ -302,8 +304,6 @@ class UploadManager:
         if self.rpc:
             self.remote_listener=rpyc.async(self.rpc.root.listener)
         
-        self.agent = Agent(self.rpc, bus, PATH)
-
     def exposed_refreshUploaders(self):
         '''
         Exposed method that lets the server tell us when it sent us all the 
@@ -463,7 +463,7 @@ class UploadManager:
         try:
             logger.debug("pairing to address %s", address)
             uploader = self.getDongle4Address(dongle)
-            uploader.pairDevice(address, agent=self.agent)
+            uploader.pairDevice(address)
         except Exception, err:
             logger.exception(err)
             raise err
