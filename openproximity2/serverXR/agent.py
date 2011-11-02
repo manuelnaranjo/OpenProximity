@@ -1,3 +1,4 @@
+# -*- coding: utf-8 ; Mode: python; tab-width: 4 ; indent-tabs-mode: nil -*-
 # OpenProximity2.0 is a proximity marketing OpenSource system.
 # Copyright (C) 2010,2009,2008 Naranjo Manuel Francisco <manuel@aircable.net>
 #
@@ -45,9 +46,31 @@ class Agent(dbus.service.Object):
     Documentation for the methods come from BlueZ docs.
     '''
 
-    def __init__(self, rpc_server, *a, **kw):
+    AGENTS = dict()
+
+    @classmethod
+    def getAgent(klass, dongle):
+        logger.info("Agent request for dongle %s" % dongle)
+        if dongle not in klass.AGENTS:
+            raise Exception("You need to initializate the dongles first")
+
+        for agent in klass.AGENTS[dongle]:
+            if not agent.flag:
+                agent.flag = True
+                logger.info("Going to use %s" % agent.path)
+                return agent
+        raise Exception("No agents are available")
+
+    def __init__(self, rpc_server, dongle, *a, **kw):
         self.rpc_server = rpc_server
         dbus.service.Object.__init__(self, *a, **kw)
+        if not dongle in Agent.AGENTS:
+            Agent.AGENTS[dongle]=list()
+        self.index=len(Agent.AGENTS[dongle])
+        Agent.AGENTS[dongle].append(self)
+        self.path="%s/%s/%i" % (PATH, dongle, index)
+        logger.info("Started agent for path %s" % self.path)
+        self.busy = False
 
     @dbus.service.method("org.bluez.Agent", in_signature="", out_signature="")
     def Release(self):
@@ -55,7 +78,8 @@ class Agent(dbus.service.Object):
         Release the agent, and exit the loop. Gets called by BlueZ when it 
         needs us to release the agent.
         '''
-        logger.info("Agent Release")
+        logger.info("Agent Release %s" % self.path)
+        self.busy = False
 
     @dbus.service.method("org.bluez.Agent", in_signature="os", out_signature="")
     def Authorize(self, device, uuid):
