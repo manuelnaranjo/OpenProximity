@@ -81,7 +81,8 @@ def start_server(options):
     Start RPyC server
     """
 
-    if options['daemonize'] and options['server_user'] and options['server_group']:
+    if options['daemonize'] and options['server_user'] and \
+            options['server_group']:
         #ensure the that the daemon runs as specified user
         change_uid_gid(options['server_user'], options['server_group'])
 
@@ -109,7 +110,8 @@ def runserver(argset=[], **kwargs):
 
     if options['daemonize']:
         if not options['pidfile']:
-            options['pidfile'] = '/var/run/openproximity_rpc_%s.pid' % options['port']
+            options['pidfile'] = '/var/run/openproximity_rpc_%s.pid' % \
+                options['port']
 
         logger.info("storing pid file in %s" % options['pidfile'])
         from django.utils.daemonize import become_daemon
