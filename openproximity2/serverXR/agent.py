@@ -101,19 +101,19 @@ class Agent(dbus.service.Object):
         '''
         logger.info("request pin code")
         try:
-	        device = dbus.Interface(bus.get_object("org.bluez", path), 
+            device = dbus.Interface(bus.get_object("org.bluez", path), 
                             "org.bluez.Device")
-	        dongle = dbus.Interface(bus.get_object(
-		        "org.bluez", device.GetProperties()['Adapter']),
+            dongle = dbus.Interface(bus.get_object(
+                "org.bluez", device.GetProperties()['Adapter']),
                                 "org.bluez.Adapter")
-	        device=str(device.GetProperties()['Address'])
-	        dongle=str(dongle.GetProperties()['Address'])
-	        pin=self.rpc_server.root.getPIN(device, dongle)
-	        logger.info("RequestPinCode (%s->%s): %s" % (dongle, device, pin) )
-	        return pin
+            device=str(device.GetProperties()['Address'])
+            dongle=str(dongle.GetProperties()['Address'])
+            pin=self.rpc_server.root.getPIN(device, dongle)
+            logger.info("RequestPinCode (%s->%s): %s" % (dongle, device, pin) )
+            return pin
         except Exception, err:
-	        logger.error(err)
-	        return "1234"
+            logger.error(err)
+            return "1234"
 
     @dbus.service.method("org.bluez.Agent", in_signature="o", out_signature="u")
     def RequestPasskey(self, device):
