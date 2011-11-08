@@ -39,16 +39,16 @@ def poll(fd, condition):
     socket, so we can flush the data from the server.
     '''
     try:
-	server.poll()
-	return True
+        server.poll()
+        return True
     except EOFError, eof:
-	logger.error("EOF while polling %s" % eof)
+        logger.error("EOF while polling %s" % eof)
         logger.exception(eof)
         stop()
         return False 
     except Exception, err:
-	logger.error("error during poll %s" % err)
-	logger.exception(err)
+        logger.error("error during poll %s" % err)
+        logger.exception(err)
     return True
 
 def stop():
