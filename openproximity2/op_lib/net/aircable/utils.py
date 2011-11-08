@@ -19,43 +19,12 @@ import logging
 import logging.handlers
 import os, sys, time
 
-logging.basicConfig()
-
 def isAIRcable(address):
     return address[:8].upper() in const.AIRCABLE_MAC
 
 import preset as settings
 
-clogger = logging.StreamHandler()
-clogger.setFormatter(logging.Formatter(settings.DEBUG_CONSOLE_FORMAT))
-clogger.setLevel(getattr(logging, settings.DEBUG_CONSOLE, logging.NOTSET))
-
-print logging.getLevelName(clogger.level)
-
-global LOG_FLAG
-LOG_FLAG=False
-
-flogger = None
-flogger_file=None
-flogger_file = os.path.join(settings.DEBUG_PATH, settings.DEBUG_FILENAME)
-
-try:
-    open(flogger_file, "w")
-    flogger=logging.handlers.RotatingFileHandler(flogger_file, 
-        maxBytes=1024*settings.DEBUG_MAXSIZE,
-        backupCount=settings.DEBUG_COUNT
-    )
-    format=logging.Formatter(settings.DEBUG_FORMAT)
-    flogger.setLevel(getattr(logging, settings.DEBUG_LEVEL, logging.NOTSET))
-    flogger.setFormatter(format)
-except:
-    LOG_FLAG = True
-    flogger = logging.NullHandler()
-
-loggers={}
-
-def getLogger(name=None):
-    global LOG_FLAG
+def getLogger(name="default"):
     if name in loggers:
         return loggers[name]
 
@@ -63,22 +32,53 @@ def getLogger(name=None):
     logger.setLevel(logging.NOTSET)
 
     if name and name in settings.DEBUG_DISABLES:
-        logging.getLogger(None).info("disabled")
+        logging.getLogger("default").info("disabled")
         return logger
 
-    #print name, clogger, clogger.level
-    logger.addHandler(clogger)
+    logger.handlers = []
 
-    if LOG_FLAG:
-        LOG_FLAG = False
-        logger.warning("Can't write to log file at %s" % flogger_file)
-    logger.addHandler(flogger)
+    #print name, clogger, clogger.level
+    if name:
+        logger.addHandler(clogger)
+
+    if not flogger:
+        logging.getLogger("default").warning(
+            "Can't write to log file at %s" % flogger_file)
+    else:
+        logger.addHandler(flogger)
 
     loggers[name]=logger
-    logging.getLogger(None).info("Added logger for %s" % name)
+    logging.getLogger("default").info("Added logger for %s" % name)
     return logger
 
-getLogger(None).setLevel(logging.NOTSET)
+if not hasattr(logging, "setup_done"):
+    print "Doing logging base setup"
+    logging.basicConfig()
+    logging.setup_done = True
+    logging.getLogger(None).addHandler(logging.NullHandler())
+
+    clogger = logging.StreamHandler()
+    clogger.setFormatter(logging.Formatter(settings.DEBUG_CONSOLE_FORMAT))
+    clogger.setLevel(getattr(logging, settings.DEBUG_CONSOLE, logging.NOTSET))
+
+    flogger = None
+    flogger_file=None
+    flogger_file = os.path.join(settings.DEBUG_PATH, settings.DEBUG_FILENAME)
+
+    try:
+        open(flogger_file, "w")
+        size = 1024*1024*settings.DEBUG_MAXSIZE
+        count = settings.DEBUG_COUNT
+        flogger=logging.handlers.RotatingFileHandler(flogger_file, 
+                                                     maxBytes=size,
+                                                     backupCount=count)
+        format=logging.Formatter(settings.DEBUG_FORMAT)
+        flogger.setLevel(getattr(logging, settings.DEBUG_LEVEL, logging.NOTSET))
+        flogger.setFormatter(format)
+    except:
+        flogger = None
+    loggers={}
+    getLogger(None).setLevel(logging.NOTSET)
 
 def trace():
     try:
