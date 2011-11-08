@@ -60,7 +60,9 @@ class OpenProximityService(Service):
         a = [ p for p in OpenProximityService.pending \
             if OpenProximityService.pending[p]==self]
         if len(a) > 0:
-           logger.info("a client disconnected, clearing %s pending transactions" % len(a))
+            logger.info(
+                "a client disconnected, clearing %s pending transactions" % 
+                len(a))
            for p in a:
                OpenProximityService.pending.pop(p)
         OpenProximityService.instances.remove(self)
