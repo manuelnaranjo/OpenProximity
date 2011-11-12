@@ -63,7 +63,7 @@ class Node(object):
             "data": self.data
         }
         if self.state: out['state'] = self.state
-        if self.klass: out["attributes"]['class'] = self.klass
+        if self.klass: out["attr"]['class'] = self.klass
         return out
 
 # urls or ids can be of two forms:
@@ -247,27 +247,25 @@ def data(request):
 
 def delete(request):
     if request.method != 'POST':
-	raise Exception("Expected a POST")
+        raise Exception("Expected a POST")
 
     if not request.user.is_authenticated() or not request.user.is_staff:
-	return HttpResponse(
-    	    simplejson.dumps(
-    		{
-    		    'need_login': True, 
-    		}),
-    	    content_type="application/json")
+        return HttpResponse(
+            simplejson.dumps({
+                'need_login': True,
+            }),
+            content_type="application/json")
 
     app, model, pk = request.POST.get('id').split('_')
     o = mod.get_model(app, model).objects.get(pk=pk)
     o.delete()
     return HttpResponse(
-        simplejson.dumps(
-    	    {
-    		'deleted': True, 
-    		'pk': pk, 
-    		'app': app,
-    		'model': model
-    	    }),
+        simplejson.dumps({
+            'deleted': True,
+            'pk': pk,
+            'app': app,
+            'model': model
+        }),
         content_type="application/json")
 
 def index(request):
@@ -279,4 +277,3 @@ urlpatterns = urls.patterns('',
     (r'data', data),
     (r'', index),
 )
-
