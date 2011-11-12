@@ -63,7 +63,7 @@ class OpenProximityService(Service):
             logger.info(
                 "a client disconnected, clearing %s pending transactions" % 
                 len(a))
-           for p in a:
+        for p in a:
                OpenProximityService.pending.pop(p)
         OpenProximityService.instances.remove(self)
         OpenProximityService.services.remove(self)
