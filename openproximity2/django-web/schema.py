@@ -128,6 +128,11 @@ class OpenProximitySchema(Django13Schema):
     debug.debug_disables = StringOption( default='', 
         help='comma separated list of disable log modules')
 
+    rpc_client = Section("rpc_client")
+    rpc_client.mode = StringOption()
+    rpc_client.host = StringOption(default="localhost")
+    rpc_client.port = IntOption(default=8010)
+
 if os.path.isfile('/etc/timezone'):
     OpenProximitySchema.django.time_zone.default = file('/etc/timezone').readline().strip()
 
