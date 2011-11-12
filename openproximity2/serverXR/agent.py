@@ -55,8 +55,8 @@ class Agent(dbus.service.Object):
             raise Exception("You need to initializate the dongles first")
 
         for agent in klass.AGENTS[dongle]:
-            if not agent.flag:
-                agent.flag = True
+            if not agent.busy:
+                agent.busy = True
                 logger.info("Going to use %s" % agent.path)
                 return agent
         raise Exception("No agents are available")
@@ -68,7 +68,7 @@ class Agent(dbus.service.Object):
             Agent.AGENTS[dongle]=list()
         self.index=len(Agent.AGENTS[dongle])
         Agent.AGENTS[dongle].append(self)
-        self.path="%s/%s/%i" % (PATH, dongle, index)
+        self.path="%s/%s/%i" % (PATH, dongle, self.index)
         logger.info("Started agent for path %s" % self.path)
         self.busy = False
 
