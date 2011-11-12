@@ -659,7 +659,7 @@ class RemoteBluetoothDevicePairing(RemoteBluetoothDeviceRecord):
         qs = klass.objects.all()
         if state:
             qs=qs.filter(state=state)
-        if isinstance(remote, str):
+        if isinstance(remote, str) or isinstance(remote, unicode):
             return qs.filter(remote__address=remote)
         else:
             return qs.filter(remote=remote)
