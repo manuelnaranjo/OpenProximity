@@ -43,6 +43,7 @@ class Command(BaseCommand):
             option_list=self.option_list)
 
         configglue_parser = settings.__CONFIGGLUE_PARSER__
+        configglue_parser.setmode("rpyc")
         op, options, args = schemaconfigglue(configglue_parser, op=parser)
         return op
 
