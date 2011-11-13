@@ -53,4 +53,19 @@ locals()['DEBUG_DISABLES']=locals()['DEBUG_DISABLES'].split(',')
 __CONFIGGLUE_PARSER__ = parser
 
 if locals()['DEBUG_FILENAME'] == None:
-	locals()['DEBUG_FILENAME'] = sys.argv[-1]
+    locals()['DEBUG_FILENAME'] = sys.argv[-1]
+
+def setmode(self, mode):
+    d = []
+    if mode=="client":
+        d = ['openproximity', 'django', 'cherrypy', 'rpyc']
+    elif mode=='cherrypy':
+        d = ['rpc_client', 'rpyc']
+    elif mode=='rpyc':
+        d = ['rpc_client', 'cherrypy']
+    else:
+        print "invalid mode", mode
+    for i in d:
+        self.schema._sections.pop(i)
+
+parser.setmode=partial(setmode, parser)
