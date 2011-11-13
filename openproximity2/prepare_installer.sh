@@ -312,8 +312,6 @@ cp "$CWD"/rpc.sh .
 cp "$CWD"/run.sh .
 cp "$CWD"/run_rpc.sh .
 cp "$CWD"/server.sh .
-cp -r "$CWD"/serverXR .
-cp "$CWD"/django-web/setpaths.py serverXR/
 cp "$CWD"/shell.sh .
 cp "$CWD"/syncdb.sh .
 cp "$CWD"/syncagent.sh .
