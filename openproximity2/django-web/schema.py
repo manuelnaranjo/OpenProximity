@@ -129,12 +129,15 @@ class OpenProximitySchema(Django13Schema):
         help='comma separated list of disable log modules')
 
     rpc_client = Section("rpc_client")
-    rpc_client.mode = StringOption()
-    rpc_client.host = StringOption(default="localhost")
-    rpc_client.port = IntOption(default=8010)
+    rpc_client.client_mode = StringOption()
+    rpc_client.client_daemonize = BoolOption(default=False)
+    rpc_client.client_pidfile = StringOption(default=None)
+    rpc_client.client_host = StringOption(default="localhost")
+    rpc_client.client_port = IntOption(default=8010)
 
 if os.path.isfile('/etc/timezone'):
-    OpenProximitySchema.django.time_zone.default = file('/etc/timezone').readline().strip()
+    OpenProximitySchema.django.time_zone.default = \
+        file('/etc/timezone').readline().strip()
 
 OpenProximitySchema.django.auth_profile_module = StringOption(default=None,
                               help="Module to use for authoring")
