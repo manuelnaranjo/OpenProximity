@@ -19,8 +19,7 @@ class Command(BaseCommand):
     help = "RPyC Client for OpenProximity."
 
     def handle(self, *args, **options):
-        #runclient(args)
-        pass
+        runclient(args)
 
     def usage(self, subcommand):
         return self.help
@@ -65,8 +64,20 @@ def runclient(argset=[], **kwargs):
         fp.close()
 
     # Start the rpc server
-    logger.debug('starting server with options %s' % options)
-    start_client(options)
-    
+    logger.debug('starting client with options %s' % options)
+    mode = options['mode']
+    host = options['host']
+    port = int(options['port'])
+    valid_modes=['scanner', 'uploader', 'pairing']
+    from net.aircable.openproximity.pluginsystem import pluginsystem
+    valid_modes.extend([ \
+            i.provides['serverxr_type'] for i in \
+                pluginsystem.get_plugins('serverxr')])
+    if mode not in valid_modes:
+        print "not a valid mode, use any of", valid_modes
+        sys.exit(1)
+    from rpc_clients import manager
+    manager.run(host, port, mode)
+
 if __name__ == '__main__':
     runclient(sys.argv[1:])

@@ -17,7 +17,6 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # -*- coding: utf-8 -*-
-import setpaths
 import dbus, dbus.glib, gobject, select
 import os, sys, errno
 import rpyc
@@ -180,13 +179,16 @@ def run(server_, port, type_):
             for i in pluginsystem.get_plugins('serverxr'):
                 if type_==i.provides['serverxr_type']:
                     logger.info("init %s" % i.provides['serverxr_type'])
-                    module = __import__("%s.serverxr" % i.name, fromlist=[i.provides['serverxr_manager'],])
+                    module = __import__("%s.serverxr" % i.name, 
+                                        fromlist=[
+                            i.provides['serverxr_manager'],])
                     klass = getattr(module, i.provides['serverxr_manager'])
                     manager = klass (bus, rpc=server)
                     break
         if manager is None:
             raise Exception ("Not valid type")
-        gobject.timeout_add(100, init) # delay initialization 'til loop is running
+        gobject.timeout_add(100, init) 
+        # delay initialization 'til loop is running
     except dbus.DBusException, err:
         logger.info("bluez isn't ready, delaying init")
 
